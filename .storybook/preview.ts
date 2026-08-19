@@ -27,14 +27,22 @@ const preview: Preview = {
     theme: {
       description: 'Which Figma mode to render in',
       defaultValue: 'day',
-      toolbar: { title: 'Theme', icon: 'circlehollow', items: ['day', 'night'] },
+      toolbar: {
+        title: 'Theme',
+        icon: 'circlehollow',
+        // Every mode the token export defines. Check against the source before
+        // trimming this list — a mode missing here is a mode nobody ever looks at:
+        //   grep -oE '^\[data-theme="[a-z]+"\]' build/tokens/css/tokens.css
+        items: ['day', 'open', 'morning', 'sunrise', 'sunset', 'overcast', 'night'],
+        dynamicTitle: true,
+      },
     },
   },
   decorators: [
     (Story, context) => {
       document.documentElement.setAttribute('data-theme', context.globals.theme);
       document.body.style.background = 'var(--color-surface-page)';
-      document.body.style.color = 'var(--color-text-primary)';
+      document.body.style.color = 'var(--color-text-body)';
       return Story();
     },
   ],
