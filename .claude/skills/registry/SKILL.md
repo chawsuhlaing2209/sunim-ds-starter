@@ -60,7 +60,7 @@ An agent that finds one of them wrong reports it and stops.
 | Column | Owner | What it means |
 |---|---|---|
 | `Components` | 🎨 Human | The component name. PascalCase, matching `src/components/` |
-| `Category` | 🎨 Human | One of the five. **The choice names carry trailing spaces** — copy them exactly |
+| `Category` | 🎨 Human | The atomic-design level: `ATOMS`, `MOLECULES`, `ORGANISMS`, `TEMPLATES`, `UI` |
 | `Figma` | 🎨 Human | Node URL of the finished component set |
 | `Design` | 🎨 Human | `To-do` · `In progress` · `In testing` · `Done` · `To be fixed` |
 | `Commit` | 🔨 Engineer | Commit or PR URL for the merge into the staging branch |
@@ -126,8 +126,10 @@ QA creates these rows. One row per variant × size × state, never one row per c
 
 - Look the record up before you write it. Never create a second row for a component
   that already has one.
-- Single-select values go in as the plain choice name, not the choice object. The
-  `Category` names really do end in two spaces.
+- Single-select values go in as the plain choice name, not the choice object.
+- Read the choices from the base before writing one. They have been renamed once
+  already — this contract said they carried trailing spaces long after they stopped,
+  and an agent copying that instruction would have written an invalid choice.
 - If a value you need is not in the list of choices, that is a gap. Report it. Do
   not add a choice to make your write succeed.
 
