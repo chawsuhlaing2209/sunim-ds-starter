@@ -1,0 +1,188 @@
+/*
+ * Button
+ *
+ * Built from Figma node 19:231 — the Button component set,
+ * Variant (Primary | Secondary | Ghost) x Size (Md | Lg)
+ * x State (Default | Hover | Focus | Disabled | Loading) = 30 variants.
+ *
+ * ---------------------------------------------------------------------------
+ * UNBOUND IN FIGMA — design gaps, raised rather than guessed.
+ *
+ * The five values below carry no variable binding anywhere on the node. They
+ * are transcribed exactly as the node states them and quarantined in this one
+ * block, deliberately NOT mapped onto a semantic token that happens to share
+ * the same number — doing that would disguise a design gap as a binding and
+ * hide it from the next person. Each one becomes a var(--token) the moment
+ * design binds it in Figma.
+ * ---------------------------------------------------------------------------
+ */
+.sunim-Button {
+  /* node opacity on State=Disabled, every variant and size */
+  --sunim-Button-unbound-opacity-disabled: 0.5;
+  /* node opacity on State=Loading, every variant and size */
+  --sunim-Button-unbound-opacity-loading: 0.85;
+  /* stroke weight on Variant=Secondary, every size and state */
+  --sunim-Button-unbound-border-width: 1px;
+  /* Icon Slot frame, every variant and size */
+  --sunim-Button-unbound-icon-size: 16px;
+  /* Trailing frame on State=Loading, every variant and size */
+  --sunim-Button-unbound-spinner-size: 14px;
+
+  /* Auto-layout: horizontal, centre-aligned, hug contents. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-space-2);
+
+  appearance: none;
+  border: none;
+  background-color: transparent;
+  border-radius: var(--radius-radius-pill);
+
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sunim-Button:disabled {
+  cursor: not-allowed;
+}
+
+/* Sizes ------------------------------------------------------------------- */
+
+.sunim-Button--Md {
+  font: var(--font-action-md);
+  padding: var(--spacing-step-10) var(--spacing-step-18);
+}
+
+.sunim-Button--Lg {
+  font: var(--font-action-lg);
+  padding: var(--spacing-step-14) var(--spacing-step-26);
+}
+
+/* Slots ------------------------------------------------------------------- */
+
+.sunim-Button__label {
+  word-break: break-word;
+}
+
+.sunim-Button__trailing {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.sunim-Button__arrow {
+  display: block;
+  width: var(--sunim-Button-unbound-icon-size);
+  height: var(--sunim-Button-unbound-icon-size);
+}
+
+.sunim-Button__spinner {
+  display: block;
+  width: var(--sunim-Button-unbound-spinner-size);
+  height: var(--sunim-Button-unbound-spinner-size);
+  /*
+   * Figma can only draw the spinner at rest. The rotation is an engineering
+   * addition so Loading reads as loading, and it stops for reduced motion.
+   */
+  animation: sunim-Button-spin 0.7s linear infinite;
+}
+
+@keyframes sunim-Button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sunim-Button__spinner {
+    animation: none;
+  }
+}
+
+/* Primary ----------------------------------------------------------------- */
+
+.sunim-Button--Primary {
+  background-color: var(--color-accent-ink);
+  color: var(--color-text-on-accent);
+  box-shadow: var(--effect-shadow-button);
+}
+
+.sunim-Button--Primary:not(:disabled):hover,
+.sunim-Button--Primary.is-hover {
+  background-color: var(--color-accent-ink-deep);
+}
+
+/* Focus replaces the button shadow with the ring, as the node does. */
+.sunim-Button--Primary:not(:disabled):focus-visible,
+.sunim-Button--Primary.is-focus {
+  box-shadow: var(--effect-focus-ring);
+  outline: none;
+}
+
+.sunim-Button--Primary:disabled:not(.is-loading) {
+  box-shadow: none;
+}
+
+/* Secondary --------------------------------------------------------------- */
+
+/*
+ * Figma draws an inside stroke, which adds nothing to the frame size —
+ * Secondary and Primary are both 196x37 at Md. An inset box-shadow reproduces
+ * that exactly; a real `border` would push the pill 2px wider than Primary.
+ */
+.sunim-Button--Secondary {
+  background-color: var(--color-surface-card);
+  color: var(--color-accent-ink);
+  box-shadow: inset 0 0 0 var(--sunim-Button-unbound-border-width)
+    var(--color-line-default);
+}
+
+.sunim-Button--Secondary:not(:disabled):hover,
+.sunim-Button--Secondary.is-hover {
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent-ink-deep);
+}
+
+.sunim-Button--Secondary:not(:disabled):focus-visible,
+.sunim-Button--Secondary.is-focus {
+  box-shadow:
+    inset 0 0 0 var(--sunim-Button-unbound-border-width)
+      var(--color-line-default),
+    var(--effect-focus-ring);
+  outline: none;
+}
+
+/* Ghost ------------------------------------------------------------------- */
+
+.sunim-Button--Ghost {
+  color: var(--color-accent-ink);
+}
+
+.sunim-Button--Ghost:not(:disabled):hover,
+.sunim-Button--Ghost.is-hover {
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent-ink-deep);
+}
+
+/*
+ * The node binds focus/ring here too, but Figma renders it as a filter
+ * drop-shadow because Ghost has no fill, so the ring is invisible on the
+ * canvas. Drawn as a real ring here — see the report; design to confirm.
+ */
+.sunim-Button--Ghost:not(:disabled):focus-visible,
+.sunim-Button--Ghost.is-focus {
+  box-shadow: var(--effect-focus-ring);
+  outline: none;
+}
+
+/* States that apply to every variant --------------------------------------- */
+
+.sunim-Button:disabled:not(.is-loading) {
+  opacity: var(--sunim-Button-unbound-opacity-disabled);
+}
+
+.sunim-Button.is-loading {
+  opacity: var(--sunim-Button-unbound-opacity-loading);
+}
