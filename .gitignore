@@ -21,3 +21,4 @@ node_modules/
 .netrc
 secrets.json
 *.local.json
+.vercel
