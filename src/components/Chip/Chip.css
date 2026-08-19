@@ -1,0 +1,122 @@
+/*
+ * Chip
+ *
+ * Built from Figma node 21:79 — the Chip component set,
+ * Tone (Default | Gold | Agentic | Figma) x Size (Sm | Md) = 8 variants.
+ * There is no State property in the set: a Chip is a label, not a control.
+ *
+ * ---------------------------------------------------------------------------
+ * UNBOUND IN FIGMA — design gaps, raised rather than guessed.
+ *
+ * The five values below carry no variable binding on the node. They are
+ * transcribed exactly as the node states them and quarantined in this one
+ * block.
+ *
+ * Deliberately NOT mapped onto a same-numbered token from an unrelated scale.
+ * `--spacing-step-10`, `--spacing-step-3` and `--spacing-step-7` all exist and
+ * all carry exactly these numbers — which is precisely why using them would be
+ * wrong. Chip's Md horizontal padding IS bound, to `--space-4`; the other four
+ * paddings are not. That asymmetry is the tell that this is an oversight in the
+ * design, not a scale the designer chose. Swallowing it into step-10 would
+ * disguise a gap as a binding and it would never be found again.
+ *
+ * There is no border-width scale in the export at all — no token carries 1px or
+ * 1.5px — so the two stroke weights have nowhere to resolve to. Button
+ * quarantines the same gap from the other side
+ * (`--sunim-Button-unbound-border-width: 1px`); one border-width scale would
+ * close all three.
+ * ---------------------------------------------------------------------------
+ */
+.sunim-Chip {
+  /* horizontal padding on Size=Sm, every tone. Md's is bound to --space-4 */
+  --sunim-Chip-unbound-padding-x-sm: 10px;
+  /* vertical padding on Size=Sm, every tone */
+  --sunim-Chip-unbound-padding-y-sm: 3px;
+  /* vertical padding on Size=Md, every tone */
+  --sunim-Chip-unbound-padding-y-md: 7px;
+  /* stroke weight on Size=Sm, every tone */
+  --sunim-Chip-unbound-border-width-sm: 1px;
+  /* stroke weight on Size=Md, every tone */
+  --sunim-Chip-unbound-border-width-md: 1.5px;
+
+  /*
+   * The mark takes the label's colour on all four tones — the icon instance
+   * and the text node bind to the same variable on every variant, so one
+   * `color` per tone drives both. This is the override Icon Slot documents
+   * ("override the colour on the instance when it sits on a dark or accent
+   * surface"), used as documented rather than by reaching into its classes.
+   */
+  --sunim-IconSlot-color: currentColor;
+
+  /* Auto-layout: horizontal, centre-aligned, hug contents. */
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-space-2);
+
+  border-radius: var(--radius-radius-pill);
+
+  /* The node clips its contents. */
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Sizes ------------------------------------------------------------------- */
+
+/*
+ * Figma draws an inside stroke, which adds nothing to the frame size — the
+ * node measures 94x23 at Sm and 115x36 at Md, and both are exactly content
+ * plus padding with no room for a stroke. An inset box-shadow reproduces that;
+ * a real `border` would push each pill 2px wider and 2px taller than the node.
+ * The tone rules below supply the colour through --sunim-Chip-border-color.
+ */
+
+.sunim-Chip--Sm {
+  font: var(--font-ui-tag);
+  padding: var(--sunim-Chip-unbound-padding-y-sm)
+    var(--sunim-Chip-unbound-padding-x-sm);
+  box-shadow: inset 0 0 0 var(--sunim-Chip-unbound-border-width-sm)
+    var(--sunim-Chip-border-color);
+}
+
+.sunim-Chip--Md {
+  font: var(--font-ui-tag-lg);
+  padding: var(--sunim-Chip-unbound-padding-y-md) var(--spacing-space-4);
+  box-shadow: inset 0 0 0 var(--sunim-Chip-unbound-border-width-md)
+    var(--sunim-Chip-border-color);
+}
+
+/* Tones ------------------------------------------------------------------- */
+
+/* Default — sky. The everyday status tag. */
+.sunim-Chip--Default {
+  --sunim-Chip-border-color: var(--color-line-quiet);
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent-ink);
+}
+
+/* Gold — something earned or paid. */
+.sunim-Chip--Gold {
+  --sunim-Chip-border-color: var(--color-gold-line);
+  background-color: var(--color-gold-soft);
+  color: var(--color-gold-ink);
+}
+
+/* Agentic — an AI moment. Used sparingly. */
+.sunim-Chip--Agentic {
+  --sunim-Chip-border-color: var(--color-agentic-line);
+  background-color: var(--color-agentic-soft);
+  color: var(--color-agentic-default);
+}
+
+/* Figma — the pill stays quiet and lets the mark carry the colour. */
+.sunim-Chip--Figma {
+  --sunim-Chip-border-color: var(--color-line-default);
+  background-color: var(--color-surface-card);
+  color: var(--color-text-heading);
+}
+
+/* Slots ------------------------------------------------------------------- */
+
+.sunim-Chip__label {
+  word-break: break-word;
+}
