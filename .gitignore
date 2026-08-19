@@ -9,3 +9,15 @@ node_modules/
 
 .DS_Store
 *.log
+
+# Secrets. Nothing here should ever reach a public repo — and this repo is
+# public. Deploy credentials for the staging host will land in one of these.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.npmrc
+.netrc
+secrets.json
+*.local.json
