@@ -68,7 +68,7 @@ that production is not answering `200` with a login page, and that the security
 headers actually arrived:
 
 ```
-node scripts/security-check.mjs --url <production url>
+node scripts/security-check.mjs --url <production url> --expect public
 ```
 
 **Check:** the production URL opens, the component's stories render, console clean,
