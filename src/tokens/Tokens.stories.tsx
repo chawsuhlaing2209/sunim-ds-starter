@@ -139,7 +139,7 @@ export const EveryMode: Story = {
           </>
         }
       >
-        <div className="tk__modes" style={{ gridTemplateColumns: `18rem repeat(${MODES.length}, 1fr)` }}>
+        <div className="tk__modes" style={{ gridTemplateColumns: `18rem repeat(${MODES.length}, minmax(0, 1fr))` }}>
           <span className="tk__modeHead" />
           {MODES.map((m) => (
             <span key={m} className="tk__modeHead">

@@ -69,6 +69,13 @@
 }
 
 .tk__chip {
+  /*
+   * A span is inline by default, and an inline box ignores width and height.
+   * Inside .tk__swatchRow it is a grid item and gets blockified for free; inside
+   * .tk__modeCell it is not, so it collapsed to nothing and the cell background
+   * showed through instead. Set it explicitly rather than relying on the parent.
+   */
+  display: block;
   width: var(--spacing-space-5);
   height: var(--spacing-space-5);
   border-radius: var(--radius-radius-xs);
@@ -102,6 +109,8 @@
   display: grid;
   align-items: center;
   gap: var(--spacing-space-1) var(--spacing-space-2);
+  /* Seven columns plus the label need room; scroll rather than crush them. */
+  min-width: 64rem;
   overflow-x: auto;
 }
 
