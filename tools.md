@@ -23,6 +23,7 @@ Stack facts and commands only. Rules about how we work live in `CLAUDE.md`.
 | Build Storybook | `npm run build-storybook` |
 | Test | `npm test` |
 | Type check | `npm run lint` |
+| Security gate | `npm run security-check` (add `--url <url>` after deploying) |
 
 ## Registry and design sources
 
@@ -48,7 +49,7 @@ crew — nothing that talks to the registry works until you do.
 - Generated output: `build/tokens/` (never edit by hand, gitignored)
 - Components: `src/components/<Name>/`
 - Agents: `.claude/agents/` — `engineer`, `qa`, `devops`, `pm`
-- Skills: `.claude/skills/` — `build`, `test`, `registry`
+- Skills: `.claude/skills/` — `build`, `test`, `registry`, `security-check`
 - QA reports and the PM sweep: `reports/`
 
 ## Dependency rules
