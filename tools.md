@@ -30,14 +30,16 @@ The registry is Airtable. It is where the crew hands work over, and it is the on
 component's real status lives. The contract — tables, field owners, the status formula —
 is `.claude/skills/registry/SKILL.md`. Read that before writing to it.
 
-| Thing | Value |
+| Thing | Where |
 |---|---|
-| Registry base | `Sunim DS` — `appXXXXXXXXXXXXXX` |
-| Same base, pre-rename name | `Sunim Design System` — `appXXXXXXXXXXXXXX` |
-| Components table | `tblXXXXXXXXXXXXXX` |
-| Staging Testing table | `tblXXXXXXXXXXXXXX` |
+| Registry base and table IDs | `.claude/registry.local.json` — gitignored, not in this repo |
+| Template for that file | `.claude/registry.example.json` |
 | Pipeline board (FigJam) | `EALlC5L6UxZtwquiUfB90v` |
-| Component library (Figma) | `mFnN1Sr8MAmOdmx0ABXPsb` |
+| Component library (Figma) | recorded at the top of each component's story file |
+
+This repo is public, so the Airtable identifiers stay out of it. On a fresh clone,
+copy the example to `.claude/registry.local.json` and fill it in before running the
+crew — nothing that talks to the registry works until you do.
 
 ## Paths
 

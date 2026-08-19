@@ -17,26 +17,37 @@ from links and test rows, never typed to make a row look finished.
 
 ## Where it is
 
-| Thing | Value |
+**The base and table IDs are not in this repo.** They live in
+`.claude/registry.local.json`, which is gitignored — this repo is public, and a
+public file naming the base to aim a leaked token at is a gift nobody needs to
+give. Read that file first; every ID you need is in it, keyed by the names below.
+
+If it is missing, copy `.claude/registry.example.json` to
+`.claude/registry.local.json` and fill it in — `list_bases` gives the base ID,
+`list_tables_for_base` gives the table IDs. Do not hardcode an ID you found into
+any tracked file, and do not print one into a report.
+
+| Thing | Where |
 |---|---|
-| Base | `Sunim DS` — `appXXXXXXXXXXXXXX` |
+| Base | `baseId` in the local config |
 | Connection | the Airtable MCP tools |
 
-`Sunim Design System` (`appXXXXXXXXXXXXXX`) resolves to the same tables and the
-same records. It is the same base under its pre-rename name. Write to
-`appXXXXXXXXXXXXXX` and you are writing to both.
+The base also answers to a second ID, recorded as `baseIdAlias` — the same base
+under its pre-rename name. Writing to `baseId` writes to both.
 
 ## Tables
 
-| Table | ID | What it holds |
+Each key below is a key in `tables` in the local config.
+
+| Table | Config key | What it holds |
 |---|---|---|
-| Components | `tblXXXXXXXXXXXXXX` | One row per component. The spine of the system |
-| Staging Testing | `tblXXXXXXXXXXXXXX` | One row per test case. QA's output |
-| Base Tokens | `tblXXXXXXXXXXXXXX` | Primitives and their values |
-| Semantic Tokens | `tblXXXXXXXXXXXXXX` | Semantic tokens, linked to the components using them |
-| Component Tokens | `tblXXXXXXXXXXXXXX` | Component-scoped tokens |
-| GitHub Commits | `tblXXXXXXXXXXXXXX` | Commit history per component |
-| Sunim Feedback | `tblXXXXXXXXXXXXXX` | Inbound feedback |
+| Components | `components` | One row per component. The spine of the system |
+| Staging Testing | `stagingTesting` | One row per test case. QA's output |
+| Base Tokens | `baseTokens` | Primitives and their values |
+| Semantic Tokens | `semanticTokens` | Semantic tokens, linked to the components using them |
+| Component Tokens | `componentTokens` | Component-scoped tokens |
+| GitHub Commits | `githubCommits` | Commit history per component |
+| Sunim Feedback | `feedback` | Inbound feedback |
 
 ## Components — who writes which column
 
@@ -124,7 +135,10 @@ QA creates these rows. One row per variant × size × state, never one row per c
 - Never write a link to something you have not opened and seen render.
 - Never write into a formula, rollup, count, or lookup column.
 - Never write into a column another agent owns.
-- Never invent a record ID, a base ID, or a field name. They are all in this file.
+- Never invent a record ID, a base ID, or a field name. The IDs are in
+  `.claude/registry.local.json`; the field names are in this file.
+- Never write a base, table, or record ID into a tracked file, a report, or a commit
+  message. Name the component, not the row.
 - Never mark a row `Passed` unless you are QA and you watched it pass.
 - Never delete a test row to clear a failure. A failure is cleared by fixing the
   component and re-testing the row.

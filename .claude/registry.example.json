@@ -1,0 +1,15 @@
+{
+  "_comment": "Copy to registry.local.json and fill in. That file is gitignored — the IDs never enter the repo. Find them with the Airtable MCP: list_bases for the base ID, then list_tables_for_base for the table IDs.",
+  "baseId": "appXXXXXXXXXXXXXX",
+  "baseName": "Your registry base",
+  "baseIdAlias": null,
+  "tables": {
+    "components": "tblXXXXXXXXXXXXXX",
+    "stagingTesting": "tblXXXXXXXXXXXXXX",
+    "baseTokens": "tblXXXXXXXXXXXXXX",
+    "semanticTokens": "tblXXXXXXXXXXXXXX",
+    "componentTokens": "tblXXXXXXXXXXXXXX",
+    "githubCommits": "tblXXXXXXXXXXXXXX",
+    "feedback": "tblXXXXXXXXXXXXXX"
+  }
+}

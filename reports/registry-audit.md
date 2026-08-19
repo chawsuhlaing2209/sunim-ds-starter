@@ -1,6 +1,6 @@
 # Registry audit — 2026-08-19
 
-Base `Sunim DS` (`appXXXXXXXXXXXXXX`). Swept every row of `Components` (1) and every row of
+Base `Sunim DS`. Swept every row of `Components` (1) and every row of
 `Staging Testing` (0), plus `GitHub Commits` (1) and `Semantic Tokens` (0) for cross-reference.
 Reconciled against `src/components/`.
 
@@ -33,7 +33,7 @@ mid-flight. Read every count below in that light.
 | `Completed` | 0 | — |
 | blank | 0 | — |
 
-**Button** — `recXXXXXXXXXXXXXX`, last modified 2026-08-19 05:02 UTC
+**Button** — last modified 2026-08-19 05:02 UTC
 
 | Column | Value |
 |---|---|
@@ -104,7 +104,7 @@ Also flagging a disagreement rather than resolving it, per `tools.md`: `CLAUDE.m
 fonts "from Google Font CDN", while `preview.ts` loads them from `@fontsource` npm packages.
 Which source of truth applies is 🎨 Human's call; implementing it is yours.
 
-**3 · `GitHub Commits` has one entirely empty row** — `recXXXXXXXXXXXXXX`, created 2026-08-18.
+**3 · `GitHub Commits` has one entirely empty row** — created 2026-08-18.
 No hash, message, author, date, commit URL, or link to a component. It counts toward nothing and
 points at nothing. Delete it or fill it.
 
@@ -181,8 +181,8 @@ because there are none at all.
 - `Design` = `Done` with an empty `Figma` cell — none. Button is the inverse case.
 - Staging test rows with an empty `Composed In` — none. `Staging Testing` has 0 rows.
 - Components with test rows but no `Staging Storybook` link — none. No test rows exist.
-- The contract states `Sunim Design System` (`appXXXXXXXXXXXXXX`) is the same base under its
-  pre-rename name. Verified: it returns the same single record, `recXXXXXXXXXXXXXX`. One registry,
+- The contract states the base answers to a second ID under its pre-rename name.
+  Verified: it returns the same single record, Button. One registry,
   not two.
 
 ---
