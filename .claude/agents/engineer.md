@@ -34,7 +34,7 @@ forward is not.
 | 2 · Tokens | Every value resolves to a semantic token, and unbound ones are reported |
 | 3 · Implement | `npm run lint` passes |
 | 4 · Check | Storybook renders every story, console clean, every state clicks through |
-| 5 · Register | Local checks 100% green, staging deployed and opened, commit and staging links written, row reads `Ready for Testing` |
+| 5 · Register | Security check clear, staging deployed and opened, commit and staging links written, row reads `Ready for Testing` |
 
 Stage 5 is not in the build skill. It is in `.claude/skills/registry/SKILL.md`, and it is
 what turns a finished component into work QA can see.
@@ -51,6 +51,23 @@ setting `Design` yourself.
 every state clicks through, console clean, `npm run lint` passes. Not "green except one", not
 "green apart from a thing QA will probably catch". A component that reaches staging with a
 known defect burns a whole QA pass telling you what you already knew.
+
+**Then the security gate, which is not optional.** Build, then run it, then deploy:
+
+```
+npm run build:tokens && npm run build-storybook && npm run security-check
+```
+
+`BLOCKED` means you do not deploy. `.claude/skills/security-check/SKILL.md` explains
+what each gate catches and what it deliberately does not. Overriding a failure is
+allowed; overriding it without writing down which gate failed and why is not.
+
+Once staging is live, run it again against the deployed URL — that pass catches what
+a local build cannot, including a URL that answers `200` with a login page:
+
+```
+node scripts/security-check.mjs --url <staging url>
+```
 
 Once it is green, deploying is not optional and it is not somebody else's task. Merge your
 develop branch into the staging branch, deploy the staging Storybook, then **open the deployed
@@ -135,6 +152,9 @@ Try: <one next step>
 - Never edit another component to make yours work.
 - Never write a staging link before you have opened the deployed page and seen your stories
   render on it.
+- Never deploy on a red security gate without saying, in your report, which gate failed
+  and why you shipped past it.
+- Never widen a security pattern to make a failure go away.
 - Never deploy to staging while any local check is red. The gate is 100%, and a known defect
   sent to QA is a QA pass thrown away.
 - Never stop at stage 4 and call a component finished. Green on your machine is not a handoff;

@@ -42,6 +42,19 @@ picking a side: stop, and hand it back to the engineer who owns the change.
 
 **Check:** `main` builds. `npm run lint` and `npm test` pass on it.
 
+### 2b · Security gate
+Nothing reaches production on an unchecked build. Build, then run the gate:
+
+```
+npm run build:tokens && npm run build-storybook && npm run security-check
+```
+
+`.claude/skills/security-check/SKILL.md` holds what it covers. `BLOCKED` stops the
+ship — and it stops it here, not after the deploy, because a credential that reaches
+a public URL is public from that second onward and no rollback un-publishes it.
+
+**Check:** the gate reads `CLEAR`, or the failure is written down with a reason.
+
 ### 3 · Deploy — and open it
 `npm run build-storybook`, then deploy `storybook-static/` to production.
 
@@ -50,7 +63,16 @@ fonts loaded, the console is clean. A deploy that returns a green checkmark and 
 blank page is a deploy that failed, and the registry cannot tell the difference — only you
 can.
 
-**Check:** the production URL opens, the component's stories render, console clean.
+Then run the gate against the live URL, which checks what a local build cannot —
+that production is not answering `200` with a login page, and that the security
+headers actually arrived:
+
+```
+node scripts/security-check.mjs --url <production url>
+```
+
+**Check:** the production URL opens, the component's stories render, console clean,
+and the live gate reads `CLEAR`.
 
 ### 4 · Register
 Write the production Storybook URL into `Production Storybook` on the component's row.
@@ -81,6 +103,8 @@ Try: <one next step>
 ## Never
 - Never deploy a component whose row does not read `To be deployed`. The gate is the whole
   job.
+- Never ship on a red security gate without writing down which gate failed and why.
+- Never run the security gate against a stale build. Build, check, then ship.
 - Never deploy past a `Fixed (To re-test)` row. An unverified fix is not a pass.
 - Never fix a build failure on the way to production. Hand it back to the engineer, even
   when the fix looks like one line. A change made after QA passed it is a change nobody
