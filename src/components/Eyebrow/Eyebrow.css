@@ -1,0 +1,122 @@
+/*
+ * Eyebrow
+ *
+ * Built from Figma node 22:43 — the Eyebrow component set,
+ * Tone (Agentic | Sky | Ink | Gold) = 4 variants.
+ * One variant axis only: no Size property, no State property.
+ *
+ * ---------------------------------------------------------------------------
+ * UNBOUND IN FIGMA: none.
+ *
+ * Every one of the eleven visual values on this node carries a variable
+ * binding, and every binding resolves to a semantic token that already exists
+ * in the export. This is the first component in the batch with no gap block,
+ * and that is worth stating rather than leaving as an absence.
+ *
+ * The line-height deserves a note, because `get_variable_defs` reports it as
+ * the raw string `18px` and that looks like a gap. It is not. The node binds
+ * the composite text styles `Eyebrow-Strong` and `Eyebrow`, and the line-height
+ * lives inside those styles rather than on the layer — the export carries them
+ * whole as `--font-eyebrow-strong` and `--font-eyebrow`, both `12px/18px`.
+ * Binding the composite font token picks the line-height up with it, so
+ * nothing here is transcribed by hand.
+ *
+ * Letter-spacing is the one part the CSS `font` shorthand cannot carry, so it
+ * is set alongside from `--type-ls-eyebrow` (0.72px) — the same variable the
+ * node names as `ls/eyebrow`.
+ *
+ * ---------------------------------------------------------------------------
+ * DESIGN GAP — the mark glyph is not in the bound typeface. Reported, not
+ * papered over, and the reason this component measures narrower than its node.
+ *
+ * The node is 151px wide; this renders at 146px. The whole 5px sits in the
+ * mark. Figma reports the mark cell as 14px; it renders here at 8.1px.
+ *
+ * The cause is not the layout. `--font-body` is Instrument Sans, and Instrument
+ * Sans has no glyph for U+25C7 DIAMOND — nor for U+25FB or U+2600, the square
+ * and sun the design file also names. Measured with the canvas probe CLAUDE.md
+ * prescribes, all three come back byte-identical in Instrument Sans and in a
+ * deliberately bogus family (7.38px and 7.38px for the diamond), which is the
+ * signature of a face that never arrived. `Components` measures 75.04px real
+ * against 64.68px bogus, so the typeface itself is loading correctly — it is
+ * this one character range that is missing from it.
+ *
+ * So Figma and the browser are each substituting a different fallback face for
+ * the mark, and the 5px is the difference between those two substitutes.
+ *
+ * Deliberately NOT fixed here, because every available fix is a design
+ * decision this component does not get to make:
+ *   - a hardcoded 14px width would invent a value with no token behind it,
+ *     and freeze one fallback's metrics into the component;
+ *   - swapping in an icon is explicitly forbidden — the design file's rules
+ *     page names this mark as the system's one typographic exception;
+ *   - adding a glyph-bearing family is a new dependency and a new type
+ *     decision, neither of which is the engineer's to take.
+ *
+ * The fix belongs upstream: either bind the mark to a family that carries the
+ * glyphs, or ship those glyphs in the export. Until then the width delta is
+ * expected, and QA should read it as this gap rather than as a layout bug.
+ * ---------------------------------------------------------------------------
+ */
+.sunim-Eyebrow {
+  /*
+   * Auto-layout: horizontal, centre-aligned, hug contents, 8px gap.
+   * The node clips its contents.
+   */
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-space-2);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Slots ------------------------------------------------------------------- */
+
+/*
+ * The mark and the title are the loud half: both bind Eyebrow-Strong and both
+ * take the tone's colour, which arrives as `currentColor` from the tone rule
+ * on the root.
+ *
+ * The mark is a typographic glyph — a text node on the node, not an icon
+ * instance — so it is text here too. The design file's rules page is explicit
+ * that this is the exception in the system, and Icon Slot is deliberately not
+ * imported.
+ */
+.sunim-Eyebrow__mark,
+.sunim-Eyebrow__title {
+  font: var(--font-eyebrow-strong);
+  letter-spacing: var(--type-ls-eyebrow);
+}
+
+/*
+ * The label is the quiet half: one weight down and off the tone entirely, so
+ * it reads the way a layer name sits beside a layer. It stays faint on all
+ * four tones — the node binds it to the same variable on every variant.
+ */
+.sunim-Eyebrow__label {
+  font: var(--font-eyebrow);
+  letter-spacing: var(--type-ls-eyebrow);
+  color: var(--color-text-faint);
+}
+
+/* Tones ------------------------------------------------------------------- */
+
+/* Agentic — an AI moment. */
+.sunim-Eyebrow--Agentic {
+  color: var(--color-agentic-default);
+}
+
+/* Sky — the default. */
+.sunim-Eyebrow--Sky {
+  color: var(--color-accent-default);
+}
+
+/* Ink — a quiet section. */
+.sunim-Eyebrow--Ink {
+  color: var(--color-accent-ink);
+}
+
+/* Gold — anything earned or paid. */
+.sunim-Eyebrow--Gold {
+  color: var(--color-gold-deep);
+}
