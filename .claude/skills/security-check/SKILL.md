@@ -31,9 +31,9 @@ deploys in a hurry.
 | Moment | Command | Who |
 |---|---|---|
 | Before deploying to staging | `npm run security-check` | 🔨 Engineer |
-| After the staging deploy is live | `node scripts/security-check.mjs --url <staging url>` | 🔨 Engineer |
+| After the staging deploy is live | `node scripts/security-check.mjs --url <staging url> --expect public` | 🔨 Engineer |
 | Before merging staging → main | `npm run security-check` | 🚀 DevOps |
-| After production is live | `node scripts/security-check.mjs --url <production url>` | 🚀 DevOps |
+| After production is live | `node scripts/security-check.mjs --url <production url> --expect public` | 🚀 DevOps |
 
 Build first. The gate scans `storybook-static/`, so running it against a stale
 build checks a deploy that no longer exists:
@@ -66,9 +66,12 @@ low warn.
 you tested and the thing you are about to deploy are different. Also confirms the
 secret-bearing paths are still gitignored.
 
-**6 · The live response** (`--url` only). Fails if the URL redirects to a login
-page when it should be public — a 200 from a Vercel SSO page looks exactly like a
-200 from your site, and that mistake has already happened once here. Then checks
+**6 · The live response** (`--url` only). Checks the URL against what it is *meant*
+to be. `--expect public` (the default) fails on a login redirect; `--expect
+protected` fails on a page that anyone can read. Both directions matter: a 200
+from a Vercel SSO page looks exactly like a 200 from your site, and a production
+URL you believe is protected can quietly be serving to the world — both have
+already happened in this project. Then checks
 `X-Content-Type-Options`, `Referrer-Policy`, `Strict-Transport-Security`, and a
 `Content-Security-Policy` carrying `frame-ancestors`.
 
@@ -92,8 +95,11 @@ Say so plainly rather than implying coverage:
 - The Airtable and Figma tokens themselves. They live in the Claude config, never
   in this repo, so nothing here can see them — and they are the credentials that
   actually matter.
-- Vercel's project protection settings. Read those from the dashboard; the gate
-  only sees the response, which catches a flip after the fact rather than before.
+- Vercel's project protection settings themselves. The gate sees the response, not
+  the setting, so it catches a flip after the fact rather than before. Vercel's
+  "Standard Protection" is worth knowing about here: it protects the hashed
+  deployment URLs but leaves the assigned production domain public, so a project
+  can read as protected in the dashboard and serve to anyone on its main URL.
 - The dependency *supply chain* beyond published advisories. `npm audit` knows
   about disclosed vulnerabilities, not a package that turned malicious this
   morning.

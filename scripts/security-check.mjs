@@ -10,6 +10,7 @@
  * Usage:
  *   node scripts/security-check.mjs              # pre-deploy: build output + deps + repo
  *   node scripts/security-check.mjs --url <url>  # post-deploy: also check the live response
+ *   … --url <url> --expect protected             # assert the URL DOES require a login
  *
  * Exit 0 = every gate passed. Exit 1 = at least one FAIL. Warnings never fail.
  */
@@ -29,6 +30,14 @@ const head = (m) => console.log(`\n\x1b[1m${m}\x1b[0m`);
 
 const args = process.argv.slice(2);
 const urlArg = args.includes('--url') ? args[args.indexOf('--url') + 1] : null;
+// Whether this URL is *meant* to be readable without logging in. A gate cannot
+// check an intention it was never told, and "200, no redirect" is a pass for a
+// public site and a failure for a protected one.
+const expect = args.includes('--expect') ? args[args.indexOf('--expect') + 1] : 'public';
+if (!['public', 'protected'].includes(expect)) {
+  console.error(`--expect must be "public" or "protected", got "${expect}"`);
+  process.exit(2);
+}
 
 function walk(dir, out = []) {
   if (!existsSync(dir)) return out;
@@ -159,7 +168,7 @@ try {
 
 // ── 6 · Live response headers (post-deploy) ──────────────────────────────────
 if (urlArg) {
-  head(`6 · Live response — ${urlArg}`);
+  head(`6 · Live response — ${urlArg}  (expected ${expect})`);
   const REQUIRED = {
     'x-content-type-options': (v) => v === 'nosniff',
     'referrer-policy': (v) => !!v,
@@ -168,14 +177,18 @@ if (urlArg) {
   };
   try {
     const res = await fetch(urlArg, { redirect: 'manual' });
-    if (res.status >= 300 && res.status < 400) {
-      const loc = res.headers.get('location') || '';
-      if (/sso|login|auth/i.test(loc)) fail(`redirects to a login page (${res.status}) — this URL is not publicly readable`);
-      else warn(`redirects (${res.status}) to ${loc}`);
-    } else if (!res.ok) {
-      fail(`returned HTTP ${res.status}`);
+    const loc = res.headers.get('location') || '';
+    const isLogin = res.status >= 300 && res.status < 400 && /sso|login|auth/i.test(loc);
+
+    if (expect === 'protected') {
+      if (isLogin) pass(`requires a login (${res.status}) — protected, as intended`);
+      else if (res.ok) fail(`serves HTTP ${res.status} to anyone — this URL was expected to require a login`);
+      else fail(`returned HTTP ${res.status}`);
     } else {
-      pass(`serves HTTP ${res.status} without a login redirect`);
+      if (isLogin) fail(`redirects to a login page (${res.status}) — this URL is not publicly readable`);
+      else if (res.status >= 300 && res.status < 400) warn(`redirects (${res.status}) to ${loc}`);
+      else if (!res.ok) fail(`returned HTTP ${res.status}`);
+      else pass(`serves HTTP ${res.status} without a login redirect — public, as intended`);
     }
     for (const [h, ok] of Object.entries(REQUIRED)) {
       const v = res.headers.get(h);
