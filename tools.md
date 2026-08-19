@@ -12,6 +12,8 @@ Stack facts and commands only. Rules about how we work live in `CLAUDE.md`.
 - Component workshop: Storybook 10 (react-vite)
 - Tests: Vitest
 - Accessibility: Storybook a11y addon
+- Typefaces: Schibsted Grotesk, Instrument Sans, Caveat — self-hosted via `@fontsource`,
+loaded in `.storybook/preview.ts`. Not a CDN; the deployed CSP forbids one
 
 ## Commands
 

@@ -68,7 +68,28 @@ broken the handoff for everyone downstream.
 
 
 
-Typography
+## Typography
 
-- Install required font and load properly from Google Font CDN
+- Fonts are **self-hosted**, never loaded from a CDN. They come from `@fontsource`
+packages and ship as `.woff2` inside the bundle.
+- The deployed CSP sets `font-src 'self' data:` and `style-src 'self' 'unsafe-inline'`.
+A Google Fonts link fails both — the stylesheet and the font file are each on another
+origin — and it fails *silently*: every label falls back to the browser default and
+every width you measure afterwards is wrong for a reason that has nothing to do with
+the component.
+- Adding a weight means adding the import. `.storybook/preview.ts` imports one file per
+weight the tokens actually use, each commented with the token that needs it. Before
+adding another, check what the tokens ask for:
+
+```
+grep -- --font- build/tokens/css/tokens.css
+```
+
+- Adding a family means installing its `@fontsource` package too. A family imported but
+not installed takes Storybook down at boot rather than degrading — it has already
+happened here.
+- Confirm a font loaded by measuring it, not by asking. `document.fonts.check()` returns
+true for a font that merely resolved to a fallback. Measure a string on a canvas in the
+declared family and again in a deliberately bogus one: identical widths mean the real
+face never arrived.
 
