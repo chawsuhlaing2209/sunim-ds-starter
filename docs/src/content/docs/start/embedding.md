@@ -66,12 +66,27 @@ As deployed:
 frame-ancestors 'self' https://sunim-ds-reference.vercel.app
 
 # docs/vercel.json — this site
-frame-src 'self' https://sunim-ds-starter.vercel.app https://embed.figma.com
+frame-src 'self' https://sunim-ds-starter.vercel.app https://embed.figma.com https://www.figma.com
 ```
 
-Two named origins and Figma, on both sides. Neither is `*`, and neither directive
-is absent — an absent `frame-src` falls back to `default-src 'self'`, which blocks
-exactly the same frames while looking like nothing is configured at all.
+Named origins on both sides. Neither is `*`, and neither directive is absent —
+an absent `frame-src` falls back to `default-src 'self'`, which blocks exactly the
+same frames while looking like nothing is configured at all.
+
+**Figma needs both of its hosts, and that is not a mistake.** Pages embed
+`embed.figma.com`, which is the only host that appears in the built HTML. It then
+issues a 302 to `www.figma.com/embed/interstitial`, and `frame-src` governs
+redirects as well as the initial src — so naming only the host in the markup
+blocks the frame one hop later, with a console error pointing at a URL that
+appears nowhere in the source:
+
+```
+Framing 'https://www.figma.com/' violates … "frame-src … https://embed.figma.com"
+```
+
+Check it with `curl -sI` on the embed URL rather than by reading the HTML. Both
+directions of this were got wrong here once each — `www` without `embed`, then
+`embed` without `www` — and each looked correct in the file.
 
 ## The Figma frames
 
