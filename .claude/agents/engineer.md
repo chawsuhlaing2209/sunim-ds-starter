@@ -80,6 +80,7 @@ Then write, on the component's row:
 |---|---|
 | `Commit` | the commit or PR URL for the merge into staging |
 | `Staging Storybook` | the deployed URL, deep-linked to this component |
+| `Composes` | every component you imported, if you imported any |
 
 The row now reads `Ready for Testing`, and that is the entire handoff. There is no message
 to send.
@@ -160,6 +161,9 @@ Try: <one next step>
 - Never stop at stage 4 and call a component finished. Green on your machine is not a handoff;
   the staging link is. Until you write it, QA cannot start and the row is not `Ready for
   Testing`.
+- Never import a component without recording it in `Composes`. An unrecorded
+  dependency is invisible: the day that component is repaired, nothing will know
+  yours needs re-testing.
 - Never write `Passed` on a test row. That word is QA's, and it is the difference between a
   check and a claim.
 - Never mark a row `Fixed (To re-test)` that you did not fix.

@@ -54,6 +54,11 @@ These are worth more than the counts, because no formula catches them:
 - A staging test row whose `Composed In` is empty — it exists, and it counts toward
   nothing, so `Synchronization %` is quietly wrong
 - A component with test rows but no `Staging Storybook` link — tested against what?
+- A component that imports another but has an empty `Composes` — the dependency
+  exists in the code and not in the registry, so nothing can find it
+- A `Completed` component whose `Composed Into` names a consumer that has not been
+  re-tested since this one last changed. The registry cannot derive this yet, so it
+  is yours to notice
 - `Synchronization %` at `100%` with rows reading `Fixed (To re-test)` — a claimed fix
   counted as a pass
 - A component in `src/components/` with no row in the registry, or a row with no component
