@@ -1,7 +1,7 @@
 {
   "_comment": "What the board said when 📝 Doc Generator last read it. Evidence, not configuration. scripts/generate-docs.mjs refuses to publish a page for any component that is not Completed here, and refuses again if the component's own directory has a commit newer than readAt, because the status recorded here would then predate the change. scripts/release.mjs reads the same file to decide what is in a release, and reads `verdict` to say which candidates nobody has gated. Regenerate it by running the doc-generator agent, which has the Airtable connection; a build script deliberately does not. Names and statuses only: no base, table or record IDs. This file is tracked and the repo is public.",
-  "readAt": "2026-08-20T07:37:25Z",
-  "readBy": "doc-generator",
+  "readAt": "2026-08-20T08:02:37Z",
+  "readBy": "orchestrator (transcribed from the board after applying the owner rulings)",
   "components": {
     "Button": {
       "development": "Completed",
@@ -11,7 +11,7 @@
       "production": "https://sunim-ds-starter.vercel.app/?path=/story/components-button--primary-md-default",
       "astro": null,
       "verdict": "Blocked",
-      "releaseReview": "https://github.com/chawsuhlaing2209/sunim-ds-starter/blob/354cec5bdc1b667ece786513540314d9987b393c/reports/release-review/Button.md"
+      "releaseReview": "https://github.com/chawsuhlaing2209/sunim-ds-starter/blob/7b7310c/reports/release-review/Button.md"
     },
     "Chip": {
       "development": "Completed",
@@ -21,7 +21,7 @@
       "production": "https://sunim-ds-starter.vercel.app/?path=/story/components-chip--default-sm",
       "astro": null,
       "verdict": "Blocked",
-      "releaseReview": "https://github.com/chawsuhlaing2209/sunim-ds-starter/blob/354cec5bdc1b667ece786513540314d9987b393c/reports/release-review/Chip.md"
+      "releaseReview": "https://github.com/chawsuhlaing2209/sunim-ds-starter/blob/7b7310c/reports/release-review/Chip.md"
     },
     "Eyebrow": {
       "development": "Completed",
@@ -31,7 +31,7 @@
       "production": "https://sunim-ds-starter.vercel.app/?path=/story/components-eyebrow--agentic",
       "astro": null,
       "verdict": "Blocked",
-      "releaseReview": "https://github.com/chawsuhlaing2209/sunim-ds-starter/blob/354cec5bdc1b667ece786513540314d9987b393c/reports/release-review/Eyebrow.md"
+      "releaseReview": "https://github.com/chawsuhlaing2209/sunim-ds-starter/blob/7b7310c/reports/release-review/Eyebrow.md"
     },
     "Icon Slot": {
       "development": "Completed",
@@ -41,7 +41,7 @@
       "production": "https://sunim-ds-starter.vercel.app/?path=/story/components-iconslot--size-14",
       "astro": null,
       "verdict": "Blocked",
-      "releaseReview": "https://github.com/chawsuhlaing2209/sunim-ds-starter/blob/354cec5bdc1b667ece786513540314d9987b393c/reports/release-review/IconSlot.md"
+      "releaseReview": "https://github.com/chawsuhlaing2209/sunim-ds-starter/blob/7b7310c/reports/release-review/IconSlot.md"
     }
   }
 }
