@@ -50,7 +50,8 @@ Md reads as a credential — larger type, more padding, a thicker stroke.
 Figma node — QA tests against this, not against this file:
 ${FIGMA_FILE}?node-id=21-79
 
-**The matrix.** The Figma component set is Tone (Default, Gold, Agentic, Figma)
+**The matrix.** The Figma component set is Tone (Default, Gold, Agentic, Figma —
+shipped as \`Quiet\`, see \`decisions.md\`)
 × Size (Sm, Md) = 8 variants, and there is one story per variant, each
 deep-linked to its node.
 

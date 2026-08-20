@@ -34,7 +34,24 @@ const meta = {
   argTypes: {
     size: { control: 'inline-radio', options: ['14', '16', '22'] },
     icon: { control: false },
-    'aria-label': { control: 'text' },
+    'aria-label': {
+      control: 'text',
+      /*
+       * Storybook sources a row's description from the matching interface
+       * member. `aria-label` has none — it is inherited, which is precisely why
+       * the ruling could drop `label` without adding anything back — so the row
+       * renders bare unless the description is supplied here. A release review
+       * caught the prop the ruling elevated to being the naming API rendering as
+       * the one row that said nothing about itself.
+       */
+      description:
+        'What the icon means, for a screen reader. Set it and the slot becomes '
+        + '`role="img"` with that name; leave it off and the slot is decorative '
+        + 'and hidden, which is correct beside a label that already says the same '
+        + 'thing and is how Button and Chip use it. There is no `label` prop — see '
+        + '`decisions.md`.',
+      table: { type: { summary: 'string' } },
+    },
   },
   parameters: {
     docs: {

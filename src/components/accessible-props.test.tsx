@@ -118,10 +118,16 @@ describe('the public type and the rendered attributes agree', () => {
    * extend, so each one type-checks — and each one has to survive the spread
    * rather than being quietly dropped.
    *
-   * Eyebrow omits `title` from its inherited attributes on purpose, because the
-   * Figma property is called Title and the prop has to carry that name; it is
-   * skipped rather than expected to pass, which is the difference between a
-   * documented exception and a hole.
+   * Eyebrow omits `title` from its inherited attributes on purpose: the loud
+   * half of an eyebrow is its title, and React's native `title` is the browser
+   * tooltip. One name cannot be both. It is skipped rather than expected to
+   * pass, which is the difference between a documented exception and a hole.
+   *
+   * An earlier version of this comment said the reason was that Figma defines a
+   * `Title` component property. It does not — the node exposes one axis, and
+   * `Title` is a text layer name. A release review caught the false premise
+   * spreading from `Eyebrow.tsx` into this file, where it had become the written
+   * reason for a skip. Both are corrected.
    */
   const components = {
     Button: (props: Record<string, unknown>) => <Button label="Apply" {...props} />,
