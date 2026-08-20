@@ -35,9 +35,9 @@ loaded in `.storybook/preview.ts`. Not a CDN; the deployed CSP forbids one
 | Security gate | `npm run security-check` (add `--url <url>` after deploying, `--dir <path>` for another build) |
 | Release gate | `npm run release-review -- <Component>` (or `-- --all --version 0.1.0`) |
 | Prepare a release | `npm run release` (add `--branch` to push `release/<version>`) |
-| Publish a release | GitHub Actions → **Publish release**, version typed by a human. Preferred — publishes with `--provenance` |
-| …when CI cannot run | `npm login`, then `npm run release:publish -- <version>`. A human runs it; no agent does |
-| …and npm asks for a second factor | add `--otp <code>`, or set a granular token with Bypass 2FA. Required since 2025 even with account 2FA off |
+| Publish a release | `npm login`, then `npm run release:publish -- <version>`. A human runs it; no agent does |
+| …the second factor npm requires | `--otp <code>`, or a granular token with Bypass 2FA scoped `@theproductiveschedule`. Required since 2025 even with account 2FA off |
+| …why not CI | `.github/workflows/release-publish.yml` is correct and cannot run: Actions is locked account-wide over a balance this account cannot clear. So no `--provenance` — `scripts/publish.mjs` says what replaces it |
 | Install the site | `npm run docs:install` (once — `docs/` has its own `node_modules`) |
 | Generate the site | `npm run docs:generate` (add `--storybook <url>` to embed a different one) |
 | Run the site | `npm run docs:dev` (port 4321) |
@@ -72,8 +72,8 @@ crew — nothing that talks to the registry works until you do.
 - The one reader everything downstream shares: `scripts/lib/contract.mjs`
 - Library build config: `vite.config.ts`, `tsconfig.build.json`, `scripts/bundle-css.mjs`
 - The release run: `scripts/release.mjs` — nine gates, stops at the first failure
-- The only thing that can publish: `.github/workflows/release-publish.yml`, which
-  needs the `NPM_TOKEN` repository secret and a human-typed version
+- The publish: `scripts/publish.mjs`, run by a person. The CI workflow
+  `.github/workflows/release-publish.yml` is kept and cannot currently run
 - Reference site: `docs/` — source in `docs/src/content/docs/`, generated pages
   under `components/` and two files in `start/`, all gitignored
 - Site config: `docs/reference.config.json` — the Storybook URL every page links to and embeds
