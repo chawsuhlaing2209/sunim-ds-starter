@@ -40,6 +40,10 @@ export interface IconSlotProps
    * correct when it sits beside a label that already says the same thing, which
    * is how Button uses it. Set it when the icon is the only thing carrying the
    * meaning.
+   *
+   * Note this is the opposite of `label` on Button, Chip and Eyebrow, where it
+   * is visible required text. Passing `aria-label` instead does the same thing
+   * here and reads less ambiguously beside them.
    */
   label?: string;
 }
@@ -104,8 +108,27 @@ export function IconSlot({
   icon,
   label,
   className,
+  /*
+   * Pulled out of `...rest` deliberately.
+   *
+   * All three are on the public type, and all three used to be discarded: the
+   * spread ran first, then `aria-label={label}` overwrote the consumer's value
+   * with `undefined` and `aria-hidden` stayed `true`. So an icon somebody had
+   * explicitly named was hidden from assistive technology — no type error, no
+   * visual difference, and nothing in the DOM to suggest anything was wrong.
+   *
+   * `label` and `aria-label` are two spellings of one idea, so either names the
+   * slot and `label` wins when both are given. `role` and `aria-hidden` stay
+   * overridable, because a consumer who sets them has a reason this component
+   * cannot see.
+   */
+  'aria-label': ariaLabelProp,
+  'aria-hidden': ariaHiddenProp,
+  role: roleProp,
   ...rest
 }: IconSlotProps) {
+  const name = label ?? ariaLabelProp;
+
   const classes = ['sunim-IconSlot', `sunim-IconSlot--${size}`, className ?? '']
     .filter(Boolean)
     .join(' ');
@@ -114,9 +137,9 @@ export function IconSlot({
     <span
       {...rest}
       className={classes}
-      role={label ? 'img' : undefined}
-      aria-label={label}
-      aria-hidden={label ? undefined : true}
+      role={roleProp ?? (name ? 'img' : undefined)}
+      aria-label={name}
+      aria-hidden={ariaHiddenProp ?? (name ? undefined : true)}
     >
       <span className="sunim-IconSlot__glyph">
         {icon ?? <PlaceholderArrow size={size} />}
