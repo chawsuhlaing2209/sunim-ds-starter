@@ -162,3 +162,27 @@ which is not a state a public API should ship in.
 
 **What this means for you.** The absence is the decision. A test asserts that
 passing `label` names nothing, so the failure is visible rather than silent.
+
+## Accepted: `./fonts/*` was added to the surface after the Cleared verdicts
+
+**Ruled** 2026-08-20 · **Scope** the 0.1.0 release · **Status** accepted, not re-reviewed
+
+Four components were reviewed and cleared against a public surface that did not
+include `@sunim/design-system/fonts/*`. The export was added afterwards, so
+strictly every one of those verdicts was given against a different surface than
+the one being published.
+
+The owner accepted it without a re-review. The reasoning, recorded so the next
+audit does not have to reconstruct it: the addition is a path to static files the
+package's own stylesheet points at, it changes no component API, no prop, no type
+and no class name, and the alternative was publishing a design system whose
+typography does not work. A fifth review round would have re-read four unchanged
+components to confirm one new file path.
+
+**What this means for you.** A `Release Review` report describing a surface
+without `./fonts/*` is not stale for that reason alone, and the difference is not
+a finding.
+
+**What is not ruled:** any *other* surface change made after a verdict. This names
+one addition, on one release. A second one is a review that should have been run.
+
