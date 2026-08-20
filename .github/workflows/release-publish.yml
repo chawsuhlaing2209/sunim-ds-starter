@@ -1,0 +1,160 @@
+# Publishes a release. This is the only thing in the repository that can.
+#
+# 📦 Release prepares: it runs the nine gates, drafts the changelog, proposes a
+# version, and pushes a branch. It holds no credential and cannot get here. This
+# workflow performs, and it starts only when a person types a version number into
+# the dispatch form — there is no push trigger, no tag trigger, and no schedule,
+# because none of those is a decision.
+#
+# The key lives here rather than on anybody's laptop. That is the point of the
+# whole arrangement: a token on a developer machine is a token that can publish
+# by accident at 11pm, and a token in a repository secret can only publish when
+# somebody fills in a form and the gates go green.
+#
+# ── Setup, once ──────────────────────────────────────────────────────────────
+#
+#   1. Create a *granular* npm access token with publish rights limited to the
+#      @sunim scope. Not a classic automation token — those can publish anything
+#      the account can.
+#   2. Settings → Secrets and variables → Actions → New repository secret:
+#      name NPM_TOKEN, value the token.
+#   3. Optional but recommended: make this workflow require an environment
+#      approval (Settings → Environments → npm-publish → required reviewers), so
+#      the publish waits for a second person even after the form is filled in.
+#
+# Nothing else in this repository needs a credential, and nothing else should
+# have one.
+
+name: Publish release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The version to publish. Must already be written into package.json.'
+        required: true
+        type: string
+      dry_run:
+        description: 'Run every gate and stop before publishing.'
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write # to push the tag
+  id-token: write # npm provenance — a signed attestation of where this tarball came from
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm-publish
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the changelog and the version proposal both read history
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      # The version in the form and the version in the file have to be the same.
+      #
+      # A human writes the number into package.json — that is the act this whole
+      # design reserves for a person, and typing it into a form is not the same
+      # thing. If they disagree, somebody is publishing a version they did not
+      # write, and it stops here.
+      - name: The typed version matches package.json
+        run: |
+          FILE=$(node -p "require('./package.json').version")
+          if [ "$FILE" != "${{ inputs.version }}" ]; then
+            echo "::error::You asked to publish ${{ inputs.version }}, but package.json reads $FILE."
+            echo "::error::A human writes that number into the file. Commit the bump, then re-run."
+            exit 1
+          fi
+          echo "package.json reads $FILE"
+
+      # Every gate 📦 Release runs, run again here against a clean checkout.
+      #
+      # Not because the agent is untrusted, but because its run happened on
+      # somebody's machine at some earlier commit. This one is what is actually
+      # about to be published.
+      - name: The nine gates
+        run: npm run release -- --version ${{ inputs.version }}
+
+      - name: Security gate
+        run: |
+          npm run build-storybook
+          npm run security-check
+
+      - name: Stop here if this is a dry run
+        if: ${{ inputs.dry_run }}
+        run: |
+          echo "::notice::Every gate passed. Nothing was published — dry_run was true."
+          echo "Re-run with dry_run unchecked to publish ${{ inputs.version }}."
+
+      # `private: true` lives in package.json so that a laptop cannot publish by
+      # accident. CI is not an accident: it got here through a form, a version
+      # match, and nine gates. Removing the flag in the runner keeps the safety
+      # net where it protects and out of the way where it does not.
+      - name: Publish
+        if: ${{ !inputs.dry_run }}
+        run: |
+          npm pkg delete private
+          npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # The tag goes on after the publish, never before. A tag for a version that
+      # failed to publish is a lie in the history that somebody will trust later.
+      - name: Tag
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ inputs.version }}" -m "Release ${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+
+      # What was published, not what was built. They are the same tarball only if
+      # nothing went wrong, and this is the step that finds out.
+      - name: Install the published version and render it
+        if: ${{ !inputs.dry_run }}
+        run: |
+          mkdir -p /tmp/verify && cd /tmp/verify
+          npm init -y >/dev/null
+          npm pkg set type=module >/dev/null
+          for i in 1 2 3 4 5; do
+            npm install "@sunim/design-system@${{ inputs.version }}" react@19 react-dom@19 \
+              --no-audit --no-fund && break
+            echo "not on the registry yet; waiting"
+            sleep 15
+          done
+          cat > verify.mjs <<'EOF'
+          import { renderToStaticMarkup } from 'react-dom/server';
+          import { createElement as h } from 'react';
+          import { Button } from '@sunim/design-system';
+          import { readFileSync } from 'node:fs';
+
+          const html = renderToStaticMarkup(h(Button, { label: 'Published' }));
+          const css = readFileSync('node_modules/@sunim/design-system/dist/styles.css', 'utf8');
+
+          if (!html.includes('Published')) throw new Error('the published package rendered nothing');
+          if (!css.includes('--color-accent-ink:')) throw new Error('the published styles carry no tokens');
+          console.log('the published version installs and renders');
+          EOF
+          node verify.mjs
+
+      - name: What to do next
+        if: ${{ !inputs.dry_run }}
+        run: |
+          echo "::notice::Published ${{ inputs.version }} and tagged v${{ inputs.version }}."
+          echo "::notice::Still to do, by hand: deploy the reference site, then write Astro Link"
+          echo "::notice::on each component's board row. That is what moves them to Released."

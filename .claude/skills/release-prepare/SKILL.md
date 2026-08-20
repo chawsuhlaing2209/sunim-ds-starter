@@ -20,6 +20,21 @@ build, a deployed Storybook and a reference site, and still produce a tarball
 that installs and exports nothing. Nothing upstream would notice, because nothing
 upstream ever installs it.
 
+## Run it, then read it
+
+```
+npm run release              # the nine gates, git untouched
+npm run release -- --branch  # …and push release/<version>
+```
+
+The script **stops at the first failure and does nothing after it**. That is
+deliberate: a pipeline that carries on past a red step so you can see the rest of
+the output is a pipeline that will eventually publish past one.
+
+Running it is not the job, though. Each step below says what it is protecting
+against, and step 6 in particular cannot be automated away — the script checks
+for the failures it knows about, and you read the list for the ones it does not.
+
 ## The nine steps
 
 ### 1 · Read the board
@@ -140,6 +155,28 @@ artefact here is reversible, and the irreversible half is somebody's decision.
 The report carries the candidate list with a reason each way, the pack file list,
 what the smoke install rendered, the changelog draft, the proposed version with
 its forcing change, and **everything that could not be verified**.
+
+## Publishing, when a human decides
+
+You cannot, and neither can anything on this machine. The publish lives in
+`.github/workflows/release-publish.yml` and starts only when a person fills in the
+dispatch form — no push trigger, no tag trigger, no schedule, because none of
+those is a decision.
+
+That workflow re-runs every gate here against a clean checkout. Not because this
+run is distrusted, but because it happened on somebody's machine at some earlier
+commit, and the thing about to be published is neither.
+
+Two things it checks that this run cannot:
+
+- **The typed version equals `package.json`'s.** A human writes that number into
+  the file; typing it into a form is not the same act. If they disagree, somebody
+  is publishing a version they did not write.
+- **The published tarball installs and renders.** Not the one built locally — the
+  one the registry serves.
+
+`private: true` stays in `package.json` and CI removes it at publish time. The
+flag exists to stop a laptop publishing by accident; CI is not an accident.
 
 ## Never
 - Never publish, tag, or deploy anything. Preparing and performing are different

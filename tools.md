@@ -4,7 +4,11 @@ Stack facts and commands only. Rules about how we work live in `CLAUDE.md`.
 
 ## Stack
 
-- Framework: React 19 with Vite
+- Framework: React 19 with Vite. React is a **peer** dependency of the published
+package and is never bundled — a consumer with two copies of React gets "invalid
+hook call" from a component that is visibly fine
+- Library build: Vite library mode from `src/index.ts` + `tsc` for declarations,
+into `dist/`. One stylesheet, `dist/styles.css`, tokens first
 - Language: TypeScript, strict
 - Package manager: npm
 - Styling: CSS custom properties, generated from tokens
@@ -23,12 +27,15 @@ loaded in `.storybook/preview.ts`. Not a CDN; the deployed CSP forbids one
 |---|---|
 | Install | `npm install` |
 | Build tokens | `npm run build:tokens` |
+| Build the library | `npm run build` → `dist/` (tokens, then Vite, then types, then CSS) |
 | Run Storybook | `npm run storybook` |
 | Build Storybook | `npm run build-storybook` |
 | Test | `npm test` |
 | Type check | `npm run lint` |
 | Security gate | `npm run security-check` (add `--url <url>` after deploying, `--dir <path>` for another build) |
 | Release gate | `npm run release-review -- <Component>` (or `-- --all --version 0.1.0`) |
+| Prepare a release | `npm run release` (add `--branch` to push `release/<version>`) |
+| Publish a release | GitHub Actions → **Publish release**, version typed by a human. Nothing local can publish |
 | Install the site | `npm run docs:install` (once — `docs/` has its own `node_modules`) |
 | Generate the site | `npm run docs:generate` (add `--storybook <url>` to embed a different one) |
 | Run the site | `npm run docs:dev` (port 4321) |
@@ -61,6 +68,10 @@ crew — nothing that talks to the registry works until you do.
 - The public surface: `src/index.ts` — nothing outside it is released
 - What a version promises: `VERSIONING.md`
 - The one reader everything downstream shares: `scripts/lib/contract.mjs`
+- Library build config: `vite.config.ts`, `tsconfig.build.json`, `scripts/bundle-css.mjs`
+- The release run: `scripts/release.mjs` — nine gates, stops at the first failure
+- The only thing that can publish: `.github/workflows/release-publish.yml`, which
+  needs the `NPM_TOKEN` repository secret and a human-typed version
 - Reference site: `docs/` — source in `docs/src/content/docs/`, generated pages
   under `components/` and two files in `start/`, all gitignored
 - Site config: `docs/reference.config.json` — the Storybook URL every page links to and embeds

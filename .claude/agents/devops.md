@@ -139,9 +139,17 @@ Verify before you publish, because none of it can be taken back:
   file list**, not the exit code.
 - Every component in the release reads `Cleared`.
 
-Then publish, tag, and merge the release branch. An npm version cannot be
-unpublished after 72 hours, so the order is: check, publish, tag, merge — and if
-anything reads wrong, stop before the first of those.
+Then trigger **GitHub Actions → Publish release**, with the version typed in and
+`dry_run` on for the first pass. Read what the gates say, then re-run with
+`dry_run` off.
+
+You do not publish from this machine, and there is no token here to do it with.
+The key lives in the repository secret, and the workflow is the only thing that
+can reach it — a token on a laptop is a token that can publish by accident at
+11pm.
+
+The workflow tags after publishing, never before: a tag for a version that failed
+to publish is a lie in the history that somebody will trust later.
 
 **Check:** the published version installs from the registry into an empty folder
 and renders a component. Not the tarball you built — the one the registry serves.
