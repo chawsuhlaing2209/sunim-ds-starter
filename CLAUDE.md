@@ -52,8 +52,10 @@ inside.
 - The doc generator writes what a component is for, and generates the reference
 site from it. It never changes a component to make its documentation true, and it
 never hand-writes a generated page.
-- The reviewer decides whether a shipped component can be lived with in public.
-It repairs nothing and it never bumps a version.
+- The release agent decides whether a shipped component can be lived with in
+public, and prepares the package a human then decides to publish. It repairs
+nothing, holds no publish credential, and never bumps a version.
+- DevOps performs what the release agent prepared, and only when a human says so.
 - The PM audits the registry and reports. It writes nothing but a report.
 - A human approves. No agent approves its own work, ever.
 
@@ -87,7 +89,7 @@ Storybook docs page, the `Documentation/Component Intent` gallery, and the
 reference site in `docs/`. Write the JSON and all three update. Prose written
 twice is prose that disagrees.
 - The intent is checked and published through **one reader**,
-`scripts/lib/contract.mjs`. 🧭 Reviewer's gate 6 fails a release over it, and the
+`scripts/lib/contract.mjs`. 📦 Release's gate 6 fails a release over it, and the
 site generator **refuses to publish a page for a component that would fail that
 gate**. Written once, checked once, published once — and a page can never
 describe something the gate rejected.
@@ -129,6 +131,10 @@ import.
 number promises and what it deliberately does not.
 - **No agent bumps the version or tags a release.** That number is a promise to
 people outside this repo, and promises are made by whoever will be held to them.
+- Preparing a release and performing one are different jobs held by different
+agents. Everything 📦 Release does is reversible — a branch, a draft, a proposal.
+Everything a publish does is not: an npm version cannot be unpublished after 72
+hours. The line between them is where a human goes.
 
 ## Common failures to avoid
 

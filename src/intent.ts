@@ -6,7 +6,7 @@
  * consumer actually has in front of them. An undocumented intent is how a
  * Button ends up used as a link on three pages before anyone notices.
  *
- * 📝 Doc Generator owns these files. 🧭 Reviewer's gate 6 reads them, so every
+ * 📝 Doc Generator owns these files. 📦 Release's gate 6 reads them, so every
  * field here is written to be checkable: no placeholders, no "TBD", and tokens
  * named exactly as they are in the build.
  */

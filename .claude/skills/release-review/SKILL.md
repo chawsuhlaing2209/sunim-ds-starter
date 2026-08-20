@@ -1,6 +1,6 @@
 ---
 name: release-review
-description: The seven gates a component clears before its name goes into a public version, and the five perspectives you find the answers from. Use before cutting a release, never to fix what you find.
+description: The seven gates a component clears before its name goes into a public version, and the five perspectives you find the answers from. Use when a human asks for one component to be reviewed, never to fix what you find.
 ---
 
 # The release review

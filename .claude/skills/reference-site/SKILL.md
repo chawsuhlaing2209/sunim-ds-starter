@@ -119,7 +119,7 @@ carries one.
 An intent file is written once. Two things then read it, through one reader —
 `scripts/lib/contract.mjs`:
 
-- **🧭 Reviewer's gate 6** fails a release if the intent is missing, thin,
+- **📦 Release's gate 6** fails a release if the intent is missing, thin,
   placeholdered, or names a token the component does not use.
 - **This site** turns the same file into the *When to use it* section.
 

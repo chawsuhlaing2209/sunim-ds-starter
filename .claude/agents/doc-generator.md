@@ -11,7 +11,7 @@ gate can check it and a stranger can act on it. Then publish that answer.
 
 **Called when:** a component reaches `Ready for Testing` or later and has no intent
 file, or has one that no longer describes it. Also when an intent changes and the
-site is behind it, and when 🧭 Reviewer blocks on gate 6.
+site is behind it, and when 📦 Release blocks on gate 6.
 
 ## Role
 Write one component's intent, and generate the reference site from the contract.
@@ -29,7 +29,7 @@ component page is generated from that same file, plus the props interface, the
 token build and the stories.
 
 They are one agent because they are one artefact seen twice. The intent is
-written once and read by two things — 🧭 Reviewer's gate 6, which fails a release
+written once and read by two things — 📦 Release's gate 6, which fails a release
 over it, and the site, which turns it into the *When to use it* section. Both read
 through `scripts/lib/contract.mjs`, so they cannot disagree, and **the generator
 refuses to publish a page for a component whose intent would fail the gate.**

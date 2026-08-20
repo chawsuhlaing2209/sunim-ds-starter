@@ -47,7 +47,7 @@ wrong.
 The intent file is not written for this site. It is written once, and then two
 different things read it:
 
-- **🧭 Reviewer's gate 6** fails a release if it is missing, thin, placeholdered,
+- **📦 Release's gate 6** fails a release if it is missing, thin, placeholdered,
   or naming a token the component does not actually use.
 - **This site** turns the same file into the *When to use* section.
 

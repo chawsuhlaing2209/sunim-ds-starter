@@ -40,7 +40,7 @@ For each component, check the status against what is actually underneath it:
 | `Fixed` | Fixes claimed, re-test not done | 🔍 QA |
 | `To be deployed`, `100%` | Passed and waiting | 🚀 DevOps |
 | `Completed` | Shipped. Confirm the production link still opens | — |
-| `Completed`, `Release Verdict` empty | Shipped, never reviewed for release | 🧭 Reviewer |
+| `Completed`, `Release Verdict` empty | Shipped, never reviewed for release | 📦 Release |
 | `Release Verdict` = `Blocked` | A gate failed. The report names the owner | per the report |
 
 ### 3 · Check the links, don't just count them
@@ -65,7 +65,7 @@ These are worth more than the counts, because no formula catches them:
   counted as a pass
 - A component in `src/components/` with no row in the registry, or a row with no component
 - A component in `src/components/` with no `<Name>.intent.json` — it is buildable,
-  shippable, and undocumented, and nothing upstream of 🧭 Reviewer will say so
+  shippable, and undocumented, and nothing upstream of 📦 Release will say so
 - A `Completed` row with an empty `Release Verdict` — shipped and never reviewed
 - A `Release Verdict` of `Cleared` with no `Release Review` link beside it, which
   is a verdict nobody can read the reasoning for

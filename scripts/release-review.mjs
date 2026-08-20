@@ -21,7 +21,7 @@
  *   node scripts/release-review.mjs --all --version 0.1.0   # the version being cut
  *
  * Exit 0 = no gate failed mechanically. Exit 1 = at least one FAIL.
- * REVIEW items never fail — 🧭 Reviewer closes those, and its report is what
+ * REVIEW items never fail — 📦 Release closes those, and its report is what
  * says whether the component is releasable.
  */
 
@@ -219,7 +219,7 @@ for (const t of targets) reviewComponent(t);
 
 console.log(
   `\n\x1b[1m${fails ? '\x1b[31mBLOCKED' : '\x1b[32mCLEAR'}\x1b[0m  `
-  + `${passes} passed · ${warns} warned · ${fails} failed · ${reviews} awaiting 🧭 Reviewer`,
+  + `${passes} passed · ${warns} warned · ${fails} failed · ${reviews} awaiting 📦 Release`,
 );
 if (fails) console.log('  Not releasable. Fix the failures above, or record in the review why the gate was overridden.');
 console.log(`  CLEAR means the mechanical half passed. ${reviews} item(s) still need judgement — `

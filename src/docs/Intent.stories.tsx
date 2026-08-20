@@ -6,7 +6,7 @@ import { asIntent } from './intent';
  * Every component's intent on one page.
  *
  * Each component already carries its own intent block on its own docs page.
- * This page exists for the other reading — the one 🧭 Reviewer does before a
+ * This page exists for the other reading — the one 📦 Release does before a
  * release, and the one a consumer does when they know what they want and not
  * which component does it. "Which of these is the clickable one" is answerable
  * in ten seconds here and in four page-loads otherwise.

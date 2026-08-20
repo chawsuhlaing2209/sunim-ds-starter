@@ -8,7 +8,7 @@
  * drift — a page is wrong only when the component is wrong.
  *
  * The part that matters is the refusal. This reads the intent through the same
- * `validateIntent` that 🧭 Reviewer's gate 6 uses, and **will not emit a page for
+ * `validateIntent` that 📦 Release's gate 6 uses, and **will not emit a page for
  * a component that fails it**. Without that, the two halves of the loop drift
  * apart silently and the failure mode is a published page confidently describing
  * a component that was never allowed to ship.
@@ -729,7 +729,7 @@ for (const name of listComponents()) {
 
   if (entry.key !== name) {
     note(`${name} — the registry calls this row "${entry.key}". Matched on the name with spacing `
-      + 'ignored, but two systems disagreeing about a name is a gate-4 finding for 🧭 Reviewer.');
+      + 'ignored, but two systems disagreeing about a name is a gate-4 finding for 📦 Release.');
   }
 
   if (entry.development !== 'Completed') {

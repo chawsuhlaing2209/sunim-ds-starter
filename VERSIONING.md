@@ -1,7 +1,7 @@
 # VERSIONING.md — what a version number promises
 
 This file exists so that "ship 0.1.0" means the same thing to everyone who reads
-it. 🧭 Reviewer's gate 7 is a comprehension check against this page, and it is the
+it. 📦 Release's gate 7 is a comprehension check against this page, and it is the
 only gate that cannot be automated, because the thing being checked is whether a
 human understood what they were about to promise.
 

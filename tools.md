@@ -66,8 +66,9 @@ crew — nothing that talks to the registry works until you do.
 - Site config: `docs/reference.config.json` — the Storybook URL every page links to and embeds
 - What the registry said: `docs/registry-status.json` — written by 📝 Doc Generator,
   read by the generator, which publishes nothing that is not `Completed` there
-- Agents: `.claude/agents/` — `engineer`, `qa`, `devops`, `doc-generator`, `reviewer`, `pm`
-- Skills: `.claude/skills/` — `build`, `test`, `registry`, `intent`, `reference-site`, `security-check`, `release-review`
+- Agents: `.claude/agents/` — `engineer`, `qa`, `devops`, `doc-generator`, `release`, `pm`
+- Skills: `.claude/skills/` — `build`, `test`, `registry`, `intent`, `reference-site`,
+  `security-check`, `release-review`, `release-prepare`
 - QA reports and the PM sweep: `reports/`
 - Release reviews: `reports/release-review/`
 

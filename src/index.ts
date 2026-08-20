@@ -11,7 +11,7 @@
  *
  * What each export promises, and for how long, is in `VERSIONING.md`. Read it
  * before adding a line here — adding an export is a release decision, not a
- * housekeeping one, and 🧭 Reviewer's gate 3 checks that this file and the
+ * housekeeping one, and 📦 Release's gate 3 checks that this file and the
  * intent files agree.
  */
 
