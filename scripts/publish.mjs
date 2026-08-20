@@ -20,8 +20,10 @@
  *     stop at the first failure.
  *   - Publish a version you did not name. The argument must match package.json,
  *     which a human wrote.
- *   - Leave `private: true` off. It is removed for the publish and restored in a
- *     `finally`, so a crash mid-publish still leaves the catch in place.
+ *   - Leave `private: true` off. It is removed for the publish and put straight
+ *     back — inline, and again on `exit` and on SIGINT, so a failure, a crash or
+ *     a Ctrl-C all end with the catch in place. It was a `finally` first, and a
+ *     `finally` does not run when something calls `process.exit()`.
  *
  * Usage:
  *   npm login
@@ -109,23 +111,59 @@ step(`5 · ${dryRun ? 'Dry run — nothing leaves this machine' : 'Publish'}`);
 
 /*
  * `private: true` lives in package.json so an absent-minded `npm publish` is
- * refused. It comes off for exactly this command and goes back in a `finally`,
- * so a failure mid-publish — or a Ctrl-C — still leaves the catch in place.
+ * refused. It comes off for exactly this command and goes straight back.
+ *
+ * This was written as try/catch/finally and the finally did not run, because the
+ * catch called a helper that ends in `process.exit()` — and `process.exit()`
+ * skips finally blocks. So the first failed publish left `private` removed and
+ * committed nothing about it: the guarantee this comment claimed was exactly
+ * inverted, and the repo sat there publishable by accident.
+ *
+ * Restoring is now registered on `exit` and on SIGINT, and also done inline. The
+ * inline call is the normal path; the handlers are what a Ctrl-C or a
+ * `process.exit()` deeper in the stack falls back to. Any of the three is
+ * enough, which is the point — a safety net with one strand is a claim, not a
+ * net.
+ *
+ * The removal is a line edit rather than a JSON round-trip, so the file that
+ * gets packed is byte-identical to the reviewed one apart from the line that
+ * has to go.
  */
 const original = readFileSync('package.json', 'utf8');
-try {
-  const open = { ...pkg };
-  delete open.private;
-  writeFileSync('package.json', `${JSON.stringify(open, null, 2)}\n`);
-
-  run(`npm publish --access public${dryRun ? ' --dry-run' : ''}`);
-  ok(dryRun ? 'dry run complete — nothing was published' : `published ${pkg.name}@${pkg.version}`);
-} catch {
-  stop('npm publish failed — see above.');
-} finally {
-  writeFileSync('package.json', original);
-  ok('`private: true` restored');
+const opened = original.replace(/^\s*"private":\s*true,\n/m, '');
+if (opened === original) {
+  stop('could not find `"private": true` to remove from package.json.',
+    'Refusing rather than guessing: if the flag is not where it is expected, the\n'
+    + '  safety catch is not doing what this script assumes it does.');
 }
+
+let restored = false;
+const restore = () => {
+  if (restored) return;
+  restored = true;
+  try {
+    writeFileSync('package.json', original);
+  } catch { /* nothing useful to do while exiting */ }
+};
+process.on('exit', restore);
+process.on('SIGINT', () => { restore(); process.exit(130); });
+
+let failure = null;
+try {
+  writeFileSync('package.json', opened);
+  run(`npm publish --access public${dryRun ? ' --dry-run' : ''}`);
+} catch (e) {
+  failure = e;
+}
+restore();
+ok('`private: true` restored');
+
+if (failure) {
+  stop('npm publish failed — see above.',
+    'package.json is back as it was. Nothing is half-published: npm either took the\n'
+    + '  whole tarball or none of it.');
+}
+ok(dryRun ? 'dry run complete — nothing was published' : `published ${pkg.name}@${pkg.version}`);
 
 if (dryRun) {
   console.log(`\n  Re-run without --dry-run to publish ${pkg.version}.\n`);
