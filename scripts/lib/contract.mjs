@@ -529,6 +529,11 @@ export const REGISTRY_STATUS = 'docs/registry-status.json';
  * can be `To be fixed` by the time you read it, and the whole point of the gate
  * is that the site must not document that component.
  *
+ * It carries `development` and `verdict` per component: what the board's status
+ * formula reads, and whether 📦 Release has cleared it. The release run needs
+ * both — the first decides what is a candidate, the second decides which
+ * candidates nobody has gated.
+ *
  * It records names and statuses only. No base, table, or record IDs — this file
  * is tracked, and the repository is public.
  */

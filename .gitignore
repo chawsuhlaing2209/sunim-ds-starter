@@ -22,3 +22,6 @@ node_modules/
 secrets.json
 *.local.json
 .vercel
+
+# npm pack output — a build artefact, never committed
+*.tgz

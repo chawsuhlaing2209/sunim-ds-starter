@@ -1,5 +1,5 @@
 {
-  "_comment": "What the registry said when 📝 Doc Generator last read it. Evidence, not configuration — scripts/generate-docs.mjs refuses to publish a page for any component that is not Completed here, and refuses again if the component's own directory has a commit newer than readAt, because the status recorded here would then predate the change. Regenerate it by running the doc-generator agent, which has the Airtable connection; a build script deliberately does not. Names and statuses only: no base, table, or record IDs. This file is tracked and the repo is public.",
+  "_comment": "What the board said when 📝 Doc Generator last read it. Evidence, not configuration. scripts/generate-docs.mjs refuses to publish a page for any component that is not Completed here, and refuses again if the component's own directory has a commit newer than readAt, because the status recorded here would then predate the change. scripts/release.mjs reads the same file to decide what is in a release, and reads `verdict` to say which candidates nobody has gated. Regenerate it by running the doc-generator agent, which has the Airtable connection; a build script deliberately does not. Names and statuses only: no base, table or record IDs. This file is tracked and the repo is public.",
   "readAt": "2026-08-20T06:02:17Z",
   "readBy": "doc-generator",
   "components": {
@@ -7,25 +7,33 @@
       "development": "Completed",
       "synchronization": "100%",
       "lastModified": "2026-08-20T04:57:25.000Z",
-      "production": "https://sunim-ds-starter.vercel.app/?path=/story/components-button--primary-md-default"
+      "production": "https://sunim-ds-starter.vercel.app/?path=/story/components-button--primary-md-default",
+      "verdict": "",
+      "releaseReview": ""
     },
     "Chip": {
       "development": "Completed",
       "synchronization": "100%",
       "lastModified": "2026-08-20T04:57:25.000Z",
-      "production": "https://sunim-ds-starter.vercel.app/?path=/story/components-chip--default-sm"
+      "production": "https://sunim-ds-starter.vercel.app/?path=/story/components-chip--default-sm",
+      "verdict": "",
+      "releaseReview": ""
     },
     "Eyebrow": {
       "development": "Completed",
       "synchronization": "100%",
       "lastModified": "2026-08-20T03:52:53.000Z",
-      "production": "https://sunim-ds-starter.vercel.app/?path=/story/components-eyebrow--agentic"
+      "production": "https://sunim-ds-starter.vercel.app/?path=/story/components-eyebrow--agentic",
+      "verdict": "",
+      "releaseReview": ""
     },
     "Icon Slot": {
       "development": "Completed",
       "synchronization": "100%",
       "lastModified": "2026-08-20T04:57:25.000Z",
-      "production": "https://sunim-ds-starter.vercel.app/?path=/story/components-iconslot--size-14"
+      "production": "https://sunim-ds-starter.vercel.app/?path=/story/components-iconslot--size-14",
+      "verdict": "",
+      "releaseReview": ""
     }
   }
 }
