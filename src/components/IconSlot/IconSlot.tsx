@@ -14,6 +14,11 @@ import './IconSlot.css';
  * `icon` follows the convention Button already set — a ReactNode that replaces
  * the default arrow — so the two components agree rather than inventing a
  * second way to hand an icon in.
+ *
+ * Everything else it accepts is a plain HTML attribute. Name the slot with
+ * `aria-label` when the icon is the only thing carrying the meaning; leave it
+ * off and the slot is decorative and hidden, which is how Button and Chip use
+ * it.
  */
 
 export type IconSlotSize = '14' | '16' | '22';
@@ -33,20 +38,25 @@ export interface IconSlotProps
    * `<svg>` drawing itself with `currentColor`.
    */
   icon?: ReactNode;
-  /**
-   * What the icon means, for a screen reader.
-   *
-   * Left off, the slot is decorative and hidden from assistive technology —
-   * correct when it sits beside a label that already says the same thing, which
-   * is how Button uses it. Set it when the icon is the only thing carrying the
-   * meaning.
-   *
-   * Note this is the opposite of `label` on Button, Chip and Eyebrow, where it
-   * is visible required text. Passing `aria-label` instead does the same thing
-   * here and reads less ambiguously beside them.
-   */
-  label?: string;
 }
+
+/*
+ * There is no `label` prop, and its absence is the API decision.
+ *
+ * There used to be one, meaning the icon's accessible name — the exact opposite
+ * of `label` on Button, Chip and Eyebrow, where it is visible required text.
+ * One word meaning two things, four lines apart inside Button, which composes
+ * this. It was invented here to collide: the node exposes only `Size`.
+ *
+ * Name the slot with the standard attribute instead:
+ *
+ *   <IconSlot aria-label="Next" />   announced, role="img"
+ *   <IconSlot />                     decorative, aria-hidden
+ *
+ * `aria-label` is inherited from `HTMLAttributes`, so nothing had to be added to
+ * replace it — dropping `label` made the surface smaller rather than moving the
+ * problem. Ruled before publication, so it cost no migration. See decisions.md.
+ */
 
 /*
  * The placeholder arrow, per size.
@@ -106,28 +116,27 @@ function PlaceholderArrow({ size }: { size: IconSlotSize }) {
 export function IconSlot({
   size = '14',
   icon,
-  label,
   className,
   /*
    * Pulled out of `...rest` deliberately.
    *
    * All three are on the public type, and all three used to be discarded: the
-   * spread ran first, then `aria-label={label}` overwrote the consumer's value
-   * with `undefined` and `aria-hidden` stayed `true`. So an icon somebody had
-   * explicitly named was hidden from assistive technology — no type error, no
-   * visual difference, and nothing in the DOM to suggest anything was wrong.
+   * spread ran first, then the component's own assignment overwrote the
+   * consumer's value with `undefined` and `aria-hidden` stayed `true`. So an
+   * icon somebody had explicitly named was hidden from assistive technology —
+   * no type error, no visual difference, and nothing in the DOM to suggest
+   * anything was wrong.
    *
-   * `label` and `aria-label` are two spellings of one idea, so either names the
-   * slot and `label` wins when both are given. `role` and `aria-hidden` stay
-   * overridable, because a consumer who sets them has a reason this component
-   * cannot see.
+   * `aria-label` is now the only way to name the slot. `role` and `aria-hidden`
+   * stay overridable, because a consumer who sets them has a reason this
+   * component cannot see.
    */
   'aria-label': ariaLabelProp,
   'aria-hidden': ariaHiddenProp,
   role: roleProp,
   ...rest
 }: IconSlotProps) {
-  const name = label ?? ariaLabelProp;
+  const name = ariaLabelProp;
 
   const classes = ['sunim-IconSlot', `sunim-IconSlot--${size}`, className ?? '']
     .filter(Boolean)

@@ -84,11 +84,17 @@ describe('IconSlot · a named icon is never hidden', () => {
     expect(tag).not.toContain('aria-hidden');
   });
 
-  it('names the slot from the label prop too', () => {
+  it('has no second spelling to get wrong', () => {
+    // `label` was dropped by ruling: it meant an invisible accessible name here
+    // and visible required text on the other three, and Button carries both
+    // meanings four lines apart. `aria-label` is inherited, so removing it made
+    // the surface smaller rather than moving the problem. See decisions.md.
+    // @ts-expect-error `label` is not part of IconSlotProps.
     const tag = open(renderToStaticMarkup(<IconSlot size="16" label="Next" />));
-    expect(tag).toContain('aria-label="Next"');
-    expect(tag).toContain('role="img"');
-    expect(tag).not.toContain('aria-hidden');
+    // It survives the spread as an unknown attribute and names nothing, which
+    // is a visible failure rather than a silent one.
+    expect(tag).not.toContain('aria-label');
+    expect(tag).toContain('aria-hidden="true"');
   });
 
   it('hides itself when nothing names it', () => {
@@ -167,12 +173,12 @@ describe('the defaults a component ships with', () => {
     expect(tag).toContain('sunim-Chip--Sm');
   });
 
-  it('Eyebrow is Agentic', () => {
-    // The code's answer. The prop doc says Sky; that contradiction is a live
-    // release finding and a human's to settle. If the ruling goes the other way,
-    // this test fails and says so.
+  it('Eyebrow is Sky', () => {
+    // Ruled by the owner, against the Figma node's first variant. An eyebrow
+    // with no tone set is the ordinary one, not the AI-moment one. See
+    // decisions.md — this test is what makes reverting it deliberate.
     expect(open(renderToStaticMarkup(<Eyebrow title="Components" />)))
-      .toContain('sunim-Eyebrow--Agentic');
+      .toContain('sunim-Eyebrow--Sky');
   });
 
   it('IconSlot is 14', () => {

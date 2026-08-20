@@ -40,6 +40,13 @@ export interface EyebrowProps
    *
    * `Agentic` marks an AI moment. `Sky` is the default. `Ink` is for quiet
    * sections. `Gold` is for anything earned or paid.
+   *
+   * Note the default is deliberately **not** the node's first variant, which is
+   * `Agentic`. The prose and the code disagreed here for long enough to be
+   * published, and the owner ruled the prose right: an eyebrow appearing with no
+   * tone set should be the ordinary one, not the AI-moment one. Recorded in
+   * `decisions.md`; a test asserts it, so changing it back is a deliberate act
+   * rather than a one-word edit.
    */
   tone?: EyebrowTone;
   /**
@@ -63,7 +70,7 @@ export interface EyebrowProps
 }
 
 export function Eyebrow({
-  tone = 'Agentic',
+  tone = 'Sky',
   mark = '◇',
   title = 'Components',
   label = '/ Card',

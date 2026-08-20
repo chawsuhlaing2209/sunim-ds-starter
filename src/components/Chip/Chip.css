@@ -2,7 +2,8 @@
  * Chip
  *
  * Built from Figma node 21:79 — the Chip component set,
- * Tone (Default | Gold | Agentic | Figma) x Size (Sm | Md) = 8 variants.
+ * Tone (Default | Gold | Agentic | Quiet) x Size (Sm | Md) = 8 variants.
+ * The node calls the fourth tone Figma; see decisions.md for the rename.
  * There is no State property in the set: a Chip is a label, not a control.
  *
  * ---------------------------------------------------------------------------
@@ -108,8 +109,9 @@
   color: var(--color-agentic-default);
 }
 
-/* Figma — the pill stays quiet and lets the mark carry the colour. */
-.sunim-Chip--Figma {
+/* Quiet — the pill stays quiet and lets the mark carry the colour.
+   The node calls this tone Figma. Renamed by ruling; decisions.md. */
+.sunim-Chip--Quiet {
   --sunim-Chip-border-color: var(--color-line-default);
   background-color: var(--color-surface-card);
   color: var(--color-text-heading);

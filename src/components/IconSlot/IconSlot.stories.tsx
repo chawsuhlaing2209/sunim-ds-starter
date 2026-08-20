@@ -34,7 +34,7 @@ const meta = {
   argTypes: {
     size: { control: 'inline-radio', options: ['14', '16', '22'] },
     icon: { control: false },
-    label: { control: 'text' },
+    'aria-label': { control: 'text' },
   },
   parameters: {
     docs: {
@@ -56,7 +56,7 @@ loading appearance of its own, and takes its colour from whatever it sits in.
 The stories after the matrix — AllSizes, Playground, WithCustomIcon, Retinted
 and Labelled — are **not** matrix rows and have no node to test against. They
 exercise the two props the Figma set has no variant for: \`icon\` (the swap
-this component exists for) and \`label\` (whether the icon is announced or
+this component exists for) and \`aria-label\` (whether the icon is announced or
 decorative).`,
       },
     },
@@ -172,10 +172,10 @@ export const Retinted: Story = {
 };
 
 /**
- * With no `label` the slot is decorative and hidden from assistive technology,
+ * With no `aria-label` the slot is decorative and hidden from assistive technology,
  * which is right when it sits beside text that already says the same thing.
  * With one it becomes an announced image. Check both in the a11y panel.
  */
 export const Labelled: Story = {
-  args: { size: '22', label: 'Next' },
+  args: { size: '22', 'aria-label': 'Next' },
 };

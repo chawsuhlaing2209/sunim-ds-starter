@@ -34,7 +34,7 @@ const meta = {
   argTypes: {
     tone: {
       control: 'inline-radio',
-      options: ['Default', 'Gold', 'Agentic', 'Figma'],
+      options: ['Default', 'Gold', 'Agentic', 'Quiet'],
     },
     size: { control: 'inline-radio', options: ['Sm', 'Md'] },
     label: { control: 'text' },
@@ -60,7 +60,7 @@ not a control. None has been invented here, and QA should expect none.
 
 **Tone.** Default is sky, the everyday status tag. Gold marks something earned
 or paid. Agentic marks an AI moment and is reserved for those — the design file
-asks for it to stay rare on any one screen. Figma keeps the pill quiet and lets
+asks for it to stay rare on any one screen. Quiet keeps the pill quiet and lets
 the mark carry the colour.
 
 **The mark is an Icon Slot instance**, not a glyph — imported from
@@ -125,15 +125,16 @@ export const AgenticMd: Story = {
   parameters: node('21:68'),
 };
 
-/** Figma · Sm — the pill stays quiet, the mark carries the colour. */
-export const FigmaSm: Story = {
-  args: { tone: 'Figma', size: 'Sm', label: 'Early bird' },
+/** Quiet · Sm — the pill stays quiet, the mark carries the colour.
+ *  The node names this variant Figma; renamed by ruling, see decisions.md. */
+export const QuietSm: Story = {
+  args: { tone: 'Quiet', size: 'Sm', label: 'Early bird' },
   parameters: node('21:73'),
 };
 
-/** Figma · Md. */
-export const FigmaMd: Story = {
-  args: { tone: 'Figma', size: 'Md', label: 'Early bird' },
+/** Quiet · Md. */
+export const QuietMd: Story = {
+  args: { tone: 'Quiet', size: 'Md', label: 'Early bird' },
   parameters: node('21:78'),
 };
 
@@ -161,8 +162,8 @@ export const AllTones: Story = {
       <Chip tone="Gold" size="Md" label="Early bird" />
       <Chip tone="Agentic" size="Sm" label="Early bird" />
       <Chip tone="Agentic" size="Md" label="Early bird" />
-      <Chip tone="Figma" size="Sm" label="Early bird" />
-      <Chip tone="Figma" size="Md" label="Early bird" />
+      <Chip tone="Quiet" size="Sm" label="Early bird" />
+      <Chip tone="Quiet" size="Md" label="Early bird" />
     </div>
   ),
 };
