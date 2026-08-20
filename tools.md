@@ -26,6 +26,7 @@ loaded in `.storybook/preview.ts`. Not a CDN; the deployed CSP forbids one
 | Test | `npm test` |
 | Type check | `npm run lint` |
 | Security gate | `npm run security-check` (add `--url <url>` after deploying) |
+| Release gate | `npm run release-review -- <Component>` (or `-- --all --version 0.1.0`) |
 
 ## Registry and design sources
 
@@ -50,9 +51,13 @@ crew — nothing that talks to the registry works until you do.
 - Token config: `style-dictionary.config.js`
 - Generated output: `build/tokens/` (never edit by hand, gitignored)
 - Components: `src/components/<Name>/`
-- Agents: `.claude/agents/` — `engineer`, `qa`, `devops`, `pm`
-- Skills: `.claude/skills/` — `build`, `test`, `registry`, `security-check`
+- Component intent: `src/components/<Name>/<Name>.intent.json`, typed by `src/intent.ts`
+- The public surface: `src/index.ts` — nothing outside it is released
+- What a version promises: `VERSIONING.md`
+- Agents: `.claude/agents/` — `engineer`, `qa`, `devops`, `doc-generator`, `reviewer`, `pm`
+- Skills: `.claude/skills/` — `build`, `test`, `registry`, `intent`, `security-check`, `release-review`
 - QA reports and the PM sweep: `reports/`
+- Release reviews: `reports/release-review/`
 
 ## Dependency rules
 

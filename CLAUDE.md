@@ -49,6 +49,10 @@ inside.
 - The engineer builds and fixes. It never verifies its own work.
 - QA tests and reports. It never repairs.
 - DevOps ships what QA passed. It never changes what was tested on the way.
+- The doc generator writes what a component is for. It never changes the component
+to make that true.
+- The reviewer decides whether a shipped component can be lived with in public.
+It repairs nothing and it never bumps a version.
 - The PM audits the registry and reports. It writes nothing but a report.
 - A human approves. No agent approves its own work, ever.
 
@@ -68,11 +72,43 @@ Check that file before reporting a finding as new. A ruling recorded there is no
 a defect to fix and not an argument to have again — and a finding that is *not*
 there has not been ruled on, whatever anyone remembers.
 
+## Intent
+
+- Props say **how** to call a component. They never say **when** you should, or
+when you should reach for a different one — which is the question a consumer
+actually has.
+- Every component carries `src/components/<Name>/<Name>.intent.json`: what it is
+for, what it is not for, where it goes, the tokens it needs, and what it
+guarantees to a keyboard and a screen reader. The format is in
+`.claude/skills/intent/SKILL.md`.
+- That file is the only copy. The component's docs page appends it, and
+`Documentation/Component Intent` collects every one by glob — write the JSON and
+both surfaces update. Prose written twice is prose that disagrees.
+- `dont_use_when` names the alternative for every case in it. Telling somebody
+they are wrong without telling them what to reach for sends them back to
+building their own.
+- `a11y` states at least one thing the component does **not** guarantee, measured
+rather than asserted. "Accessible" is not a commitment; "Md is 36px, which
+clears 2.5.8 at AA and misses 2.5.5 at AAA" is.
+
+## The public surface
+
+- A component is public when it is exported from `src/index.ts`, and not before.
+Everything else in `src/` is scaffolding, whatever a consumer can reach by deep
+import.
+- Adding an export is a release decision. `VERSIONING.md` says what a version
+number promises and what it deliberately does not.
+- **No agent bumps the version or tags a release.** That number is a promise to
+people outside this repo, and promises are made by whoever will be held to them.
+
 ## Common failures to avoid
 
 - Inventing a token that does not exist. Report the gap instead and stop.
 - Copying a component's styles instead of importing the component.
 - Raw hex, px, or font values inside a component file.
+- A placeholder in a document a gate reads — `color.bg.{intent}` reads well and
+checks nothing.
+- Editing a component so that its intent becomes true. The gap is the finding.
 - Adding a dependency to solve a problem the existing stack already solves.
 
 

@@ -70,6 +70,8 @@ An agent that finds one of them wrong reports it and stops.
 | `Semantic Tokens` | 🎨 Human | The semantic tokens this component consumes |
 | `Composes` | 🔨 Engineer | The components this one imports. Written when you compose another component |
 | `Composed Into` | **nobody** | The reverse of `Composes`, derived. Who depends on this component |
+| `Release Review` | 🧭 Reviewer | URL of the committed review report, at the commit it reviewed |
+| `Release Verdict` | 🧭 Reviewer | `Cleared` · `Blocked`. Empty means not reviewed |
 | `Development` | **nobody** | Formula. Derived from the columns above |
 | `Synchronization %` | **nobody** | Formula. Passed staging tests ÷ total staging tests |
 | `Last Modified` | **nobody** | Automatic |
@@ -88,6 +90,32 @@ Two things it is not. It is **not a category** — the design file's taxonomy is
 positional, and an atom may compose a lower atom and remain an atom. And it is not
 yet wired into `Development`: nothing derives from it, so a stale consumer is
 something the sweep must notice, not something a formula will catch.
+
+## The release gate — after Completed, not inside it
+
+`Release Review` and `Release Verdict` are 🧭 Reviewer's, and they answer a
+question no other column asks: **can this component's name go into a public
+version.** Everything upstream checks it against its design. This checks it
+against the next two years — the names, the exported surface, the promises.
+
+They sit **after** `Completed`. A component reaches that status when it has
+shipped to production, and only then is there something to review; the seven
+gates are in `.claude/skills/release-review/SKILL.md`.
+
+Three consequences:
+
+- **Neither column feeds `Development`.** Folding them in would make a shipped
+  component read unfinished, which it is not. A row can be `Completed` and
+  `Blocked` at the same time, and both are true: it is live, and its name is not
+  ready to be promised.
+- **The two are written together or not at all.** A verdict with no report behind
+  it is an opinion in a cell.
+- **The report link is pinned to a commit**, never a branch. A branch URL points
+  at whatever the file says today, which is exactly what a review must not do.
+
+A review goes stale on its own. `Last Modified` later than the commit the report
+links to means the review is describing a component that has since changed, and
+no formula catches it — that one is the sweep's to notice.
 
 ## Development — the derived status
 
@@ -159,5 +187,7 @@ QA creates these rows. One row per variant × size × state, never one row per c
 - Never write a base, table, or record ID into a tracked file, a report, or a commit
   message. Name the component, not the row.
 - Never mark a row `Passed` unless you are QA and you watched it pass.
+- Never write `Cleared` without the report link beside it, and never link a
+  review to a branch instead of a commit.
 - Never delete a test row to clear a failure. A failure is cleared by fixing the
   component and re-testing the row.
