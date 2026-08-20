@@ -1,8 +1,8 @@
 {
   "name": "@sunim/design-system",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
-  "description": "Sunim Design System — course starter (Day 2)",
+  "description": "Sunim Design System \u2014 course starter (Day 2)",
   "type": "module",
   "license": "UNLICENSED",
   "repository": {
@@ -21,7 +21,8 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "CHANGELOG.md"
   ],
   "sideEffects": [
     "*.css"
