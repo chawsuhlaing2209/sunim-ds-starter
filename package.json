@@ -40,6 +40,7 @@
     "security-check": "node scripts/security-check.mjs",
     "release-review": "node scripts/release-review.mjs",
     "release": "node scripts/release.mjs",
+    "release:publish": "node scripts/publish.mjs",
     "docs:install": "npm --prefix docs install --no-audit --no-fund",
     "docs:generate": "node scripts/generate-docs.mjs",
     "docs:dev": "npm --prefix docs run dev",

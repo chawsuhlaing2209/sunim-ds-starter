@@ -35,7 +35,8 @@ loaded in `.storybook/preview.ts`. Not a CDN; the deployed CSP forbids one
 | Security gate | `npm run security-check` (add `--url <url>` after deploying, `--dir <path>` for another build) |
 | Release gate | `npm run release-review -- <Component>` (or `-- --all --version 0.1.0`) |
 | Prepare a release | `npm run release` (add `--branch` to push `release/<version>`) |
-| Publish a release | GitHub Actions → **Publish release**, version typed by a human. Nothing local can publish |
+| Publish a release | GitHub Actions → **Publish release**, version typed by a human. Preferred — publishes with `--provenance` |
+| …when CI cannot run | `npm login`, then `npm run release:publish -- <version>`. A human runs it; no agent does |
 | Install the site | `npm run docs:install` (once — `docs/` has its own `node_modules`) |
 | Generate the site | `npm run docs:generate` (add `--storybook <url>` to embed a different one) |
 | Run the site | `npm run docs:dev` (port 4321) |

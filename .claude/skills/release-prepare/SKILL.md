@@ -178,6 +178,18 @@ Two things it checks that this run cannot:
 `private: true` stays in `package.json` and CI removes it at publish time. The
 flag exists to stop a laptop publishing by accident; CI is not an accident.
 
+### When CI cannot run
+
+`npm run release:publish -- <version>` publishes from a machine. It re-runs all
+nine gates, refuses without an npm login, refuses a version that does not match
+the file, and restores `private: true` in a `finally` so a crash mid-publish
+still leaves the catch in place.
+
+**A human runs it. No agent does**, and none holds a credential that would let
+one. It is the fallback, not the default: it cannot publish with `--provenance`,
+because that needs the OIDC token a CI runner has and a laptop does not. What it
+publishes is trusted because a person ran it, and nothing else.
+
 ## Never
 - Never publish, tag, or deploy anything. Preparing and performing are different
   jobs, and the second one is a human's to start.
