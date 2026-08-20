@@ -296,7 +296,7 @@ try {
   writeFileSync(join(smoke, 'render.mjs'), `
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createElement as h } from 'react';
-import * as ds from '@sunim/design-system';
+import * as ds from '${pkg.name}';
 import { readFileSync } from 'node:fs';
 
 const names = ${JSON.stringify(candidates.map((c) => c.name))};
@@ -305,7 +305,7 @@ if (missing.length) { console.error('not exported at runtime: ' + missing.join('
 
 const html = renderToStaticMarkup(h('div', null, names.map((n, i) =>
   h(ds[n], { key: i, label: 'Smoke', title: 'Smoke' }))));
-const css = readFileSync('node_modules/@sunim/design-system/dist/styles.css', 'utf8');
+const css = readFileSync('node_modules/${pkg.name}/dist/styles.css', 'utf8');
 
 if (!html.trim()) { console.error('rendered nothing'); process.exit(1); }
 for (const n of names) {

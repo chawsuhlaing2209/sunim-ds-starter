@@ -109,15 +109,15 @@ component changed. You never touched the component.
 Once a version is published:
 
 ```bash
-npm install @sunim/design-system react react-dom
+npm install @theproductiveschedule/sunim-design-system react react-dom
 ```
 
 React is a **peer** dependency — the package never bundles it. Import the
 stylesheet once, at the root of your app, and the components anywhere:
 
 ```tsx
-import '@sunim/design-system/styles.css';
-import { Button, Chip } from '@sunim/design-system';
+import '@theproductiveschedule/sunim-design-system/styles.css';
+import { Button, Chip } from '@theproductiveschedule/sunim-design-system';
 
 export function Apply() {
   return <Button variant="Primary" size="Lg" label="Apply for this cohort" />;
@@ -127,7 +127,7 @@ export function Apply() {
 One stylesheet carries the typefaces, the token layer and the component CSS, in
 that order — a component resolves nothing but `var(--token)`, and a cascade cannot
 read forwards. If you only want the tokens, to build your own components against
-this system, import `@sunim/design-system/tokens.css` instead; it carries the
+this system, import `@theproductiveschedule/sunim-design-system/tokens.css` instead; it carries the
 typefaces too.
 
 **The fonts ship inside the package.** Schibsted Grotesk and Instrument Sans, as
