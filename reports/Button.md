@@ -1,311 +1,272 @@
-# QA — Button (staging)
+# QA — Button (staging, post-refactor re-sweep)
 
 | | |
 |---|---|
 | **Component** | Button |
 | **Figma node** | `19:231` — the Button component set, in file `mFnN1Sr8MAmOdmx0ABXPsb` |
 | **Tested against** | `https://sunim-ds-staging.vercel.app` (staging Storybook, deployed) |
-| **Date** | 2026-08-19 |
+| **Build under test** | **Post-refactor** — Button consumes `IconSlot`; the private `Arrow()` is gone |
+| **Date** | 2026-08-20 |
 | **Matrix** | 3 variants × 2 sizes × 5 states = **30 cases** |
 | **Result** | **30 passed · 0 failed** |
-| **Verdict** | Passes. Six design gaps recorded — none of them an engineering defect. |
+| **Verdict** | Passes. No new findings. Four known design gaps unchanged. |
 
-The registry row read `Ready for Testing` with a `Staging Storybook` link, so the gate was
-satisfied. Nothing local was tested; every measurement below comes from the deployed staging
-build.
-
----
-
-## 1 · The gate, and what the expectations were built from
-
-The expected matrix was read from Figma over the MCP connection — `get_metadata` on `19:231`
-for the variant list and real pixel dimensions, `get_design_context` per node for the token
-bindings, `get_variable_defs` to confirm a binding, `get_screenshot` for the visual compare.
-The story file was used only to reconcile coverage, never as the source of truth.
-
-**Reconciliation: 30 Figma variants ↔ 30 stories, one to one, no orphans either way.**
-Every node in the set has a story, and every matrix story maps to a node.
+> **This sweep is against the post-refactor build.** The previous report (2026-08-19) measured
+> the build in which Button drew its own arrow. That code no longer exists in `staging`. Every
+> number below was re-measured against the deployed build that consumes `IconSlot`.
 
 ---
 
-## 2 · The mode trap — read this before disputing any colour
+## 1 · The gate
 
-The Figma file renders in the **`open`** season mode. The staging Storybook renders in
-**`day`** (the preview's default global). The two modes agree on some semantic tokens and
-differ on others, and both are correct:
+Button's registry row carries a `Staging Storybook` link, so a deployed build exists and the
+gate is satisfied. The row reads `Completed` rather than `Ready for Testing` only because a
+`Production Storybook` link outranks staging in the status formula — the ladder has no state
+for "shipped, then changed underneath". This re-sweep was authorised explicitly to close that
+gap. Nothing local was tested.
 
-| Semantic token | `day` (what staging renders) | `open` (what Figma renders) | Same? |
-|---|---|---|---|
-| `--color-accent-ink` | `#1a78bd` | `#1a78bd` | yes |
-| `--color-accent-ink-deep` | `#125c93` | `#14639b` | **no** |
-| `--color-accent-soft` | `#e3f1fa` | `#e2f2fd` | **no** |
-| `--color-line-default` | `#e7ebf2` | `#e0ebf5` | **no** |
+Worth recording for whoever picks this up: the row's `Commit` column already points at
+`2572273`, *Merge Button's Icon Slot refactor into staging*, so **staging and the registry
+agree**. The `Production Storybook` link is the one pointing at the pre-refactor build. That
+column is DevOps's, and this report does not touch it.
 
-Every hover case in this matrix resolves `--color-accent-ink-deep`, so a naive raw-hex
-comparison against the Figma canvas would have produced twelve false failures, plus more from
-`accent-soft` and `line-default`. **The component binds semantic tokens throughout, so it
-resolves correctly in all eight modes.** Findings below name tokens, never raw values.
-
-Confirmed independently: Figma's exported arrow asset for Secondary Hover bakes `#14639B`
-(open-mode `accent-ink-deep`), while the same case in staging measures `rgb(18, 92, 147)` =
-`#125c93` (day-mode `accent-ink-deep`). Same token, different mode. Not a defect.
+Staging was confirmed to actually *be* the post-refactor build, not assumed: the deployed DOM
+emits `IconSlot`'s class names, which the pre-refactor build could not have produced.
 
 ---
 
-## 3 · Method
+## 2 · Where the expectations came from
 
-**Fonts were confirmed loaded before any width was reported.** `document.fonts.check()`
-returns `true` for a font that is merely fallible, so it was not trusted. The label string was
-measured on a canvas in `"Schibsted Grotesk"` (135.03px) and again in a deliberately bogus
-family (121.12px, identical to `serif`). The 13.9px difference proves the real face is loaded,
-so the widths below mean something.
+`get_metadata` on `19:231` for the variant list and real pixel dimensions; `get_variable_defs`
+per node for the bindings; `get_screenshot` for the visual compare. The story file was used
+only to reconcile coverage.
 
-Every number came from `getComputedStyle` and `getBoundingClientRect` in the deployed build.
-Nothing was judged by eye.
+**Reconciliation: 30 Figma variants ↔ 30 stories, one to one, no orphans either way.** The
+four extra stories (Playground, WithoutTrailing, WithCustomIcon, LongLabel) exercise non-variant
+properties and have no node; they are not matrix rows and are not counted.
 
-**States were driven, not merely rendered:**
+---
 
-- **Focus** — a real `Tab` keypress moved focus to the button, which then matched
-  `:focus-visible` and painted `--effect-focus-ring`. The pinned `Focus` story and the real
-  keyboard focus agree. A programmatic `.focus()` was deliberately not used.
-- **Hover** — a real pointer hover on the *unpinned* `Default` story reproduced the pinned
-  `Hover` appearance exactly (`rgb(18, 92, 147)`).
-- **Disabled** — a real pointer click fired **zero** handlers, the button is not focusable, and
-  `cursor: not-allowed`.
-- **Loading** — a real pointer click fired **zero** handlers, `aria-busy="true"` is present, and
-  the spinner's transform matrix was sampled twice 250 ms apart and had changed, so the
-  animation genuinely runs rather than sitting on frame one.
+## 3 · Method, and two traps handled
+
+**Fonts confirmed loaded before any width was reported.** `document.fonts.check()` returned
+`true` and was not trusted. The label was measured on a canvas in `"Schibsted Grotesk"`
+(135.03px) and in a deliberately bogus family (121.12px, identical to `serif`). The 13.9px
+gap proves the real face arrived, so the widths below mean what they say.
+
+**The spinner was frozen before any Loading geometry was compared.** `getAnimations()` was
+used to pause the rotation and pin `currentTime = 0` on all six Loading cases before
+measuring. Frozen, the spinner measures exactly 14×14, matching
+`--sunim-Button-unbound-spinner-size`.
+
+One honest caveat: the measuring pane ran hidden (`document.hidden === true`), which throttles
+timers, so unfrozen sampling read a constant 14 and I could **not** independently reproduce
+the 14 → 19.8 spread reported to me. `prefers-reduced-motion` is `false` and the animation
+(`sunim-Button-spin`) is present and live, so the rotation is genuinely declared. The freeze
+was applied regardless, which is the measurement that counts. The spread *did* show up in the
+screenshot pass — see §7.
+
+**The mode trap.** The Figma file renders in the `open` season mode; staging renders the
+default `day` mode. `--color-accent-ink-deep` is `#14639b` in `open` and `#125c93` in `day`;
+`--color-accent-soft` and `--color-line-default` differ likewise. Verified against
+`build/tokens/css/tokens.css`, which defines these per mode. A raw-hex comparison would have
+produced twelve false failures on hover alone. **Every finding below names a token, never a
+raw value.**
 
 ---
 
 ## 4 · The matrix
 
-Geometry is consistent across every case, so it is stated once rather than repeated 30 times:
+Geometry: Figma frame vs measured box. The width delta is **−0.96px on all 30 cases** and the
+height delta is −0.8 (Md) / −0.4 (Lg) — identical within each size, which is the text
+rasteriser, not the component. Figma resolves the Action line box at ~1.26 × font size, the
+browser at 1.2. Systemic, so not charged against any case.
 
-| Size | Figma | Staging | Δ |
-|---|---|---|---|
-| Md | 196 × 37 | 195.04 × 36.20 | −0.96 w, −0.80 h |
-| Md, Loading | 194 × 37 | 193.04 × 36.20 | −0.96 w, −0.80 h |
-| Lg | 232 × 47 | 231.04 × 46.60 | −0.96 w, −0.40 h |
-| Lg, Loading | 230 × 47 | 229.04 × 46.60 | −0.96 w, −0.40 h |
+| # | Case | Figma | Measured | Fill | Label + arrow | Arrow is IconSlot | Result |
+|---|---|---|---|---|---|---|---|
+| 1 | Primary · Md · Default | 196×37 | 195.04×36.2 | `--color-accent-ink` | `--color-text-on-accent` | yes | **Passed** |
+| 2 | Primary · Md · Hover | 196×37 | 195.04×36.2 | `--color-accent-ink-deep` | `--color-text-on-accent` | yes | **Passed** |
+| 3 | Primary · Md · Focus | 196×37 | 195.04×36.2 | `--color-accent-ink` | `--color-text-on-accent` | yes | **Passed** |
+| 4 | Primary · Md · Disabled | 196×37 | 195.04×36.2 | `--color-accent-ink` | `--color-text-on-accent` | yes | **Passed** |
+| 5 | Primary · Md · Loading | 194×37 | 193.04×36.2 | `--color-accent-ink` | `--color-text-on-accent` | spinner | **Passed** |
+| 6 | Primary · Lg · Default | 232×47 | 231.04×46.6 | `--color-accent-ink` | `--color-text-on-accent` | yes | **Passed** |
+| 7 | Primary · Lg · Hover | 232×47 | 231.04×46.6 | `--color-accent-ink-deep` | `--color-text-on-accent` | yes | **Passed** |
+| 8 | Primary · Lg · Focus | 232×47 | 231.04×46.6 | `--color-accent-ink` | `--color-text-on-accent` | yes | **Passed** |
+| 9 | Primary · Lg · Disabled | 232×47 | 231.04×46.6 | `--color-accent-ink` | `--color-text-on-accent` | yes | **Passed** |
+| 10 | Primary · Lg · Loading | 230×47 | 229.04×46.6 | `--color-accent-ink` | `--color-text-on-accent` | spinner | **Passed** |
+| 11 | Secondary · Md · Default | 196×37 | 195.04×36.2 | `--color-surface-card` | `--color-accent-ink` | yes | **Passed** |
+| 12 | Secondary · Md · Hover | 196×37 | 195.04×36.2 | `--color-accent-soft` | `--color-accent-ink-deep` | yes | **Passed** |
+| 13 | Secondary · Md · Focus | 196×37 | 195.04×36.2 | `--color-surface-card` | `--color-accent-ink` | yes | **Passed** |
+| 14 | Secondary · Md · Disabled | 196×37 | 195.04×36.2 | `--color-surface-card` | `--color-accent-ink` | yes | **Passed** |
+| 15 | Secondary · Md · Loading | 194×37 | 193.04×36.2 | `--color-surface-card` | `--color-accent-ink` | spinner | **Passed** |
+| 16 | Secondary · Lg · Default | 232×47 | 231.04×46.6 | `--color-surface-card` | `--color-accent-ink` | yes | **Passed** |
+| 17 | Secondary · Lg · Hover | 232×47 | 231.04×46.6 | `--color-accent-soft` | `--color-accent-ink-deep` | yes | **Passed** |
+| 18 | Secondary · Lg · Focus | 232×47 | 231.04×46.6 | `--color-surface-card` | `--color-accent-ink` | yes | **Passed** |
+| 19 | Secondary · Lg · Disabled | 232×47 | 231.04×46.6 | `--color-surface-card` | `--color-accent-ink` | yes | **Passed** |
+| 20 | Secondary · Lg · Loading | 230×47 | 229.04×46.6 | `--color-surface-card` | `--color-accent-ink` | spinner | **Passed** |
+| 21 | Ghost · Md · Default | 196×37 | 195.04×36.2 | none | `--color-accent-ink` | yes | **Passed** |
+| 22 | Ghost · Md · Hover | 196×37 | 195.04×36.2 | `--color-accent-soft` | `--color-accent-ink-deep` | yes | **Passed** |
+| 23 | Ghost · Md · Focus | 196×37 | 195.04×36.2 | none | `--color-accent-ink` | yes | **Passed** |
+| 24 | Ghost · Md · Disabled | 196×37 | 195.04×36.2 | none | `--color-accent-ink` | yes | **Passed** |
+| 25 | Ghost · Md · Loading | 194×37 | 193.04×36.2 | none | `--color-accent-ink` | spinner | **Passed** |
+| 26 | Ghost · Lg · Default | 232×47 | 231.04×46.6 | none | `--color-accent-ink` | yes | **Passed** |
+| 27 | Ghost · Lg · Hover | 232×47 | 231.04×46.6 | `--color-accent-soft` | `--color-accent-ink-deep` | yes | **Passed** |
+| 28 | Ghost · Lg · Focus | 232×47 | 231.04×46.6 | none | `--color-accent-ink` | yes | **Passed** |
+| 29 | Ghost · Lg · Disabled | 232×47 | 231.04×46.6 | none | `--color-accent-ink` | yes | **Passed** |
+| 30 | Ghost · Lg · Loading | 230×47 | 229.04×46.6 | none | `--color-accent-ink` | spinner | **Passed** |
 
-The −0.96px width delta is **identical on all 30 cases** — text rasterises differently in Figma
-than in a browser. The height delta is explained in Gap 6. Neither is charged to the component;
-per the test skill, the same delta on every case points at something systemic, and a delta on
-one case would be the real finding. There was none.
-
-The 2px narrower Loading footprint is correct: the trailing frame shrinks from the 16px icon to
-the 14px spinner, in both the node and the build.
-
-### Primary
-
-| # | Case | Expected (from the node) | Measured | Result |
-|---|---|---|---|---|
-| 1 | Primary · Md · Default | `--color-accent-ink` fill, `--color-text-on-accent` label, `--effect-shadow-button` | fill `rgb(26,120,189)`, label `#fff`, shadow `0 16px 30px -12px rgba(22,111,178,.7)` | **Passed** |
-| 2 | Primary · Md · Hover | fill → `--color-accent-ink-deep`, shadow retained | fill `rgb(18,92,147)`, shadow retained | **Passed** |
-| 3 | Primary · Md · Focus | `--effect-focus-ring` **replaces** `--effect-shadow-button` | `rgba(43,164,236,.4) 0 0 0 3px`, button shadow gone | **Passed** |
-| 4 | Primary · Md · Disabled | opacity `0.5`, shadow removed, fill unchanged | opacity `0.5`, `box-shadow: none` | **Passed** |
-| 5 | Primary · Md · Loading | opacity `0.85`, shadow **retained**, 14px spinner | opacity `0.85`, shadow retained, spinner 14×14 | **Passed** |
-| 6 | Primary · Lg · Default | as #1 with `--spacing-step-14/26`, `--font-action-lg` | padding `14px 26px`, font `700 15.5px` | **Passed** |
-| 7 | Primary · Lg · Hover | fill → `--color-accent-ink-deep` | fill `rgb(18,92,147)` | **Passed** |
-| 8 | Primary · Lg · Focus | ring replaces button shadow | ring only | **Passed** |
-| 9 | Primary · Lg · Disabled | opacity `0.5`, shadow removed | opacity `0.5`, no shadow | **Passed** |
-| 10 | Primary · Lg · Loading | opacity `0.85`, shadow retained, spinner | matches | **Passed** |
-
-Node `19:74` carries the ring **only** — no button shadow. Node `19:80` carries **no** shadow at
-all. Node `19:85` carries the button shadow **and** `opacity-85`. The build reproduces all three
-distinctions exactly; this is the detail most implementations get wrong.
-
-### Secondary
-
-| # | Case | Expected (from the node) | Measured | Result |
-|---|---|---|---|---|
-| 11 | Secondary · Md · Default | `--color-surface-card` fill, `--color-accent-ink` label, 1px **inside** stroke `--color-line-default` | `#fff`, `rgb(26,120,189)`, `inset 0 0 0 1px rgb(231,235,242)`, width 195.04 = Primary Md | **Passed** |
-| 12 | Secondary · Md · Hover | fill → `--color-accent-soft`, label → `--color-accent-ink-deep`, stroke retained | `rgb(227,241,250)`, `rgb(18,92,147)`, stroke retained | **Passed** |
-| 13 | Secondary · Md · Focus | stroke **and** ring both present, label stays `--color-accent-ink` | `inset …1px` + `rgba(43,164,236,.4) 0 0 0 3px`, label `rgb(26,120,189)` | **Passed** |
-| 14 | Secondary · Md · Disabled | opacity `0.5`, stroke retained | opacity `0.5`, stroke retained | **Passed** |
-| 15 | Secondary · Md · Loading | opacity `0.85`, stroke retained, spinner in `--color-accent-ink` | matches | **Passed** |
-| 16 | Secondary · Lg · Default | as #11 at Lg | width 231.04 = Primary Lg | **Passed** |
-| 17 | Secondary · Lg · Hover | `--color-accent-soft` / `--color-accent-ink-deep` | matches | **Passed** |
-| 18 | Secondary · Lg · Focus | stroke + ring | matches | **Passed** |
-| 19 | Secondary · Lg · Disabled | opacity `0.5`, stroke retained | matches | **Passed** |
-| 20 | Secondary · Lg · Loading | opacity `0.85`, stroke retained | matches | **Passed** |
-
-The inside stroke is drawn as `box-shadow: inset`, not `border`. **This is correct, not a
-workaround.** A Figma stroke set to inside adds nothing to the frame, so Secondary and Primary
-are both 196 wide at Md in the node; a real `border` would have pushed the pill 2px wider than
-Primary. Measured: Secondary Md 195.04px, Primary Md 195.04px — they align, as designed.
-
-Node `19:132` was checked specifically because it is easy to get wrong: Secondary Focus keeps
-the label on `--color-accent-ink`, **not** the deep variant. The build agrees.
-
-### Ghost
-
-| # | Case | Expected (from the node) | Measured | Result |
-|---|---|---|---|---|
-| 21 | Ghost · Md · Default | no fill, no shadow, `--color-accent-ink` label | `rgba(0,0,0,0)`, `none`, `rgb(26,120,189)` | **Passed** |
-| 22 | Ghost · Md · Hover | fill `--color-accent-soft`, label `--color-accent-ink-deep`, no stroke | `rgb(227,241,250)`, `rgb(18,92,147)`, no stroke | **Passed** |
-| 23 | Ghost · Md · Focus | `--effect-focus-ring`, label stays `--color-accent-ink` — see Gap 5 | ring drawn, label `rgb(26,120,189)` | **Passed** |
-| 24 | Ghost · Md · Disabled | opacity `0.5`, no fill | opacity `0.5`, transparent | **Passed** |
-| 25 | Ghost · Md · Loading | opacity `0.85`, no fill, spinner | matches | **Passed** |
-| 26 | Ghost · Lg · Default | no fill, `--font-action-lg` | matches | **Passed** |
-| 27 | Ghost · Lg · Hover | `--color-accent-soft` / `--color-accent-ink-deep` | matches | **Passed** |
-| 28 | Ghost · Lg · Focus | ring — see Gap 5 | ring drawn | **Passed** |
-| 29 | Ghost · Lg · Disabled | opacity `0.5` | matches | **Passed** |
-| 30 | Ghost · Lg · Loading | opacity `0.85`, spinner | matches | **Passed** |
+Shared across every case and measured on each: `--radius-radius-pill` (999px), gap
+`--spacing-space-2` (8px), padding `--spacing-step-10 / --spacing-step-18` (Md) and
+`--spacing-step-14 / --spacing-step-26` (Lg), type `--font-action-md` / `--font-action-lg`,
+`white-space: nowrap`. Opacity 1 on Default/Hover/Focus, 0.5 on Disabled, 0.85 on Loading.
+Shadow: `--effect-shadow-button` on Primary (dropped on Disabled, replaced by
+`--effect-focus-ring` on Focus); inset `--color-line-default` ring on Secondary; none on Ghost.
 
 ---
 
-## 5 · Icon geometry — verified against Figma's own exports
+## 5 · The arrow colour — checked on all 30, not sampled
 
-The build inlines the arrow and spinner as SVG rather than using exported assets. That decision
-was checked rather than taken on trust, by downloading the assets Figma exports for these nodes
-and diffing them against the code:
+This was the specific silent-failure risk: `IconSlot` defaults to `--color-text-body` unless a
+consumer sets `--sunim-IconSlot-color`, and Button sets it once on `.sunim-Button`. If that
+declaration were missing or out-specified on any variant, that variant's arrow would quietly
+become the wrong colour.
 
-- **Arrow** — Figma exports `M1.6 3.93333H8.26667M5.93333 6.26667L8.26667 3.93333L5.93333 1.6`,
-  `stroke-width="3.2"`, round cap and join, on a 9.867 × 7.867 vector. The code's `<Arrow>`
-  renders that path, that stroke width, those caps and joins, translated by `(3.06667, 4.06667)`
-  inside the 16px frame. **Identical.**
-- **Spinner** — the `d` attribute in the code is byte-for-byte the exported path, with the same
-  `stroke-width="4"`, the same inside-mask, and the same 14 × 14 clip. **Identical.**
+The computed stroke of the arrow was read on **every one of the 30 cases**. Result:
 
-The exports also justify the inlining: Figma bakes the colour per variant (`white` on Primary,
-`#1A78BD` / `#14639B` on Secondary and Ghost). An `<img>` cannot inherit `currentColor`, so a
-single exported asset would have been the wrong colour on 20 of the 30 variants. Measured
-trailing stroke follows the label on every case, including the hover shift to
-`--color-accent-ink-deep`.
+- `--sunim-IconSlot-color` computes to `currentColor` on all 30.
+- The arrow's resolved stroke equals the button's own `color` on all 30 — white on Primary,
+  accent ink on Secondary and Ghost, accent-ink-deep on all six Hover cases.
+- `--color-text-body` is `#22344e` = `rgb(34, 52, 78)`. **That value appears on none of the 30.**
 
----
+The control that makes this conclusive: `IconSlot` rendered standalone, with no Button around
+it, resolves `rgb(34, 52, 78)` — its own documented default. So the fallback is live and
+reachable, and Button's override is what keeps it from firing. This is a differential
+measurement, not a reading of the CSS.
 
-## 6 · Design gaps — reported as gaps, not charged to the engineer
-
-Gaps 1–5 were raised by the engineer in the build. **I verified each independently against the
-node and I agree with all five.** They are recorded here so they are not lost, not re-discovered.
-
-| # | Gap | Evidence from the node | Where it lives in code |
-|---|---|---|---|
-| 1 | Disabled opacity `0.5` is unbound | `19:80` emits a bare `opacity-50`, no variable | `--sunim-Button-unbound-opacity-disabled` |
-| 2 | Loading opacity `0.85` is unbound | `19:85` emits a bare `opacity-85` | `--sunim-Button-unbound-opacity-loading` |
-| 3 | Secondary stroke **weight** `1px` is unbound | `19:126` binds the stroke *colour* to `line-color` but the weight is a bare `border` | `--sunim-Button-unbound-border-width` |
-| 4 | Icon frame `16px` is unbound | every node emits `size-[16px]` with no variable | `--sunim-Button-unbound-icon-size` |
-| 5 | Spinner frame `14px` is unbound | `19:85` emits `size-[14px]` with no variable | `--sunim-Button-unbound-spinner-size` |
-
-The engineer quarantined all five in one block instead of mapping them onto a semantic token
-that happens to share the number. That is the right call — mapping them would have disguised a
-design gap as a binding and hidden it from the next person. They become `var(--token)` the
-moment design binds them in Figma.
-
-### Gap 5 (the Ghost focus ring) — confirmed, and it is a Figma rendering limit, not a miss
-
-Node `19:190` **does** bind the `focus/ring` effect
-(`DROP_SHADOW, #2BA4EC66, offset (0,0), radius 0, spread 3`). But because Ghost has no fill,
-Figma renders it as a spread-less `drop-shadow(0px 0px 0px …)` and the ring is **invisible on
-the canvas** — visible in the downloaded component-set render at
-`reports/Button/_figma-node-19-231-component-set.png`, row 5 and row 6, column 3, where the
-Ghost focus cell shows no ring at all while Primary and Secondary focus clearly do.
-
-The code draws it as a real 3px ring. That is faithful to the binding and it is the accessible
-outcome; a keyboard user would otherwise have no focus indicator on a tertiary action. I have
-passed cases 23 and 28 on that basis. **Design should confirm the intent and, if it agrees, the
-node needs the ring made visible so the canvas stops disagreeing with the build.**
-
-### Gap 6 — new, and it is not Button's
-
-Not raised before. `--font-action-md` and `--font-action-lg` bake a `1.2` line-height
-(`16.2px` and `18.6px`), while the Figma text layers use **auto** leading (`leading-[normal]`,
-≈`1.23–1.26` for Schibsted Grotesk). That is the entire source of the height shortfall:
-
-- Md — Figma content row 17px → 37px tall; build 16.2px → 36.2px. Δ 0.80px
-- Lg — Figma content row 19px → 47px tall; build 18.6px → 46.6px. Δ 0.40px
-
-Both under 1px, both identical across all 30 cases, and both originate in the **generated token
-file**, not in `Button.css` — the component correctly consumes `var(--font-action-md)` /
-`var(--font-action-lg)`. `build/tokens/` is generated and must never be hand-edited, so this is
-a token-pipeline item for 🎨 Design: it will shift every component that uses `--font-action-*`,
-not only Button. **Recorded as a gap; no case failed on it.**
+Corroborating from the design side: no node in the `19:231` set carries a `text-body` binding
+at all. Presence or absence of a binding is mode-independent, so this holds regardless of which
+mode the Figma file is open in.
 
 ---
 
-## 7 · Token audit
+## 6 · Composition, and the `icon` prop
 
-No raw hex, px, rem, or font value appears in `Button.tsx` or `Button.css` outside the five
-declared gap variables above. The single regex hit in `Button.css` is the word "2px" inside an
-explanatory comment. Tokens consumed:
+**The composition is real, not a copy.** Button's trailing slot emits:
 
-`--color-accent-ink` · `--color-accent-ink-deep` · `--color-accent-soft` · `--color-line-default`
-· `--color-surface-card` · `--color-text-on-accent` · `--effect-focus-ring` ·
-`--effect-shadow-button` · `--font-action-md` · `--font-action-lg` · `--radius-radius-pill` ·
-`--spacing-space-2` · `--spacing-step-10` · `--spacing-step-14` · `--spacing-step-18` ·
-`--spacing-step-26`
+```
+<span class="sunim-IconSlot sunim-IconSlot--16" aria-hidden="true"><span class="sunim-IconSlot__glyph"><svg viewBox="0 0 16 16" …
+```
 
-All semantic. No component references a primitive directly.
+Compared against `IconSlot`'s own story markup, the two strings are **byte-identical** — same
+class names, same `viewBox`, same `translate(3.06667 4.06667)`, same `d`, same `stroke-width="3.2"`.
+Button emits IconSlot's markup because it renders IconSlot.
+
+**The `icon` prop still works, unwrapped and unstretched.** A consumer icon renders bare in the
+trailing slot with no `IconSlot` wrapper (`wrappedInIconSlot: false`), at its own declared
+16×16, and its `currentColor` stroke resolves to the button's colour. The engineer's choice of
+`icon ?? <IconSlot size="16" />` rather than routing the consumer icon through IconSlot behaves
+as described.
 
 ---
 
-## 8 · The four non-matrix stories
+## 7 · The "byte-identical output" claim, independently falsified where it could be
 
-`Playground`, `WithoutTrailing`, `WithCustomIcon` and `LongLabel` have **no node in the
-component set**, so no node expectation was invented for them and none of them can pass or fail
-the matrix. They exercise the three non-variant Figma component properties — `Label`,
-`Show Trailing`, `Icon` — so they are legitimate stories, and they are recorded here rather than
-dropped. They rendered without error:
+The engineer asserted 30/30 byte-identical output before and after, self-verified by hashing
+geometry and paint properties. Rather than accept that, this run tested it in a medium the
+engineer did not use: **rendered pixels**.
 
-| Story | Exercises | Rendered |
+All 30 matrix cases were re-captured from the deployed staging build with headless Chrome at
+2× scale, and hashed against the pre-refactor captures archived in git from the 2026-08-19 run.
+
+| Outcome | Count | Cases |
 |---|---|---|
-| Playground | controls | 195.04 × 36.20, identical to Primary Md Default |
-| WithoutTrailing | `Show Trailing = false` | 171.04px — exactly 24px narrower (16px icon + 8px gap), so the slot is removed rather than hidden |
-| WithCustomIcon | `Icon` override | custom `<svg>` in the trailing slot, arrow replaced |
-| LongLabel | `Label` | 482.80px, `white-space: nowrap`, no clipping — the pill grows to hug |
+| SHA-256 identical to pre-refactor | 24 | every non-Loading case |
+| Differed | 6 | every Loading case |
 
-**No registry rows were written for these four**, because a row per case is what
-`Synchronization %` counts and four rows with no node behind them would inflate the denominator
-against nothing.
+The six differences are **not** a refactor regression, on two independent grounds:
 
----
+1. **Logic.** Loading renders the spinner, not IconSlot. Those six cases contain no IconSlot
+   at all, so the refactor cannot reach them.
+2. **Experiment.** Three captures of the *same* post-refactor build, same flags, produced two
+   different hashes for `primary-lg-loading`. The same control on `primary-lg-default` was
+   perfectly reproducible across captures. The rotating spinner makes the capture
+   non-deterministic — the pixel form of the very trap flagged for the geometry pass.
 
-## 9 · Screenshots
+The four non-matrix stories (`with-custom-icon`, `without-trailing`, `long-label`, `playground`)
+are also byte-identical to their pre-refactor captures.
 
-All 34 stories were captured from the **deployed staging build** at 2× device scale and saved
-beside this report in `reports/Button/`, named by case
-(`primary-md-focus.png`, `ghost-lg-loading.png`, …). The Figma reference render of the whole
-component set is `reports/Button/_figma-node-19-231-component-set.png`.
-
-**The `Attachment` field on all 30 registry rows was left empty.** Airtable attachments require
-a publicly reachable URL, and I have no public host for these PNGs. The field is empty rather
-than carrying a link that would not resolve — the screenshots are on disk at the paths above.
-Stating this plainly is the point; a silently empty field would read as an oversight.
+So the claim survives the strongest independent test available here: every case whose rendered
+output the refactor could possibly have changed is pixel-for-pixel unchanged.
 
 ---
 
-## 10 · Registry
+## 8 · States driven, not just rendered
 
-30 rows written to `Staging Testing`, one per variant × size × state, each with `Composed In`
-linked to Button's `Components` row and `Testing Results` = `Passed`.
+| State | How it was driven | Result |
+|---|---|---|
+| Hover | Real pointer over the button, not the pinned story | `:hover` matched; fill `--color-accent-ink-deep`; agrees with the pinned `is-hover` story exactly |
+| Focus | Real `Tab` keypress, not `.focus()` | `:focus-visible` true, `--effect-focus-ring` present, `outline: none`, ring replaces the button shadow |
+| Disabled | Real click at the button's coordinates, then `Tab` | Handler fired **0** times; `Tab` skipped it; `cursor: not-allowed` |
+| Loading | Real click, then `Tab` | Handler fired **0** times; `Tab` skipped it; `aria-busy="true"` |
 
-Confirmed after writing: `Total Staging Tests` = 30, `Staging Passed Count` = 30,
-`Synchronization %` = **100%**, and `Development` moved itself from `Ready for Testing` to
-**`To be deployed`**. No status column was written by hand.
+---
 
-> **One observation for 🎨 the registry owner, not for this component:** the `Staging Passed
-> Tests` rollup on `Components` reads `0` while `Staging Passed Count` reads `30` and
-> `Synchronization %` correctly reads `100%`. The rollup's own description says it feeds
-> `Synchronization %`, but the percentage is evidently fed by the count field instead. The
-> rollup looks misconfigured. It did not affect this run and I have not touched it.
+## 9 · Tokens
+
+No raw hex, and no raw font value, anywhere in `Button.css` or `Button.tsx`. The only literal
+dimensions are the quarantined unbound block.
+
+**Known and already on the record — not new findings, and not engineering defects:**
+
+| Unbound value | What it is |
+|---|---|
+| `--sunim-Button-unbound-opacity-disabled: 0.5` | node opacity on State=Disabled |
+| `--sunim-Button-unbound-opacity-loading: 0.85` | node opacity on State=Loading |
+| `--sunim-Button-unbound-border-width: 1px` | stroke weight on Variant=Secondary |
+| `--sunim-Button-unbound-spinner-size: 14px` | trailing frame on State=Loading |
+
+Four, unchanged by the refactor. `--sunim-Button-unbound-icon-size` left this block because the
+icon dimension is now IconSlot's to state; it did not close, it moved to
+`--sunim-IconSlot-unbound-size-16`. The repo-wide unbound count is unchanged. All of this is
+design-side and belongs to a human, not to the engineer.
+
+Also unchanged and previously recorded: Ghost's focus ring is drawn as a real ring in code,
+where Figma renders it as a filter drop-shadow that is invisible on the canvas because Ghost
+has no fill. Design to confirm.
+
+---
+
+## 10 · Screenshots
+
+**Screenshots have no public host.** They are saved beside this report in `reports/Button/`,
+one PNG per case, and are *not* attached to the registry rows — the `Attachment` column is
+left empty rather than filled with a link that would not open.
+
+- 30 matrix cases: `reports/Button/<variant>-<size>-<state>.png`
+- 4 non-matrix stories: `with-custom-icon`, `without-trailing`, `long-label`, `playground`
+- Figma render of the whole set: `reports/Button/_figma-node-19-231-component-set.png`
+
+Captured from the deployed staging build with headless Chrome at 2× device scale. The
+pre-refactor captures they replace remain in git history at commit `7ca2e65`, which is what
+made the comparison in §7 possible.
 
 ---
 
 ## 11 · Verdict
 
-**All 30 cases passed. Button is clear to deploy.**
+**30 of 30 passed. No findings. Nothing goes back to the engineer.**
 
-No engineering defect was found. The component reproduces every variant, size and state of node
-`19:231`, binds semantic tokens throughout so it survives all eight modes, and its disabled,
-loading, focus and hover states were driven and behave correctly rather than merely looking
-correct.
+The refactor changed how the arrow is produced without changing what is produced. The one
+mechanism that could have failed silently — per-variant arrow colour through
+`--sunim-IconSlot-color` — was checked on every case and holds on every case, verified against
+a live fallback rather than by reading the stylesheet.
 
-Six design gaps stand open. Five are the engineer's, independently confirmed. The sixth — the
-`--font-action-*` line-height — is new, belongs to the token pipeline, and will move more than
-this component when it is fixed. **All six are 🎨 Design's to close, and none of them blocks
-this deploy.**
+No verdict here is final until a human reads it. Two things are worth a human's attention, and
+neither is a defect in the code:
 
-No verdict here is final until a human reads it.
+1. **The production link is stale.** `Production Storybook` still points at the pre-refactor
+   build. Testing the arrow's colour on production would be testing the old vector. That column
+   belongs to DevOps.
+2. **The ladder cannot express this state.** A shipped component that changed underneath reads
+   `Completed` throughout, and only a human instruction caused it to be re-tested at all. The
+   next such refactor will be just as invisible.

@@ -1,0 +1,86 @@
+/*
+ * Icon Slot
+ *
+ * Built from Figma node 9:24 — the Icon Slot component set,
+ * Size (14 | 16 | 22) = 3 variants. No state, no other variant property.
+ *
+ * ---------------------------------------------------------------------------
+ * UNBOUND IN FIGMA — design gaps, raised rather than guessed.
+ *
+ * The three values below carry no variable binding on the node: the frame's
+ * width and height are plain numbers on each variant. They are transcribed
+ * exactly as the node states them and quarantined in this one block.
+ *
+ * Deliberately NOT mapped onto a same-numbered token. `--spacing-step-14`
+ * exists and would have swallowed Size=14 without anyone noticing — it is a
+ * spacing step, it means padding, and using it here would disguise a design gap
+ * as a binding. There is no step-16 or step-22 at all, which is the tell: this
+ * export has no icon-size scale, and one is what the design needs. Each of
+ * these becomes a var(--token) the moment design adds it.
+ *
+ * Button quarantines the same gap from the other side —
+ * `--sunim-Button-unbound-icon-size: 16px` is this component's Size=16, and one
+ * icon-size token would close both.
+ * ---------------------------------------------------------------------------
+ */
+.sunim-IconSlot {
+  /* frame width and height on Size=14 */
+  --sunim-IconSlot-unbound-size-14: 14px;
+  /* frame width and height on Size=16 */
+  --sunim-IconSlot-unbound-size-16: 16px;
+  /* frame width and height on Size=22 */
+  --sunim-IconSlot-unbound-size-22: 22px;
+
+  /*
+   * The stroke binds to text/body on all three variants. The Figma description
+   * asks for it to be overridable — "override the colour on the instance when
+   * it sits on a dark or accent surface" — so the default is exposed through a
+   * component-local property rather than set flat. A consumer retints by
+   * setting `--sunim-IconSlot-color`; nothing has to out-specify this rule.
+   */
+  color: var(--sunim-IconSlot-color, var(--color-text-body));
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  /* The node clips its contents. */
+  overflow: hidden;
+}
+
+/* Sizes ------------------------------------------------------------------- */
+
+.sunim-IconSlot--14 {
+  width: var(--sunim-IconSlot-unbound-size-14);
+  height: var(--sunim-IconSlot-unbound-size-14);
+}
+
+.sunim-IconSlot--16 {
+  width: var(--sunim-IconSlot-unbound-size-16);
+  height: var(--sunim-IconSlot-unbound-size-16);
+}
+
+.sunim-IconSlot--22 {
+  width: var(--sunim-IconSlot-unbound-size-22);
+  height: var(--sunim-IconSlot-unbound-size-22);
+}
+
+/* The glyph --------------------------------------------------------------- */
+
+/*
+ * Whatever is in the slot fills the slot — the placeholder arrow, whose viewBox
+ * is the frame, or a swapped-in icon from Sunim Icon. Both dimensions are set
+ * explicitly so an icon with a larger intrinsic size cannot burst the box.
+ */
+.sunim-IconSlot__glyph {
+  display: inline-flex;
+  width: 100%;
+  height: 100%;
+}
+
+.sunim-IconSlot__glyph > * {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

@@ -8,12 +8,19 @@
  * ---------------------------------------------------------------------------
  * UNBOUND IN FIGMA — design gaps, raised rather than guessed.
  *
- * The five values below carry no variable binding anywhere on the node. They
+ * The four values below carry no variable binding anywhere on the node. They
  * are transcribed exactly as the node states them and quarantined in this one
  * block, deliberately NOT mapped onto a semantic token that happens to share
  * the same number — doing that would disguise a design gap as a binding and
  * hide it from the next person. Each one becomes a var(--token) the moment
  * design binds it in Figma.
+ *
+ * There were five. The icon frame — `--sunim-Button-unbound-icon-size: 16px` —
+ * left this block when the trailing arrow became an Icon Slot instance, because
+ * that dimension is Icon Slot's to state. The gap did not close: it is now
+ * `--sunim-IconSlot-unbound-size-16` and nothing else, so the repo carries the
+ * same unbound count with one owner instead of two. One icon-size token in the
+ * export still closes it.
  * ---------------------------------------------------------------------------
  */
 .sunim-Button {
@@ -23,10 +30,20 @@
   --sunim-Button-unbound-opacity-loading: 0.85;
   /* stroke weight on Variant=Secondary, every size and state */
   --sunim-Button-unbound-border-width: 1px;
-  /* Icon Slot frame, every variant and size */
-  --sunim-Button-unbound-icon-size: 16px;
   /* Trailing frame on State=Loading, every variant and size */
   --sunim-Button-unbound-spinner-size: 14px;
+
+  /*
+   * The trailing arrow takes the label's colour on all three variants — the
+   * icon instance and the text node bind to the same variable on every variant
+   * of the node, so the per-variant `color` rules below drive both. This is the
+   * override Icon Slot documents ("override the colour on the instance when it
+   * sits on a dark or accent surface"), used as documented rather than by
+   * reaching into its classes. Without it Icon Slot would fall back to its own
+   * default, text/body, and the arrow would be the wrong colour on 20 of the
+   * 30 variants.
+   */
+  --sunim-IconSlot-color: currentColor;
 
   /* Auto-layout: horizontal, centre-aligned, hug contents. */
   display: inline-flex;
@@ -72,11 +89,10 @@
   flex-shrink: 0;
 }
 
-.sunim-Button__arrow {
-  display: block;
-  width: var(--sunim-Button-unbound-icon-size);
-  height: var(--sunim-Button-unbound-icon-size);
-}
+/*
+ * There is no rule for the arrow. It is an Icon Slot at Size=16 and sizes
+ * itself; a rule here would be Button reaching into another component.
+ */
 
 .sunim-Button__spinner {
   display: block;
