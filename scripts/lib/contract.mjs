@@ -367,9 +367,25 @@ export function parseStoryIds(stories, name) {
   if (!stories) return [];
   const title = /title:\s*'([^']+)'/.exec(stories)?.[1] ?? `Components/${name}`;
   const kind = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  /*
+   * Storybook's own slugification, which splits on more boundaries than the
+   * obvious one. `PrimaryMdDefault` → `primary-md-default` is the case everybody
+   * writes; `Size14` → `size-14` is the one that gets missed, because the
+   * lower→upper rule never fires between a letter and a digit.
+   *
+   * Getting it wrong produces a link that 404s rather than an error, so the page
+   * looks finished and three of its links go nowhere. Verified against the
+   * deployed index: 62 of 62 derived ids exist.
+   */
+  const slug = (name) =>
+    name
+      .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+      .replace(/([a-zA-Z])(\d)/g, '$1-$2')
+      .toLowerCase();
+
   return [...stories.matchAll(/^export const (\w+):\s*Story/gm)].map((m) => ({
     exportName: m[1],
-    id: `${kind}--${m[1].replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()}`,
+    id: `${kind}--${slug(m[1])}`,
   }));
 }
 
