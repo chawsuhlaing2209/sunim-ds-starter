@@ -9,9 +9,15 @@ import './Chip.css';
  * A status tag or a credential. Sm is the status tag; Md reads as a credential
  * — larger type and a thicker stroke.
  *
- * Prop names and values mirror the Figma properties exactly: Tone and Size are
- * the two variant properties; Label, Show Icon and Icon are the component
- * properties. There is no State property in the set, and none is invented here
+ * Prop names and values mirror the Figma properties exactly — with one ruled
+ * exception. Tone and Size are the two variant properties; Label, Show Icon and
+ * Icon are the component properties.
+ *
+ * The exception is `Quiet`, which the node calls `Figma`. A public type union
+ * naming the design tool tells a consumer neither what the tone means nor what
+ * it looks like, and `Quiet` is the word the node's own description uses. Ruled
+ * before anything was published, so it cost no migration; recorded in
+ * `decisions.md` so the next review records it rather than re-raising it. There is no State property in the set, and none is invented here
  * — a Chip carries information, it does not respond to a pointer.
  *
  * The mark is an Icon Slot instance on the node (the inner vector reports as
@@ -20,7 +26,7 @@ import './Chip.css';
  * icon frame is 14x14 on all eight variants.
  */
 
-export type ChipTone = 'Default' | 'Gold' | 'Agentic' | 'Figma';
+export type ChipTone = 'Default' | 'Gold' | 'Agentic' | 'Quiet';
 export type ChipSize = 'Sm' | 'Md';
 
 export interface ChipProps
@@ -30,8 +36,9 @@ export interface ChipProps
    *
    * `Default` is the everyday status tag. `Gold` marks something earned or
    * paid. `Agentic` marks an AI moment and is reserved for those — the design
-   * file asks for it to stay rare on any one screen. `Figma` keeps the pill
-   * quiet and lets the mark carry the colour.
+   * file asks for it to stay rare on any one screen. `Quiet` keeps the pill
+   * quiet and lets the mark carry the colour — the node calls this tone
+   * `Figma`, which named the tool rather than the meaning.
    */
   tone?: ChipTone;
   /**

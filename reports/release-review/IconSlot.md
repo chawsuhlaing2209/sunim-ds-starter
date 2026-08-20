@@ -1,28 +1,36 @@
 # Release review — IconSlot
 
-**Commit reviewed** `27afeb5` · **Registry row** `Icon Slot` (`recvDIEckmxBp6SGT`)
+**Commit reviewed** `7ec481f` on `main` · **Registry row** `Icon Slot` (`recvDIEckmxBp6SGT`)
 **Figma node** 9:24, file `mFnN1Sr8MAmOdmx0ABXPsb` · **Version under review** 0.1.0
-**Reviewed** 2026-08-20 · working tree clean at time of review
+**Reviewed** 2026-08-20 · **Re-review**, superseding the verdict written at `27afeb5`
+
+Working tree at review time carried one unrelated modification —
+`reports/release-review/Eyebrow.md`, a concurrent review — and nothing else.
+Nothing in `src/` was touched by this review.
 
 ---
 
 ## Verdict
 
-**Blocked** — four findings, none of them a rendering defect. Two prop names will
-not survive six months (`label` means the opposite of what it means in all three
-siblings; a `aria-label` the type signature advertises is silently discarded),
-the intent's `dont_use_when` is contradicted by the only two production uses in
-this release, and the docs page a consumer is pointed at has never been deployed.
+**Blocked** — on one finding, down from four.
 
-Three of the four cost nothing to fix now and a minor version bump after 0.1.0 is
-cut. That is the entire argument for blocking: `IconSlot`'s surface has never been
-public, so nothing depends on it yet, and this is the last moment renaming is free.
+Three of the previous four are genuinely closed, and I verified each against the
+deployed build rather than against the commit message. What remains is **F1**:
+`label` still means an invisible accessible name on IconSlot and visible required
+text on Button, Chip and Eyebrow. A doc comment now points at the collision. That
+documents the problem; it does not remove it, and gate 4 is the one gate whose
+entire purpose is to stop a name before it is public.
 
-Nothing found here is a defect in what the component draws. QA's three rows are
-sound and I reproduced their measurements on the deployed build.
+The previous review was right to block and right about all four findings. Where I
+depart from it is severity, not substance: F1's *harm* has changed. It used to
+compound into a silent accessibility regression, because a consumer who avoided
+`label` and reached for `aria-label` got silence. That is fixed. F1 is now an API
+hygiene blocker on its own — smaller, but sitting squarely in the gate that exists
+for exactly this.
 
 `npm run release-review -- IconSlot --version 0.1.0` reads **CLEAR** — 17 passed,
-2 warned, 0 failed. All four findings below sit in the 7 items it marked REVIEW.
+2 warned, 0 failed. F1 sits in the 7 items it marked REVIEW, as it did last time.
+Nothing mechanical has ever caught a bad name, which is the script's own point.
 
 ---
 
@@ -30,72 +38,90 @@ sound and I reproduced their measurements on the deployed build.
 
 | # | Gate | Result | Evidence |
 |---|---|---|---|
-| 1 | Is it actually done? | **Pass** | Registry read live: `Development` = Completed, `Synchronization %` = 100% (3/3), all three `Staging Testing` rows Passed, none `Failed` or `Fixed (To re-test)`. Implementation, styles, stories present; stories name node 9:24. `npm run lint` clean, `npm test` 7 passed. |
-| 2 | Are the tokens clean? | **Pass** | No raw hex, no raw px outside the quarantine, no `--primitives-*`. Three unbound values quarantined. Confirmed against the live node: `get_variable_defs` on 9:24 returns exactly one binding for the whole set. |
-| 3 | Is the public surface decided? | **Pass** | `IconSlot`, `IconSlotProps`, `IconSlotSize` all exported from `src/index.ts`. Composition checked both directions — see below. One tension recorded (F5), not blocking. |
-| 4 | Are the names final? | **Blocked** | F1, F2. Folder / symbol / CSS prefix / intent all agree; `size` matches the node's only variant property exactly. `label` does not survive the six-month test. |
-| 5 | Are the states complete? | **Pass** | Node has one variant property and no state property. All three sizes have deep-linked stories. Verified live on the deployed build, not just present. |
-| 6 | Is the intent clear and documented? | **Blocked** | F3, F4. Fields complete and the a11y claim is true — verified in both modes. `dont_use_when` is not. Docs page does not exist in production. |
-| 7 | Do you understand what this version means? | **Pass** | `VERSIONING.md` read. `since: "0.1.0"` is at the version being cut, not ahead of it. `status: "experimental"`, not `stable`, at 0.x. Sentence below. |
+| 1 | Is it actually done? | **Pass** | Board read live at review time: `Development` = Completed, `Synchronization %` = 100% (3/3), all three `Staging Testing` rows Passed, none `Failed` or `Fixed (To re-test)`. `npm run lint` clean. `npm test` **25 passed across 2 files**, up from 7 across 1 — and this time some of them exercise IconSlot. One note below (N1). |
+| 2 | Are the tokens clean? | **Pass** | No raw hex, no raw px outside the `--sunim-IconSlot-unbound-*` quarantine, no `--primitives-*`. Re-confirmed against the live node: `get_variable_defs` on 9:24 returns exactly one binding for the whole set. |
+| 3 | Is the public surface decided? | **Pass** | `IconSlot`, `IconSlotProps`, `IconSlotSize` all exported from `src/index.ts`. Composition closed in both directions. F5 recorded, not blocking. |
+| 4 | Are the names final? | **Blocked** | **F1**. `size` matches the node's only variant property exactly, verified against 9:24. Folder / symbol / CSS prefix / intent all agree. All 3 props carry doc comments. N2 recorded. |
+| 5 | Are the states complete? | **Pass** | Node has one variant property and no state property — re-confirmed live. All three sizes plus all five example stories render correctly on the deployed build; measured, not assumed. |
+| 6 | Is the intent clear and documented? | **Pass** | **F4 closed** — the docs page exists in production and perspective 1 ran for the first time. **F3 closed** — `dont_use_when` is now true of the component that ships. Residual tension recorded as N3, non-blocking. |
+| 7 | Do you understand what this version means? | **Pass** | `VERSIONING.md` read. `since: "0.1.0"` is at the version being cut. `status: "experimental"`, not `stable`, at 0.x. Sentence below; `experimental` re-judged. |
 
-### Gate 1 — the detail
+---
 
-Read from the board at review time, not from an earlier audit. Three rows, all
-`Passed`, `idle` state, node-by-node measurements recorded in each. The Size=22
-row additionally records the swap affordance and the retint as verified.
+## What changed since the previous review, and how I checked it
 
-Two things the green does not cover, recorded because the gate table would
-otherwise read as though it did:
+I took none of these on the strength of a commit message.
 
-- All 7 tests live in `src/tokens/token-binding.test.ts`. **No test exercises
-  IconSlot.** `npm test` passing is not evidence about this component.
-- `Synchronization %` is 3 of 3 *linked* rows, and those three rows are the three
-  Figma variants. The `icon` swap and the `label` mode have no row of their own
-  (the swap is noted inside the Size=22 row; `label` is not tested anywhere).
-  100% means "every row that exists passed", not "every behaviour is covered".
+### F2 — fixed. Verified in source, in a test, and on production.
 
-### Gate 2 — the detail
+`IconSlot.tsx` now destructures `aria-label`, `aria-hidden` and `role` out of
+`...rest` before the spread:
 
-The three quarantined values are real, still-open design gaps, not a stale export.
-`get_variable_defs` on node 9:24 returns:
-
-```
-{"var(--text-body)":"#22344e"}
+```tsx
+'aria-label': ariaLabelProp,
+'aria-hidden': ariaHiddenProp,
+role: roleProp,
+...rest
 ```
 
-One variable on the entire component set. The frame width and height carry no
-binding on any of the three variants, exactly as `IconSlot.css` claims. The CSS
-also documents why `--spacing-step-14` and `--spacing-step-22` must not be
-substituted — they exist at the right numbers and would disguise the gap as a
-binding. That is the correct call and it is written down where the next person
-will hit it.
+with `const name = label ?? ariaLabelProp`, and `role`/`aria-hidden` falling back
+to the caller's value when given. That is the right shape: two spellings of one
+idea with a stated precedence, and the two attributes a caller might have a reason
+to force left forceable.
 
-Not in `decisions.md`, so unruled — but correctly quarantined and correctly
-explained, so there is nothing to rule on beyond whether an icon-size scale is
-wanted. See *Not checked*.
+Three independent confirmations, because "the fix is in the file" is not the same
+claim as "the fix is in production":
 
-### Gate 3 — both directions
+1. **Executed.** `src/components/accessible-props.test.tsx` renders the real
+   component and asserts the markup. `<IconSlot size="16" aria-label="Next" />`
+   yields `role="img"`, `aria-label="Next"`, and no `aria-hidden`. All three name
+   cases are covered, plus the deliberate `aria-hidden={false}` override. 25 tests
+   pass. This is the execution evidence the previous review explicitly could not
+   get, and it closes that gap rather than restating it.
+2. **Live, for the storied cases.** `components-iconslot--labelled` on production
+   renders `role="img" aria-label="Next"` with `aria-hidden` absent;
+   `components-iconslot--all-sizes` renders all three decorative, `aria-hidden="true"`,
+   no role, nothing focusable in the subtree.
+3. **The deployed bundle is the fixed one.** The `label` prop's doc comment —
+   "Note this is the opposite of `label` on Button, Chip and Eyebrow" — landed in
+   `3d7c9e6`, the same commit as the fix. That sentence renders on the production
+   docs page today. The deployed build therefore contains `IconSlot.tsx` at
+   `3d7c9e6` or later; the fix cannot be in one without the other.
 
-- **Outward:** `IconSlot` and `IconSlotProps` are exported, so a consumer can type
-  a wrapper. `IconSlotSize` too.
-- **Inward:** Button and Chip both compose `IconSlot`, and `IconSlot` is itself
-  exported — so the failure mode this gate names (composing a sibling that is not
-  exported, leaving a consumer able to reach a type they cannot import) is closed.
+### F4 — fixed. Verified.
 
-### Gate 5 — the detail
+The deployed `index.json` has **74 entries, 4 of type `docs`**, one per component,
+`components-iconslot--docs` among them. All eight IconSlot story ids resolve.
+Perspective 1 ran; see below.
 
-`get_metadata` on 9:24 returns three symbols — `Size=14`, `Size=16`, `Size=22` —
-and no state property. There is no hover, focus, disabled or loading to wire, so
-the three the skill warns about (drawn correctly, behaving wrongly) do not apply
-here. Verified on the deployed build rather than inferred:
+### F3 — closed. The field is now true.
 
-| Story | Rendered | Result |
+`dont_use_when` no longer claims every production use passes a real icon. It says
+the arrow is the default Button and Chip ship **today**, drops the fourth-size case
+a closed union already forbids, and names the misuse the component actually invites
+— that it needs no props at all and draws a complete, plausible arrow.
+
+I re-confirmed the premise on production rather than trusting the rewrite:
+
+| Deployed story | Renders | Path `d` |
 |---|---|---|
-| `size-14` | 14×14, `aria-hidden="true"`, no role, `rgb(34,52,78)` | correct |
-| `labelled` | `role="img"`, `aria-label="Next"`, no `aria-hidden`, not focusable | correct |
-| `retinted` | both overrides resolve to real values — `rgb(220,235,247)` and `rgb(43,164,236)`, not the fallback | correct |
+| `components-button--primary-md-default` | `sunim-IconSlot--16`, `aria-hidden="true"` | matches `GLYPH['16']` byte-for-byte |
+| `components-chip--default-md` | `sunim-IconSlot--14`, `aria-hidden="true"` | matches `GLYPH['14']` byte-for-byte |
 
-Nothing drawn but not wired.
+The field describes what ships. Gate 6's named failure mode — an intent describing
+a component that does not exist yet — no longer applies. The open question
+underneath it (*is* placeholder-by-default the design?) is raised, unresolved, and
+correctly a human's; see N3.
+
+### The dead reference-site links — fixed, and I re-derived the claim.
+
+`parseStoryIds` hyphenated only at a lower→upper boundary, so `Size14` became
+`size14` where Storybook derives `size-14`. `461d6c0` adds the letter→digit split.
+
+I did not take the commit's "62 of 62" on faith. I imported the fixed
+`parseStoryIds` from `scripts/lib/contract.mjs`, derived every story id from every
+`*.stories.tsx` in the repo, and checked each against the deployed index:
+**62 derived, 0 missing.** Independently reproduced.
 
 ---
 
@@ -103,70 +129,98 @@ Nothing drawn but not wired.
 
 ### 1 · The consumer who has never seen the code
 
-**Could not be run.** There is no docs page to open. See **F4** — this perspective
-failing is the finding, not a note about it.
+**Ran for the first time.** Docs page only, no source, no Figma. All three
+questions answer cleanly off the page:
+
+- *What is this for?* "Reserving a square, correctly sized, correctly coloured box
+  for an icon inside another component." Plus the sizing rule of thumb — 14 for UI
+  text, 16 for buttons and chips, 22 for icon tiles.
+- *When should I not use it?* Four cases, including the honest one: it needs no
+  props and draws a plausible arrow, so shipping the placeholder is the path of
+  least resistance.
+- *What do I pass it?* `size`, `icon`, `label` — each with a description, a type,
+  a default and a control.
+
+I did not reach for the source to answer any of them. That is the standard the
+skill sets and this page meets it.
+
+One thing the page does that is worth naming as a positive: the `label` row tells
+the consumer, at the point of use, that the name collides with the siblings and
+that `aria-label` reads less ambiguously. This perspective is where I first
+noticed that the docs recommend an alternative to the prop — which is what turns
+F1 from a carried complaint into a self-evident one. See F1.
 
 ### 2 · The engineer who inherits this in six months
 
-Where the names hold up: `IconSlot` / `.sunim-IconSlot` / `IconSlotProps` all agree.
-`size` with values `'14' | '16' | '22'` matches the node's only variant property
-and its literal values, which is what CLAUDE.md asks for; the string-union-of-
-numerals is mildly awkward to type but it is the design's own vocabulary and the
-source comment defends it. `icon` follows the convention Button already set, so
-the two agree rather than inventing a second way to hand an icon in.
+Holding up: `IconSlot` / `.sunim-IconSlot` / `IconSlotProps` / `IconSlotSize` all
+agree. `size` with `'14' | '16' | '22'` is the node's own vocabulary, and the
+source comment defends the string-union-of-numerals rather than leaving the next
+reader to wonder. `icon` follows the convention Button already set. The
+quarantine block explains not just what is unbound but why `--spacing-step-14`
+must not be substituted for it — that is a comment written for the person who will
+be tempted, which is the useful kind.
 
-Where they do not: `label`, and the `aria-label` it shadows. **F1**, **F2**.
+The destructure comment added in `3d7c9e6` explains the old defect, not just the
+new code. Six months from now that is the comment that stops someone "simplifying"
+the spread back to where it was.
 
-On `IconSlot` vs the registry's `Icon Slot` — **not a finding.** Figma names the
-node "Icon Slot" and the registry row matches Figma, which is right for a
-design-side board; CLAUDE.md mandates PascalCase in code, which makes `IconSlot`
-the prescribed spelling of that same name. The other three components are single
-words, so this is simply the first time the convention has been visible. The two
-say the same word.
+Not holding up: `label`. **F1.**
 
 ### 3 · The keyboard and the screen reader
 
-The perspective the skill says usually disagrees with the documentation. **Here it
-agrees**, and I checked rather than ticking the field.
+Driven on the deployed build. This perspective now **agrees** with the
+documentation in every case I could reach, which is the change from last time.
 
-Both modes verified on the deployed build. Decorative: `aria-hidden="true"`, no
-role, no accessible name, contributes nothing to the a11y tree. Labelled:
-`role="img"` with the label as accessible name, `aria-hidden` absent. Neither is
-focusable — the component adds nothing to the tab order, matching the intent's
-"never focusable and has no interactive state".
+| Case | Deployed DOM | Matches intent? |
+|---|---|---|
+| no name (`all-sizes`, all three) | `aria-hidden="true"`, no role, no name | yes |
+| `label="Next"` (`labelled`) | `role="img"`, `aria-label="Next"`, no `aria-hidden` | yes |
+| `aria-label` alone | `role="img"`, `aria-label="Next"`, no `aria-hidden` | yes — asserted in test, not storied |
+| `aria-hidden={false}` override | honoured | yes — asserted in test, not storied |
 
-The one thing that does disagree is reachable only through the type signature, not
-through the rendered DOM: **F2**.
+Nothing focusable in any story subtree: 0 focusable descendants under
+`#storybook-root` on `all-sizes`. The component adds nothing to the tab order, as
+the intent claims.
 
-Contrast is out of scope by construction — the component inherits its colour and
-the intent says so explicitly ("contrast is therefore the consumer's to meet").
-That is a defensible division, and it is stated rather than assumed.
+Contrast remains out of scope by construction and the intent says so. The retint
+mechanism works on the deployed build — `components-iconslot--retinted` resolves
+`--sunim-IconSlot-color` to `#dcebf7` and `#2ba4ec` on a `rgb(16,24,40)` surface,
+both real values rather than the fallback.
+
+The two cases still not exercised by any *story* are the two the new unit tests
+cover. That is a reasonable division — a raw `aria-label` has no visual difference
+to look at, so a story would show nothing a test does not — but it does mean the
+a11y panel in Storybook cannot demonstrate them. Recorded, not blocking.
 
 ### 4 · The designer
 
-The node offers one variant property and one bound value. The component offers
-that, plus two props the set has no way to express: `icon` and `label`.
+`get_metadata` on 9:24 returns the frame `Icon Slot` and three symbols — `Size=14`,
+`Size=16`, `Size=22`. One variant property, no state property. `get_variable_defs`
+returns `{"var(--text-body)":"#22344e"}` — one binding for the whole set, matching
+the `rgb(34, 52, 78)` I measured on the deployed component.
 
-That is **not** an overreach. Figma component sets cannot express "an arbitrary
-child", and the node is called *Icon Slot* — a slot is a swap. The design meant to
-offer the swap and could only name it. The component supplies the affordance the
-design intended but could not encode.
+No variant in the set is unreachable through the props. The prop name `size`
+matches the Figma property `Size` exactly, per CLAUDE.md.
 
-The consequence worth naming: two of three public props have no Figma counterpart,
-so they fall outside design-parity testing entirely. That is where the untested
-surface in gate 1 comes from, and it is structural rather than an oversight.
-
-No variant in the set is unreachable through the props.
+The structural point from the previous review still stands and is still not a
+defect: `icon` and `label` have no Figma counterpart because a component set
+cannot express "an arbitrary child". The design meant to offer a swap and could
+only name it. The consequence — two of three public props fall outside
+design-parity testing entirely — is now partly mitigated, because the new test
+file exercises `label` and the attribute passthrough even though Figma cannot.
 
 ### 5 · The release
 
-See the version sentence, and **F5**.
+See the version sentence. `experimental` re-judged there. F5 carried.
 
 ---
 
 ## Findings
 
-### F1 · `label` means the opposite of what it means in every sibling — gate 4
+### F1 · `label` means the opposite of what it means in every sibling — gate 4 · **BLOCKING**
+
+Carried from the previous review, still open, re-argued from scratch rather than
+inherited.
 
 **What I saw.** Four components on the public surface, one prop name, two meanings:
 
@@ -177,220 +231,219 @@ See the version sentence, and **F5**.
 | Eyebrow | the eyebrow's text | yes |
 | **IconSlot** | **an accessible name for a screen reader** | **never** |
 
-IconSlot is the odd one out, and it is the one composed into Button and Chip — so
-both meanings appear in a single file. `Button.tsx` reads `label` (visible text)
-on line 100 and renders `<IconSlot size="16" />` on line 133, where `label` would
-have meant something else entirely.
+And, from the deployed docs page for this component, in the `label` row of the
+props table:
 
-**Why it blocks.** The gate's bar is "would I defend this in six months", not "is
-this wrong". I would not defend it. It generates a bug report from whoever passes
-`label` to an IconSlot expecting text and gets an invisible attribute.
+> "Note this is the opposite of `label` on Button, Chip and Eyebrow, where it is
+> visible required text. Passing `aria-label` instead does the same thing here and
+> reads less ambiguously beside them."
 
-**Cost of not fixing now.** `VERSIONING.md` makes changing a prop's meaning a minor
-bump (0.1.0 → 0.2.0). IconSlot has never been public, so today the rename is free.
+**Why the doc comment is not enough, which is the actual question I was asked.**
 
-**Owner.** 🔨 Engineer, after a human picks the name. `iconLabel`, `alt` and
-`a11yLabel` are the obvious candidates; the choice is not mine to make.
+That sentence is the strongest argument for blocking, not against it. The package
+is now shipping a public prop whose own documentation recommends a different
+spelling. If the documented best practice is *don't use this prop*, the prop
+should not be entering the public surface under that name. Documentation of a
+footgun is an annotation, not a fix — the next consumer to reach for `label`
+having learned it from Button will still reach for it, and will reach for it in
+Button's own file, where both meanings appear a few lines apart.
 
----
+There is a real counter-argument and I want it on the record, because it nearly
+moved me. Read in isolation, `label` is a perfectly ordinary name: IconSlot has no
+visible text, so `label` can only mean the accessible name, and the failure is now
+*visible* — pass `label="Delete"` expecting text and you see nothing render, so
+you find out immediately. That is genuinely better than the silent hiding F2 used
+to cause. If this component shipped alone, I would clear the name.
 
-### F2 · The `aria-label` the type signature advertises is silently discarded — gate 4
+It does not ship alone. A design system is read as a set, that is its premise, and
+`label` was not inherited from Figma — the node has only `Size`, so `label` was
+invented here, and it was invented to collide. Gate 4's bar is "would I defend
+this in six months", and I would not defend a prop I would have to explain every
+time it came up.
 
-**What I saw.** `IconSlotProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'children'>`,
-so `<IconSlot aria-label="Next" />` type-checks. But in `IconSlot.tsx`:
+**Cost of not fixing now.** Unchanged and still the decisive point. IconSlot has
+never been public, so the rename is free today. After 0.1.0, `VERSIONING.md` makes
+changing a prop's meaning a minor bump.
 
-```tsx
-<span
-  {...rest}
-  className={classes}
-  role={label ? 'img' : undefined}
-  aria-label={label}
-  aria-hidden={label ? undefined : true}
->
-```
-
-`{...rest}` is spread first, so the explicit attributes win. With `label` unset,
-`aria-label={undefined}` removes the consumer's attribute and `aria-hidden={true}`
-is applied. The element ends up **hidden from assistive technology with no
-accessible name** — the exact opposite of what the consumer asked for, with no
-type error, no console warning and no visual difference.
-
-**Why it blocks.** The type signature actively advertises the idiom that fails.
-This is a silent accessibility regression in a component whose entire a11y story
-is "one prop decides whether it is announced". F1 makes it likelier: a consumer who
-knows `label` means visible text elsewhere will reach for `aria-label` here.
-
-**Confidence.** Mechanism read from source; JSX attribute precedence over a
-preceding spread and React's omission of `undefined`-valued attributes are both
-standard and deterministic. I did **not** execute this case — no story exercises
-it, and the absence of that story is part of the finding. Both `label` modes that
-*are* storied I verified live and both behave as documented.
-
-**Owner.** 🔨 Engineer.
+**Owner.** 🎨 Human picks the name; 🔨 Engineer applies it. `iconLabel`, `alt` and
+`a11yLabel` are the obvious candidates — and a fourth option now exists that did
+not before: **drop `label` entirely and keep `aria-label`**, which already works,
+is standard, collides with nothing, and is what the docs already recommend. That
+would make the public surface smaller rather than larger, which is the rare kind
+of fix. The choice is not mine to make.
 
 ---
 
-### F3 · `dont_use_when` describes a component that does not exist yet — gate 6
+### F5 · `experimental` is load-bearing for two `settling` components — gate 3 / gate 7 · **not blocking**
 
-**What I saw.** `IconSlot.intent.json`:
+Carried. Re-judged, as asked, rather than restated.
 
-> "As an icon in its own right: the arrow it ships with is a placeholder and every
-> production use should pass the real icon from Sunim Icon through the `icon` prop."
+`VERSIONING.md` says 0.1.0 promises nothing "at all about a component whose
+`status` reads `experimental`". IconSlot is the only `experimental` component in
+the release. Button and Chip read `settling`, and both render IconSlot on their
+default path — which I re-verified in the deployed DOM, not inferred.
 
-Both production uses in this release do the opposite, by default:
+**My judgement, independent of the previous review's:** the status is honest about
+the component and the disclaimer is over-broad about the package. Those are two
+different claims and only the second is wrong.
 
-- `Button.tsx`: `showTrailing = true`, and the trailing mark is
-  `{isLoading ? <Spinner /> : (icon ?? <IconSlot size="16" />)}` — the placeholder
-  unless a consumer overrides it. Button's own prop doc calls it "the arrow",
-  i.e. treats it as the design, not scaffolding.
-- `Chip.tsx`: `showIcon = true`, `icon` optional → `<IconSlot size="14" icon={icon} />`
-  falls through to the placeholder.
+`experimental` is honest because IconSlot's surface genuinely is not settled — F1
+is open, and the visible default is a placeholder for an icon file that is not in
+this repository. This is not the failure gate 7 usually catches, which is a
+component overstating its own stability. IconSlot is understating its *reach*.
 
-Confirmed in production, not inferred. The deployed Chip "Early bird"
-(`components-chip--default-md`) renders IconSlot's Size=14 placeholder geometry
-byte-for-byte:
+The disclaimer is over-broad because "anything at all" cannot survive composition.
+A consumer relying on Button's trailing mark is relying on IconSlot whether the
+package promises anything about it or not. `VERSIONING.md` was written imagining
+an experimental component as an isolated preview; this one is a dependency of
+two-thirds of the released surface.
 
-```
-d="M1.6 3.64167H7.43333M5.39167 5.68333L7.43333 3.64167L5.39167 1.6"
-```
+**What I would add that the previous review did not:** this is now the *last*
+governance question standing between IconSlot and `settling`. If a human settles
+F1, the case for keeping IconSlot `experimental` largely evaporates — the surface
+would be decided, the docs are live, the a11y story is tested. Settling F1 and
+settling F5 are more nearly one decision than they were a day ago.
 
-**Why it blocks.** This is gate 6's named failure mode almost literally — the
-intent describes a component that does not exist yet, one whose real icons come
-from a Sunim Icon file that is not in this repo. Shipping it means the release
-carries a documented rule that its own two consumers break on their default path.
+Smaller, related, unchanged: `--sunim-IconSlot-color` is a documented
+consumer-facing contract that cannot be exported from `src/index.ts`, so it is
+promised through a channel `VERSIONING.md` declares non-public. Worth settling
+before 1.0.0; not urgent at 0.1.0.
 
-Second half of the same finding: of the three misuses listed, the fourth-size one
-is already impossible — `IconSlotSize` is a closed union, so the compiler forbids
-it. Meanwhile the misuse the component genuinely *invites* is absent: `<IconSlot />`
-takes no required props and renders a complete, plausible arrow, so shipping the
-placeholder is the path of least resistance and nothing stops it.
-
-**Note.** The fix is to the *sentence*, not necessarily to the code. It may well be
-right that Button's arrow is Button's real design rather than a placeholder — in
-which case the intent should say the arrow is the shipped default for the Button
-and Chip cases and a placeholder elsewhere. That is a call for the human and 📝 Doc
-Generator, not a wording tweak I should make.
-
-**Owner.** 📝 Doc Generator, after 🎨 Human rules on which reading is true.
+**Owner.** 🎨 Human — `VERSIONING.md` is governance, not code.
 
 ---
 
-### F4 · The docs page has never been deployed — gate 6, and perspective 1 entirely
+## Notes — recorded, not blocking
 
-**What I saw.** `https://sunim-ds-starter.vercel.app/?path=/docs/components-iconslot--docs`
-renders:
+### N1 · The board's recorded commit predates the code being reviewed — gate 1
 
-> Couldn't find story matching 'components-iconslot--docs'.
+The registry row's commit field points at `b26ed39`. The component's directory has
+changed twice since: `3d7c9e6` (the a11y fix) and `056ca6f` (the intent rewrite).
+QA's three `Passed` rows were therefore recorded against an older build than the
+one in this release.
 
-The deployed `index.json` contains **no `docs` entry for any component** — all 71
-entries are `type: story`. `Astro Link` is empty on the IconSlot row too, so there
-is no reference site standing in for it.
+**Why it does not block.** The three rows test rendering geometry at 14, 16 and
+22; `3d7c9e6` changed attribute plumbing only and `056ca6f` touched no code at
+all. And I did not rely on that reasoning alone — I re-measured all three sizes on
+the current deployed build and they render 14×14, 16×16, 22×22 at
+`rgb(34, 52, 78)`, which is what the rows record.
 
-The source is fine: `tags: ['autodocs']` is present in `IconSlot.stories.tsx`, and
-the meta carries a full hand-written description plus the appended intent block.
-It was added in `e46893c`, which is **after** `b26ed39` — the commit the registry
-records for IconSlot — and production has not been rebuilt since. That commit's own
-message says it: "no component had a docs page ... all four hand-written component
-descriptions had been rendering nowhere since they were written."
+`docs/registry-status.json` is *not* stale, for what it is worth: `readAt`
+`2026-08-20T07:37:25Z` is 17 seconds after the last change to the component
+directory. It is the Airtable commit field specifically that has fallen behind.
 
-**Why it blocks.** `VERSIONING.md` says 0.1.0 promises "each one has a documented
-prop API and a documented intent". Right now that promise is not true in the only
-place a consumer can check it. Perspective 1 could not be run at all — the skill is
-explicit that reaching for the source to answer "what is this for" is a gate 6
-finding, and here there was nothing else to reach for.
+**Owner.** 🔨 Engineer or 📋 PM — the row should point at the commit the component
+actually ships from.
 
-**This is not an engineering defect.** No code change is needed — a redeploy of
-production Storybook from a commit at or after `e46893c` fixes it. It is also
-repo-wide rather than IconSlot's alone; I record it here because the gate is
-per-component and this component's docs are among the missing.
+### N2 · `Icon Slot` on the board, `IconSlot` in code — gate 4
 
-**Owner.** 🚀 DevOps.
+I was asked to decide this for myself rather than inherit the previous review's
+"not a finding". I reach the same conclusion by a different route, and I think the
+previous review under-recorded it.
 
----
+`.claude/skills/registry/SKILL.md` says, in as many words, that "two systems
+disagreeing about a name is a finding for 📦 Release's gate 4, not a detail to
+absorb quietly", and `registryEntryFor` in `scripts/lib/contract.mjs` carries the
+same comment. So the repo explicitly asks gate 4 to *surface* this. The previous
+review declared it not a finding and cited neither. It should be recorded — which
+is what this note is.
 
-### F5 · `experimental` is load-bearing for two `settling` components — gate 3 / gate 7
+**But it should not block.** The two names are the same word under two conventions
+that each side mandates: the registry row mirrors Figma, which names the node
+"Icon Slot", and CLAUDE.md mandates PascalCase in code, which makes `IconSlot` the
+prescribed spelling of that same name. The mapping is documented in the registry
+skill and implemented in `registryEntryFor`, which matches with spacing ignored.
+Renaming the row to `IconSlot` would break the registry's own rule that the row
+mirrors Figma. There is nothing here to fix; there was something here to say.
 
-Recorded for the human. **Does not independently block**; the verdict rests on F1–F4.
+IconSlot is the first two-word component, which is why the convention is only now
+visible. The next two-word component will hit it too, and the handling is already
+in place.
 
-`VERSIONING.md` says 0.1.0 does not promise "anything at all about a component
-whose `status` reads `experimental`". IconSlot is the only `experimental` component
-in the release. Button, Chip and Eyebrow all read `settling` — and Button and Chip
-are **built out of IconSlot**, both rendering it on their default path.
+### N3 · The docs page still calls the arrow "scaffolding" two paragraphs above calling it the shipped default — gate 6
 
-So the package promises something about Button and Chip while promising nothing
-about the component that draws part of them. A consumer cannot rely on Button's
-trailing mark if the thing rendering it carries no promise at all. The disclaimer
-is written as though an experimental component were an isolated preview; this one
-is load-bearing for two-thirds of the released surface *and* public in its own right.
+F3's field is fixed. The page it renders on has not caught up.
 
-Related, and smaller: `--sunim-IconSlot-color` is a documented consumer-facing
-contract — the intent's a11y field and the `Retinted` story both instruct consumers
-to set it, and I verified it works on the deployed build — but `VERSIONING.md` says
-"anything not exported from `src/index.ts` is not part of the release". A CSS custom
-property cannot be exported there. The retint mechanism is therefore promised
-through a channel the release contract declares non-public. Worth settling before
-1.0.0; not urgent at 0.1.0.
+The engineer's blurb at the top of the production docs page reads "Every
+production use should pass `icon`", and the component header comment calls the
+arrow "scaffolding". The Intent block below, on the same page, says "Inside Button
+and Chip the arrow is the default both ship today".
 
-**Owner.** 🎨 Human — `VERSIONING.md` is governance, not code. Either IconSlot
-becomes `settling` alongside its consumers (which raises the stakes on F1 and F2,
-since a settling surface should not churn), or `VERSIONING.md` gains a line on what
-an experimental component composed into a settling one actually promises.
+**Why this is a note and not F3 reopened.** Gate 6 asks whether the *intent* is
+true, and it is. The two sentences are not strictly contradictory either — one
+states an aspiration, the other states a fact, and both are accurate. 📝 Doc
+Generator left the blurb alone deliberately: the stories file is 🔨 Engineer's, and
+staying out of it is the boundary working rather than a job half done.
+
+**What is genuinely still open** is the question underneath both sentences, which
+📝 Doc Generator raised in `reports/IconSlot-intent.md` and could not settle: is
+placeholder-by-default the intended design, or a gap waiting on a Sunim Icon file?
+If the second, both consumers should be passing real icons, the intent wants
+another pass, and the header comment is right after all. That is a human's ruling
+and neither agent should have taken it. Not in `decisions.md`, so unruled.
+
+**Owner.** 🎨 Human rules; 🔨 Engineer owns the blurb; 📝 Doc Generator re-runs after.
 
 ---
 
 ## The version sentence
 
-**0.1.0 says: this thing is called `IconSlot`, you import it from the package root,
-it draws a square box at 14, 16 or 22 pixels that takes its colour from whatever it
-sits inside, and it hides itself from screen readers unless you name it. That is
-all it says.**
+**0.1.0 says: there is a component called `IconSlot`, you import it and its types
+from the package root, it draws a square box at 14, 16 or 22 pixels that takes its
+colour from whatever it sits inside and can be retinted through
+`--sunim-IconSlot-color`, and it stays out of the accessibility tree entirely
+unless you name it — with `label` or with `aria-label`, either of which now
+works. That is all it says.**
 
-It does not say the name `label` will still mean that in 0.2.0, or that the arrow
-you see is the arrow you will keep — the arrow is scaffolding for a Sunim Icon file
-that is not in this repository, and `status: "experimental"` is the package saying
-out loud that it will not defend any of this. What makes that disclaimer awkward
-rather than clean is that Button and Chip are `settling` and both render this
-component by default, so the release promises more about them than about the thing
-they are made of.
+It does not say the word `label` will still mean that in 0.2.0. Given that this
+component's own documentation recommends `aria-label` instead, `label` is the part
+of this surface most likely to move, and the version number is being honest by not
+defending it. Nor does it say the arrow you see is the arrow you keep: it is a
+placeholder for a Sunim Icon file that is not in this repository, and Button and
+Chip both ship it today.
 
-On whether `experimental` is the honest claim — **right about the component, too
-strong as `VERSIONING.md` words it.** Right, because the surface genuinely is not
-settled: two prop names should move (F1, F2), and the visible default is a
-placeholder for icons that do not exist here yet (F3). Too strong, because "nothing
-at all is promised" cannot hold for a component that two promised components render
-on their default path. The status is not overstating IconSlot's stability — that is
-the failure this gate usually catches, and it is not this one. It is understating
-IconSlot's *reach*, which is the more unusual error and the one worth writing down.
+**On whether `experimental` is the honest claim** — I asked this fresh and land
+where the previous reviewer did, for reasons I worked out independently. It is
+right about the component and too strong as `VERSIONING.md` words it. Right,
+because one prop name should still move and the visible default is scaffolding.
+Too strong, because "nothing at all is promised" cannot hold for a component that
+two `settling` components render by default. The status is not overstating
+IconSlot's stability — it is understating IconSlot's reach, which is the more
+unusual error and still the one worth writing down.
 
 ---
 
 ## Not checked
 
-- **Whether the three unbound sizes are still an open design gap.** I confirmed
-  against the live node that only `text/body` is bound, so the gap is real today
-  and not a stale export. I did **not** confirm with 🎨 Human that an icon-size
-  scale is *wanted* rather than deliberately withheld. Gate 2 asks for that
-  confirmation and I could not get it. Not in `decisions.md`, so unruled.
-- **F2 executed against a rendered case.** Mechanism read from source and
-  deterministic; not run, because no story passes a raw `aria-label`. Both storied
-  `label` modes were verified live.
+- **Whether the three unbound sizes are still a *wanted* design gap.** I confirmed
+  live against 9:24 that only `text/body` is bound, so the gap is real today and
+  not a stale export. I did **not** confirm with 🎨 Human that an icon-size scale
+  is wanted rather than deliberately withheld. Gate 2 asks for that and I could
+  not get it. Not in `decisions.md`, so unruled. Unchanged from the previous
+  review.
+- **The raw `aria-label` case in a browser.** Now asserted by an executing test
+  against the real component, and the deployed bundle is provably at or after the
+  fix — but no *story* passes a raw `aria-label`, so I could not drive it through
+  the deployed a11y panel. Two of the four name cases are test-only.
 - **Screen-reader output.** Verified the accessibility tree — roles, names,
   `aria-hidden`, tab order — on the deployed build. Did not run NVDA, JAWS or
   VoiceOver, so what is *announced* is inferred from correct markup.
-- **Contrast in any mode.** Out of scope by construction: the component inherits
-  its colour and the intent assigns contrast to the consumer. Not measured. The
-  `decisions.md` ruling covers Chip and Eyebrow, not IconSlot.
-- **Modes other than `day`.** All live checks ran in the deployed default. QA's
-  rows note the `open`/`day` equivalence for `text/body`; I did not re-verify it,
-  and I checked no other mode.
+- **Contrast in any mode.** Out of scope by construction; the component inherits
+  its colour and the intent assigns contrast to the consumer. The `decisions.md`
+  ruling covers Chip and Eyebrow, not IconSlot.
+- **Modes other than `day`.** All live checks ran in the deployed default.
+- **The Astro reference site.** `Astro Link` is empty on the row and the site is
+  not deployed, so I reviewed the docs page Storybook serves. The story-id fix in
+  `461d6c0` I verified by re-deriving all 62 ids against the deployed Storybook
+  index — which is the authority — but I could not open a rendered reference-site
+  page, because there is not one. `Astro Link` is 🚀 DevOps's field and not mine to
+  write.
 - **Any behaviour of the built package.** This review reads the repository and the
   deployed Storybook. Whether `IconSlot` survives the build, packs, installs and
-  renders from a tarball is release-prepare's steps 5–7, not this review.
-- **The other three components.** IconSlot only. Findings F4 and F5 visibly reach
-  further — the missing docs pages are repo-wide, and F5 is a governance question
-  about the whole surface — but I confirmed neither beyond what IconSlot required.
-- **`npm test` as evidence about IconSlot.** It is not. No test exercises this
-  component; see gate 1.
+  renders from a tarball is release-prepare's steps 5–7.
+- **The other three components.** IconSlot only. F5 is visibly a whole-surface
+  governance question and N1 may well apply to other rows; I confirmed neither
+  beyond what IconSlot required.
 
 ---
 
@@ -398,14 +451,17 @@ IconSlot's *reach*, which is the more unusual error and the one worth writing do
 
 | # | Fix | Owner |
 |---|---|---|
-| F1 | Rename `label`, or rename it in the three siblings — one meaning, one word | 🎨 Human decides, 🔨 Engineer applies |
-| F2 | Stop the advertised `aria-label` failing silently | 🔨 Engineer |
-| F3 | Make `dont_use_when` true of the component as shipped | 🎨 Human rules, 📝 Doc Generator writes |
-| F4 | Redeploy production Storybook from `e46893c` or later | 🚀 DevOps |
-| F5 | Optional before 0.1.0 — settle what `experimental` promises when it is composed into `settling` | 🎨 Human |
+| F1 | Settle `label` — rename it, rename it in the three siblings, or drop it in favour of `aria-label` | 🎨 Human decides, 🔨 Engineer applies |
+| F5 | Optional before 0.1.0 — settle what `experimental` promises when it is composed into `settling`. Likely one decision with F1 | 🎨 Human |
+| N3 | Optional — rule on whether placeholder-by-default is the design, then reconcile the blurb and the header comment | 🎨 Human rules |
+| N1 | Housekeeping — point the row's commit at what ships | 🔨 Engineer / 📋 PM |
 
-F1, F2 and F3 are free today and cost a minor bump after 0.1.0 is cut. F4 is a
-redeploy, not a code change.
+F1 is free today and costs a minor bump after 0.1.0 is cut. It is the only entry
+on this table that blocks.
+
+---
 
 *Reviewed against the seven gates in `.claude/skills/release-review/SKILL.md`.
-Nothing in `src/` was modified. No version was bumped. Nothing was published.*
+Nothing in `src/` was modified. No version was bumped. Nothing was published, and
+nothing was written to the board — this run was asked to return its verdict for
+transcription.*
