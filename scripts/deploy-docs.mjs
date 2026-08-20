@@ -19,10 +19,8 @@
  * It carries the headers only — the CSP that lets this site frame Storybook and
  * Figma, and nothing else.
  *
- * The project is named by environment variable rather than by a `.vercel`
- * directory: the repo root is already linked to the Storybook project, and one
- * directory cannot be linked to two. Neither value is a credential, and neither
- * is written to a tracked file.
+ * It holds no credential and writes none. The Vercel project is identified by
+ * name and resolved at run time; the ids never reach a tracked file.
  *
  * Usage:
  *   npm run docs:deploy            # preview
@@ -40,16 +38,48 @@ const stop = (m, fix) => {
   process.exit(1);
 };
 
-const org = process.env.VERCEL_ORG_ID;
-const project = process.env.VERCEL_PROJECT_ID;
-if (!org || !project) {
-  stop(
-    'VERCEL_ORG_ID and VERCEL_PROJECT_ID must both be set.',
-    'They identify the reference site\'s Vercel project. Read them from the\n'
-    + '  project once and export them; do not commit them.\n\n'
-    + '    vercel project inspect sunim-ds-reference',
-  );
-}
+/*
+ * Which Vercel project this is.
+ *
+ * Not a `.vercel` directory: the repo root is already linked to the Storybook
+ * project and one directory cannot be linked to two. Not hardcoded either — the
+ * ids are resolved from the machine at run time, so the only thing this file
+ * carries is the project *name*, which is the public domain anyway.
+ *
+ * Environment wins if it is set, for CI. Otherwise the org comes from the link
+ * that already exists and the project id is read back from Vercel by name.
+ */
+const PROJECT_NAME = 'sunim-ds-reference';
+
+const resolve = () => {
+  if (process.env.VERCEL_ORG_ID && process.env.VERCEL_PROJECT_ID) {
+    return { org: process.env.VERCEL_ORG_ID, project: process.env.VERCEL_PROJECT_ID };
+  }
+  let org = process.env.VERCEL_ORG_ID;
+  if (!org) {
+    if (!existsSync('.vercel/project.json')) {
+      stop('no .vercel/project.json to read the team from.',
+        'Run `vercel link` once, or set VERCEL_ORG_ID and VERCEL_PROJECT_ID.');
+    }
+    org = JSON.parse(readFileSync('.vercel/project.json', 'utf8')).orgId;
+  }
+  let project = process.env.VERCEL_PROJECT_ID;
+  if (!project) {
+    let out;
+    try {
+      /* 2>&1 because the Vercel CLI prints this to stderr, where a plain capture misses it. */
+      out = execSync(`vercel project inspect ${PROJECT_NAME} 2>&1`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    } catch {
+      stop(`Vercel has no project called ${PROJECT_NAME}.`,
+        `Create it once with \`vercel project add ${PROJECT_NAME}\`, then re-run.`);
+    }
+    project = out.match(/\bID\s+(prj_[A-Za-z0-9]+)/)?.[1];
+    if (!project) stop(`could not read the project id for ${PROJECT_NAME}.`, 'Set VERCEL_PROJECT_ID and re-run.');
+  }
+  return { org, project };
+};
+
+const { org, project } = resolve();
 
 if (!existsSync('docs/dist/index.html')) {
   stop('docs/dist/ is empty — nothing built.', 'Run `npm run docs:build` first.');
