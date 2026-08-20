@@ -2,7 +2,7 @@
   "name": "@sunim/design-system",
   "version": "0.0.1",
   "private": true,
-  "description": "Sunim Design System \u2014 course starter (Day 2)",
+  "description": "Sunim Design System — course starter (Day 2)",
   "type": "module",
   "license": "UNLICENSED",
   "repository": {
@@ -56,6 +56,8 @@
     "@storybook/addon-docs": "^10.5.9",
     "@storybook/react-vite": "^10.5.9",
     "@types/node": "^22.20.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.0.5",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
