@@ -17,7 +17,11 @@
     "font.action.md",
     "font.action.lg",
     "radius.radius.pill",
-    "spacing.space.2"
+    "spacing.space.2",
+    "spacing.step.10",
+    "spacing.step.14",
+    "spacing.step.18",
+    "spacing.step.26"
   ],
-  "a11y": "Native `<button>`, so it is in the tab order and Enter and Space activate it. Focus is visible on all three variants: :focus-visible replaces the shadow with effect.focus-ring. State=Disabled sets the native disabled attribute, which both announces it as unavailable and removes it from the tab order; State=Loading disables it too and adds aria-busy. The trailing arrow is aria-hidden — the label carries the meaning. Target size is per-size and not equal: Md is 36px tall from its tokens (13.5/16.2 type plus 10px padding), which clears WCAG 2.5.8 AA at 24x24 and misses 2.5.5 AAA at 44x44; Lg is 47px and clears both. Choose Lg where a 44px target is required. The loading spinner stops under prefers-reduced-motion."
+  "a11y": "Native `<button>`, so it is in the tab order and Enter and Space activate it. Focus is visible on all three variants: `:focus-visible` replaces the shadow with `effect.focus-ring`. There are two independent ways to make it unavailable and they are OR-ed rather than overridden — `state=\"Disabled\"` is the Figma axis, the native `disabled` attribute is the caller's runtime condition, so `disabled={isSubmitting}` really does disable and no value of `state` cancels it. `aria-busy` from a caller is honoured as given; `state=\"Loading\"` supplies `aria-busy=\"true\"` only when the caller has set none. Both verified on the deployed build. What it does not guarantee is that a Loading button is announced: Loading marks it natively disabled, so focus leaves it for `<body>` with nothing said, and `aria-busy` is not a live region — if the wait matters to a screen-reader user, announce it from somewhere that is. The trailing arrow is `aria-hidden`; the label carries the meaning. Target size is per-size and not equal: Md measures 36.2px tall from its tokens, which clears WCAG 2.5.8 AA at 24x24 and misses 2.5.5 AAA at 44x44; Lg measures 46.6px and clears both. Choose Lg where a 44px target is required. The loading spinner stops under `prefers-reduced-motion`."
 }
