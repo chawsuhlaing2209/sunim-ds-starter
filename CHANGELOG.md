@@ -27,9 +27,15 @@ contract rather than a warning, and it is why the number starts with a zero.
 - **`IconSlot`** — a square, correctly sized, correctly coloured box for an icon
   inside another component. Name it with `aria-label` and it becomes `role="img"`;
   leave it off and it is decorative and hidden. The arrow it ships is a placeholder.
-- **`dist/styles.css`** — one stylesheet carrying the token layer and the component
-  CSS, in that order. Components resolve nothing but `var(--token)`, so the order is
-  not cosmetic. `dist/tokens.css` ships the token layer alone.
+- **`dist/styles.css`** — one stylesheet carrying the typefaces, the token layer and
+  the component CSS, in that order. Components resolve nothing but `var(--token)`,
+  so the order is not cosmetic. `dist/tokens.css` ships the tokens and the typefaces
+  alone.
+- **The typefaces, inside the package.** Schibsted Grotesk and Instrument Sans as
+  `.woff2`, at the eight weights the tokens name — derived from the tokens, so a
+  weight added in Figma follows into the bundle. No CDN and nothing to install:
+  your bundler hashes them into your own assets and fetches only what a page
+  renders.
 - **Seven Figma modes.** Set `data-theme` on any ancestor and everything inside
   follows. Components bind token names, never values.
 - **Types for everything on the surface**, so a consumer can type a wrapper.

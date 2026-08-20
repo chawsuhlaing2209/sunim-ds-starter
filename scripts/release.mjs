@@ -242,6 +242,41 @@ if (notTheLibrary.length) {
     + '  excludes in tsconfig.build.json — note that an exclude for "*.test.ts" does not\n'
     + '  cover "*.test.tsx".');
 }
+/*
+ * A stylesheet that names a typeface it does not carry.
+ *
+ * This check exists because the package shipped one. `dist/styles.css` named
+ * "Schibsted Grotesk" twenty-eight times with no `@font-face` and no font file,
+ * so every consumer got the browser's default serif — and nothing anywhere
+ * failed. Storybook and the reference site both looked right the whole time,
+ * because each imports the fonts itself; the package was the only surface with
+ * no imports of its own, which is exactly why four release reviews missed it.
+ *
+ * `CLAUDE.md` already says a missing font "fails *silently*". It said that about
+ * this repo's Storybook. Nothing said it about the thing we publish.
+ */
+const styles = files.includes('dist/styles.css')
+  ? readFileSync('dist/styles.css', 'utf8')
+  : '';
+const named = new Set([...styles.matchAll(/font-family:\s*"([^"]+)"|px\s+"([^"]+)"/g)]
+  .map((m) => m[1] ?? m[2]));
+const declared = new Set([...styles.matchAll(/@font-face\s*{[^}]*font-family:\s*"([^"]+)"/g)]
+  .map((m) => m[1]));
+const unbacked = [...named].filter((f) => !declared.has(f));
+if (unbacked.length) {
+  stop(`the stylesheet names ${unbacked.length} typeface(s) it does not carry: ${unbacked.join(', ')}`,
+    'A consumer gets the browser default and no error — the slowest failure there is.\n'
+    + '  Ship the face, or stop naming it in a token.');
+}
+const faceUrls = [...styles.matchAll(/url\("\.\/([^"]+\.woff2?)"\)/g)].map((m) => `dist/${m[1]}`);
+const missingFiles = faceUrls.filter((f) => !files.includes(f));
+if (missingFiles.length) {
+  stop(`the stylesheet points at ${missingFiles.length} font file(s) the tarball does not contain: ${missingFiles.join(', ')}`,
+    'The @font-face rules are there and the files are not, which fails exactly the same\n'
+    + '  way as having neither. Check `files` in package.json.');
+}
+if (declared.size) ok(`${declared.size} typeface(s) declared and carried: ${[...declared].join(', ')}`);
+
 for (const f of files) info(f);
 ok(`${tar.entryCount} files, ${(tar.size / 1024).toFixed(1)} kB packed`);
 

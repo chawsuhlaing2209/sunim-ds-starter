@@ -124,10 +124,16 @@ export function Apply() {
 }
 ```
 
-One stylesheet carries the token layer and the component CSS, in that order,
-because a component resolves nothing but `var(--token)` and a cascade cannot read
-forwards. If you only want the tokens — to build your own components against this
-system — import `@sunim/design-system/tokens.css` instead.
+One stylesheet carries the typefaces, the token layer and the component CSS, in
+that order — a component resolves nothing but `var(--token)`, and a cascade cannot
+read forwards. If you only want the tokens, to build your own components against
+this system, import `@sunim/design-system/tokens.css` instead; it carries the
+typefaces too.
+
+**The fonts ship inside the package.** Schibsted Grotesk and Instrument Sans, as
+`.woff2`, at the weights the tokens actually name — no CDN, no `@fontsource`
+install, nothing to remember. Your bundler will hash them into your own assets and
+fetch only the weights a page renders.
 
 Themes are the seven Figma modes. Set `data-theme` on any element and everything
 inside it follows:
