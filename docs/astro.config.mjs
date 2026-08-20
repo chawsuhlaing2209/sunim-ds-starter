@@ -33,6 +33,17 @@ import site from './reference.config.json' with { type: 'json' };
  */
 export default defineConfig({
   site: site.siteUrl,
+  /*
+   * Astro defaults to 4321 and does not read PORT on its own, so a harness that
+   * assigns a port has no way to tell it — two servers then fight over one
+   * number and the second one simply fails to start. Reading it here covers
+   * `dev` and `preview` both.
+   *
+   * Nothing depends on this site being at a particular port: no OAuth callback,
+   * no webhook, no origin allowlisted against it. The Storybook URL it embeds is
+   * configured separately in reference.config.json.
+   */
+  server: { port: Number(process.env.PORT) || 4321 },
   integrations: [
     starlight({
       title: site.title,
