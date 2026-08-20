@@ -10,3 +10,4 @@ src/content/docs/components/*
 !src/content/docs/components/.gitkeep
 src/content/docs/start/versioning.md
 src/content/docs/start/tokens.md
+src/styles/tokens.generated.css

@@ -30,7 +30,7 @@ loaded in `.storybook/preview.ts`. Not a CDN; the deployed CSP forbids one
 | Security gate | `npm run security-check` (add `--url <url>` after deploying, `--dir <path>` for another build) |
 | Release gate | `npm run release-review -- <Component>` (or `-- --all --version 0.1.0`) |
 | Install the site | `npm run docs:install` (once — `docs/` has its own `node_modules`) |
-| Generate the site | `npm run docs:generate` |
+| Generate the site | `npm run docs:generate` (add `--storybook <url>` to embed a different one) |
 | Run the site | `npm run docs:dev` (port 4321) |
 | Build the site | `npm run docs:build` → `docs/dist` |
 
@@ -63,7 +63,9 @@ crew — nothing that talks to the registry works until you do.
 - The one reader everything downstream shares: `scripts/lib/contract.mjs`
 - Reference site: `docs/` — source in `docs/src/content/docs/`, generated pages
   under `components/` and two files in `start/`, all gitignored
-- Site config: `docs/reference.config.json` — the Storybook URL every page links to
+- Site config: `docs/reference.config.json` — the Storybook URL every page links to and embeds
+- What the registry said: `docs/registry-status.json` — written by 📝 Doc Generator,
+  read by the generator, which publishes nothing that is not `Completed` there
 - Agents: `.claude/agents/` — `engineer`, `qa`, `devops`, `doc-generator`, `reviewer`, `pm`
 - Skills: `.claude/skills/` — `build`, `test`, `registry`, `intent`, `reference-site`, `security-check`, `release-review`
 - QA reports and the PM sweep: `reports/`

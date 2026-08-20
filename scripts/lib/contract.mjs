@@ -22,6 +22,7 @@
 
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { execSync } from 'node:child_process';
 
 export const COMPONENTS_DIR = 'src/components';
 export const TOKENS_CSS = 'build/tokens/css/tokens.css';
@@ -205,8 +206,142 @@ export function parseUnions(tsx) {
 
 /** The Figma node the component was built from — URL and node id. */
 export function parseFigma(source) {
-  const m = /(https:\/\/www\.figma\.com\/design\/[^\s)`'"]+node-id=([\d-]+))/i.exec(source ?? '');
-  return m ? { url: m[1], node: m[2].replace('-', ':') } : null;
+  const m = /(https:\/\/www\.figma\.com\/design\/([A-Za-z0-9]+)\/([^\s?)`'"]+)[^\s)`'"]*node-id=([\d-]+))/i.exec(source ?? '');
+  if (!m) return null;
+  const [, url, fileKey, slug, rawNode] = m;
+  return {
+    url,
+    fileKey,
+    slug,
+    /* Figma writes node ids two ways: `19:231` in the API and `19-231` in a URL.
+     * Both are kept because both are needed — the colon to talk about the node,
+     * the hyphen to link to it. */
+    node: rawNode.replace('-', ':'),
+    urlNode: rawNode.replace(':', '-'),
+    /*
+     * The embed endpoint. It renders the node itself rather than the whole file,
+     * which is the difference between a useful frame and a viewport somebody has
+     * to go hunting in.
+     *
+     * It only renders for a viewer who can see the file. A file that is not
+     * shared to anyone-with-the-link shows a sign-in wall instead, and there is
+     * no way for a build to tell those apart — so the page carries a fallback
+     * link, and whoever ships the site checks the frame with a logged-out
+     * browser.
+     */
+    embed: `https://embed.figma.com/design/${fileKey}/${slug}?node-id=${rawNode.replace(':', '-')}&embed-host=sunim-reference`,
+  };
+}
+
+/**
+ * The shared `args` on a story file's meta — real values a human chose.
+ *
+ * A usage example has to contain something for `label`, and anything this
+ * generator invented would be filler that reads like documentation and means
+ * nothing. The stories already carry the copy somebody picked when they built
+ * the component, so the example is written from that rather than from a
+ * template.
+ *
+ * Only flat literal values are read. A story arg that is a JSX element or a
+ * function is deliberately skipped — it belongs in a story, not in a two-line
+ * example, and half-rendering it would produce code that does not compile.
+ */
+export function parseMetaArgs(stories) {
+  const block = /\n  args:\s*{([\s\S]*?)\n  },/.exec(stories ?? '');
+  if (!block) return {};
+  const out = {};
+  for (const [, k, v] of block[1].matchAll(/^\s{4}(\w+):\s*('[^']*'|"[^"]*"|true|false|-?\d+(?:\.\d+)?),?\s*$/gm)) {
+    out[k] = v.replace(/^'|'$/g, '');
+  }
+  return out;
+}
+
+/**
+ * Splits stories into the variant matrix and the examples.
+ *
+ * A matrix story's name is nothing but variant values joined together —
+ * `PrimaryMdDefault` is Primary + Md + Default. Everything else was written on
+ * purpose to show something the matrix cannot: `WithCustomIcon`, `LongLabel`,
+ * `AllTones`, `Playground`.
+ *
+ * The distinction matters because the two belong on different tabs. The matrix
+ * is design evidence — proof every variant exists. The examples are what a
+ * consumer actually wants to see, and burying six of them under thirty
+ * mechanical permutations is how a reference site stops being read.
+ */
+export function classifyStories(storyIds, unions, componentName = '') {
+  const members = unions.flatMap((u) => u.members).map((m) => m.toLowerCase());
+  if (!members.length) return { matrix: [], examples: storyIds };
+
+  /*
+   * The axis words as well as the values. A one-axis component names its matrix
+   * stories `Size14`, `Size16` — the axis is in the name because the value alone
+   * would not read as one. Without the axis word in the vocabulary those look
+   * like hand-written examples, and the tab that is meant to prove every variant
+   * exists shows nothing.
+   */
+  const axes = unions
+    .map((u) => u.typeName.replace(new RegExp(`^${componentName}`), '').toLowerCase())
+    .filter(Boolean);
+  const vocab = [...new Set([...members, ...axes])].sort((a, b) => b.length - a.length);
+
+  const isMatrix = (exportName) => {
+    let rest = exportName.toLowerCase();
+    let usedMember = false;
+    let progress = true;
+    while (rest.length && progress) {
+      progress = false;
+      for (const word of vocab) {
+        if (rest.startsWith(word)) {
+          if (members.includes(word)) usedMember = true;
+          rest = rest.slice(word.length);
+          progress = true;
+          break;
+        }
+      }
+    }
+    return rest.length === 0 && usedMember;
+  };
+
+  return {
+    matrix: storyIds.filter((s) => isMatrix(s.exportName)),
+    examples: storyIds.filter((s) => !isMatrix(s.exportName)),
+  };
+}
+
+/**
+ * A component's change history, from git.
+ *
+ * Derived rather than maintained, for the reason everything else here is: a
+ * hand-written changelog is a second record of what happened, and the second
+ * record is the one that goes stale. This one cannot — it is the commits that
+ * touched the component's own directory.
+ *
+ * The cost is that a commit message *is* the changelog entry. That is a fair
+ * trade and arguably the point: a message nobody would want on a public page is
+ * a message that was not worth writing.
+ *
+ * Returns `[]` outside a git repository rather than throwing, so a tarball
+ * checkout still builds.
+ */
+export function readChangelog(dir, limit = 25) {
+  try {
+    const raw = execSync(
+      `git log --no-merges --date=short --format=%h%x1f%ad%x1f%aI%x1f%s -n ${limit} -- ${JSON.stringify(dir)}`,
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
+    );
+    return raw
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => {
+        const [sha, date, iso, subject] = line.split('\u001f');
+        /* `date` is for reading, `iso` is for comparing. The staleness check on
+         * the registry manifest needs a real instant, not a day. */
+        return { sha, date, iso, subject };
+      });
+  } catch {
+    return [];
+  }
 }
 
 /** Sibling components imported — the same thing the registry calls `Composes`. */
@@ -374,3 +509,64 @@ export function resolveToken(name, tokens = readTokens()) {
 
 /** Whether a resolved token value is something a swatch can show. */
 export const isColour = (v) => typeof v === 'string' && /^(#[0-9a-f]{3,8}|rgba?\(|hsla?\()/i.test(v.trim());
+
+/* ── The registry manifest ───────────────────────────────────────────────── */
+
+export const REGISTRY_STATUS = 'docs/registry-status.json';
+
+/**
+ * What the registry said, the last time an agent with access read it.
+ *
+ * A build script cannot reach Airtable, and giving it a token so it could would
+ * put a credential in every CI run to answer a question that changes twice a
+ * week. So 📝 Doc Generator reads the registry — it has the connection — and
+ * writes what it saw here, with the instant it read it.
+ *
+ * That makes this file evidence rather than configuration, and evidence goes
+ * stale. `staleFor` is what catches it: if a component's own directory has a
+ * commit newer than `readAt`, the status recorded here predates the change and
+ * may no longer be true. A component that was `Completed` when this was written
+ * can be `To be fixed` by the time you read it, and the whole point of the gate
+ * is that the site must not document that component.
+ *
+ * It records names and statuses only. No base, table, or record IDs — this file
+ * is tracked, and the repository is public.
+ */
+export function readRegistryStatus() {
+  if (!existsSync(REGISTRY_STATUS)) return null;
+  try {
+    return JSON.parse(readFileSync(REGISTRY_STATUS, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The registry entry for a component, matched forgivingly on the name.
+ *
+ * The registry writes `Icon Slot` where the folder writes `IconSlot`. Both are
+ * the same component and neither is going to change today, so the lookup ignores
+ * spacing — and the generator says out loud when it had to, because a name that
+ * disagrees with itself in two systems is a gate-4 finding, not a detail to
+ * absorb quietly.
+ */
+export function registryEntryFor(name, manifest) {
+  if (!manifest?.components) return null;
+  const flat = (s) => s.replace(/\s+/g, '').toLowerCase();
+  const key = Object.keys(manifest.components).find((k) => flat(k) === flat(name));
+  return key ? { key, ...manifest.components[key] } : null;
+}
+
+/**
+ * Whether the registry reading predates the component's own latest commit.
+ *
+ * Returns the commit that makes it stale, or null. Scoped to the component's
+ * directory, so a change to a script or a document does not invalidate every
+ * status in the file — only a change to the component whose status is claimed.
+ */
+export function staleFor(component, manifest) {
+  if (!manifest?.readAt) return null;
+  const [latest] = readChangelog(component.paths.dir, 1);
+  if (!latest?.iso) return null;
+  return new Date(latest.iso) > new Date(manifest.readAt) ? latest : null;
+}

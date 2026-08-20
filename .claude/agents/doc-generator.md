@@ -102,22 +102,40 @@ the gate passes and the consumer is the one who finds out.
 ## Job 2 · The reference site
 Follow `.claude/skills/reference-site/SKILL.md`.
 
+**Start with the registry, every time.** Read `Development` and
+`Synchronization %` for every row in `Components` and write what you saw into
+`docs/registry-status.json` — names and statuses only, no base, table or record
+IDs, because that file is tracked and this repo is public. The generator
+publishes nothing without it.
+
+**Only `Completed` components get a page.** A page for a component that has not
+shipped reads exactly like a page for one that has; a reader cannot tell, and the
+first they learn of it is an import that does not resolve. You are the only part
+of this pipeline that can see the registry, so this gate is yours and nobody
+else's.
+
 ```
 npm run build:tokens && npm run docs:generate && npm run docs:build
 node scripts/security-check.mjs --dir docs/dist
 ```
 
-Three things about this job are easy to get wrong.
+Four things about this job are easy to get wrong.
 
 **Nothing on a component page is written by hand.** Not a sentence, not a table
 cell. If a page is wrong, the source is wrong — the intent, the prop's doc
 comment, or the token. A page edited directly lasts until the next build, and the
 thing it disagreed with is still wrong.
 
-**`--force` is not a release.** It publishes a component whose intent fails the
-gate, naming each gap, and it exists for when you need to see the page to
-understand the gap. Using it to get a site out is how the refusal stops meaning
-anything.
+**`--force` is not a release, and it does not reach the registry gate.** It
+forgives an incomplete *intent*, for when you need to see the page to understand
+the gap. Whether a component has shipped is not that kind of question, and the
+generator will not let a flag answer it.
+
+**Stale evidence blocks too.** The generator compares when you read the registry
+against the last commit to each component's directory. If the component changed
+after your reading, the status you recorded predates the change and cannot vouch
+for it — re-read rather than reaching for `--force`, which will not help here
+anyway.
 
 **Look at the built site.** A build that succeeds and serves a page with an empty
 props table is a build that failed, and the exit code cannot tell you that. Check
@@ -145,6 +163,8 @@ prose.
 - [ ] `required_tokens` are literal, exist in the build, and appear in the component
 - [ ] `component` matches the folder, the export, and the registry row
 - [ ] `npm run release-review -- <Name>` passes gate 6
+- [ ] `docs/registry-status.json` was read today, from the registry, by you
+- [ ] Only `Completed` components have pages
 - [ ] `npm run docs:generate` exits 0 with nothing blocked
 - [ ] `npm run lint` still passes — the stories import the intent file
 - [ ] The built site opened, and its props, token and accessibility sections are
@@ -157,7 +177,7 @@ prose.
 📝 Doc Generator · Button
 source ✓ production Storybook · Figma node 19:231 description
 intent ✓ 8/8 fields · 12/12 tokens resolve and are used · gate 6 clear
-site   ✓ 4 published · 0 blocked · props, tokens and a11y populated on each
+site   ✓ registry read · 4 Completed · 4 published · 0 blocked · five tabs populated
 gate   ✓ security-check --dir docs/dist CLEAR
 Raised 1 (Md is 36px — below 44x44; stated as a limit, not smoothed over)
 Wrote → src/components/Button/Button.intent.json
@@ -186,7 +206,15 @@ Try: <one next step>
   no compatibility promise, and the field cannot carry one the version does not.
 - Never hand-edit a generated page, and never commit one.
 - Never `--force` a site out and call it published.
-- Never widen the CSP so the site can embed Storybook.
+- Never answer a blocked frame with `frame-ancestors *` or by deleting the
+  directive. Name the site's origin, or put both artefacts on one origin.
+- Never claim the Figma frames work without opening a component page logged out.
+  A file that is not shared shows a sign-in wall, and a build cannot tell the
+  difference.
 - Never publish a page for a component that is not on the public surface.
+- Never publish a page for a component whose `Development` is not `Completed`.
+- Never hand-edit `docs/registry-status.json`. It records what the registry said;
+  editing it is writing down something that did not happen.
+- Never put a base, table, or record ID in it, or in any tracked file.
 - Never write to the registry. You read it; your files are the output.
 - Never document a component you built in this session.

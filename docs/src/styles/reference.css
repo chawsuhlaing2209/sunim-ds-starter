@@ -1,42 +1,247 @@
 /*
- * The reference site's own chrome.
+ * The reference site, wearing the design system it documents.
  *
- * Deliberately thin. This site explains the design system; it is not built out
- * of it, and dressing it up in the system's own tokens would be a claim that
- * every page is a live example when none of them are. Storybook is where things
- * render. What follows is only what the generated pages need to be readable.
+ * Everything below maps one of Starlight's variables onto one of ours. There is
+ * no palette here — not a hex, not a font stack, not a radius. If a colour on
+ * this site looks wrong, the token is wrong, and that is the point: a design
+ * system's own reference site is the first place a bad token should be obvious,
+ * and it cannot be if the site is dressed in someone else's defaults.
+ *
+ * `tokens.generated.css` is imported first (see astro.config.mjs) and does the
+ * awkward half — our seven Figma modes and Starlight's light/dark both key off
+ * `data-theme`, so it re-scopes `day` to `light` and `night` to `dark` without
+ * touching a value.
+ *
+ * The typefaces are self-hosted from @fontsource, imported in astro.config.mjs.
+ * Never a CDN: the deployed CSP sets `font-src 'self' data:`, a Google Fonts
+ * link fails it silently, and every width measured afterwards is wrong for a
+ * reason that has nothing to do with the page.
  */
 
-/* The stability badge in a component's frontmatter title area. */
-.sunim-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: var(--sl-text-xs);
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 999px;
-  padding: 0.1rem 0.6rem;
-  color: var(--sl-color-gray-2);
+:root {
+  /* Text, brightest to faintest. Starlight's names are a grey ramp; ours are
+   * roles, and the ramp is what the roles happen to look like. */
+  --sl-color-white: var(--color-text-heading);
+  --sl-color-gray-1: var(--color-text-heading);
+  --sl-color-gray-2: var(--color-text-body);
+  --sl-color-gray-3: var(--color-text-muted);
+  --sl-color-gray-4: var(--color-text-faint);
+  --sl-color-gray-5: var(--color-line-default);
+  --sl-color-gray-6: var(--color-surface-sunk);
+  --sl-color-gray-7: var(--color-surface-raised);
+  --sl-color-black: var(--color-surface-page);
+
+  --sl-color-text: var(--color-text-body);
+  --sl-color-text-accent: var(--color-accent-ink);
+  --sl-color-text-invert: var(--color-text-on-accent);
+
+  /* Surfaces. */
+  --sl-color-bg: var(--color-surface-page);
+  --sl-color-bg-nav: var(--color-surface-card);
+  --sl-color-bg-sidebar: var(--color-surface-card);
+  --sl-color-bg-inline-code: var(--color-surface-sunk);
+  --sl-color-bg-accent: var(--color-accent-ink);
+
+  /* The accent, which on this site is the same accent a Button uses. */
+  --sl-color-accent-low: var(--color-accent-soft);
+  --sl-color-accent: var(--color-accent-ink);
+  --sl-color-accent-high: var(--color-accent-ink-deep);
+
+  --sl-color-hairline: var(--color-line-quiet);
+  --sl-color-hairline-light: var(--color-line-quiet);
+  --sl-color-hairline-shade: var(--color-line-default);
+
+  /* Asides take the system's own semantic colours, so a caution on this site is
+   * the same warmth as a caution in the product. */
+  --sl-color-orange: var(--color-gold-deep);
+  --sl-color-orange-high: var(--color-gold-ink);
+  --sl-color-orange-low: var(--color-gold-soft);
+  --sl-color-purple: var(--color-agentic-default);
+  --sl-color-purple-high: var(--color-agentic-default);
+  --sl-color-purple-low: var(--color-agentic-soft);
+  --sl-color-green: var(--color-positive-default);
+  --sl-color-green-high: var(--color-positive-default);
+  --sl-color-green-low: var(--color-positive-soft);
+  --sl-color-blue: var(--color-accent-default);
+  --sl-color-blue-high: var(--color-accent-ink-deep);
+  --sl-color-blue-low: var(--color-accent-soft);
+
+  --sl-font: 'Instrument Sans', var(--sl-font-system);
+}
+
+::selection {
+  background-color: var(--color-selection-bg);
+  color: var(--color-selection-text);
 }
 
 /*
- * Token swatches. The value shown is the default mode's, and the page says so —
- * a swatch that silently showed one of seven modes would be worse than no
- * swatch, because it looks authoritative.
+ * Headings are Schibsted Grotesk, as they are everywhere else in the system.
+ * The sizes stay Starlight's: the system's heading tokens are page-scale
+ * (`--font-heading-h1` is 58px) and were drawn for a marketing page, not for a
+ * documentation column. Borrowing the family without the scale is the honest
+ * half of the mapping.
+ */
+.sl-markdown-content :is(h1, h2, h3, h4, h5, h6),
+.site-title,
+h1.hero-title {
+  font-family: 'Schibsted Grotesk', var(--sl-font-system);
+  color: var(--color-text-heading);
+}
+
+/* ── The component page ──────────────────────────────────────────────────── */
+
+/* The stability badge, and anything else that reads as a small hard label. */
+.sunim-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-space-1);
+  font: var(--font-ui-xs);
+  border: 1px solid var(--color-line-default);
+  border-radius: var(--radius-radius-pill);
+  padding: 0 var(--spacing-space-2);
+  color: var(--color-text-muted);
+}
+
+/*
+ * Token swatches. The value shown is the default mode's, and every page that
+ * prints one says so — a swatch that silently showed one of seven modes would
+ * look authoritative and be a coin flip.
  */
 .sunim-swatch {
   display: inline-block;
   width: 0.85em;
   height: 0.85em;
-  border-radius: 3px;
-  border: 1px solid var(--sl-color-gray-5);
+  border-radius: var(--radius-radius-xs);
+  border: 1px solid var(--color-line-default);
   vertical-align: -0.1em;
-  margin-inline-end: 0.35em;
+  margin-inline-end: var(--spacing-space-1);
 }
 
-/* Prop tables get wide. Let them scroll rather than squeezing the type column. */
+/*
+ * An embedded frame — a Storybook story, or a Figma node.
+ *
+ * Given a real height rather than a ratio: a story is a component at its natural
+ * size, and squeezing it into an aspect box would show the one thing a reference
+ * site must not, which is the component at a size nobody designed.
+ */
+.sunim-embed {
+  width: 100%;
+  border: 1px solid var(--color-line-quiet);
+  border-radius: var(--radius-radius-card);
+  background-color: var(--color-surface-card);
+  display: block;
+  color-scheme: normal;
+}
+
+.sunim-embed--story {
+  height: 220px;
+}
+
+.sunim-embed--props {
+  height: 620px;
+}
+
+.sunim-embed--figma {
+  height: 480px;
+}
+
+.sunim-embed-note {
+  font: var(--font-ui-xs);
+  color: var(--color-text-faint);
+  margin-block-start: var(--spacing-space-1);
+}
+
+/* Every mode the export defines, side by side, on the Design tab. */
+.sunim-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-space-2);
+  margin-block: var(--spacing-space-4);
+}
+
+.sunim-mode {
+  flex: 1 1 7rem;
+  border: 1px solid var(--color-line-quiet);
+  border-radius: var(--radius-radius-md);
+  overflow: hidden;
+  background-color: var(--color-surface-page);
+}
+
+.sunim-mode__swatches {
+  display: flex;
+  height: 2.5rem;
+}
+
+.sunim-mode__swatches span {
+  flex: 1;
+}
+
+.sunim-mode__name {
+  font: var(--font-ui-xs);
+  color: var(--color-text-muted);
+  padding: var(--spacing-space-1) var(--spacing-space-2);
+  border-block-start: 1px solid var(--color-line-quiet);
+}
+
+/* Prop and token tables get wide. Let them scroll rather than crushing the type
+ * column, which is the column somebody came to read. */
 .sl-markdown-content table {
   display: block;
   overflow-x: auto;
   max-width: 100%;
+  font: var(--font-body-small);
+}
+
+.sl-markdown-content th {
+  font: var(--font-ui-label);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/*
+ * The two-frame theme swap.
+ *
+ * A Storybook story renders in whichever Figma mode it was asked for, and a
+ * day-mode component sitting in a dark page reads as a rendering bug rather than
+ * as a frame — the wrong impression on the page whose whole job is to show the
+ * component looking right. So both are emitted and CSS shows the matching one.
+ * The hidden frame is lazy, so it costs nothing until the reader switches.
+ *
+ * Light is the default rather than a media query, because Starlight writes
+ * `data-theme` before first paint and a query would disagree with it for one
+ * frame on every load.
+ */
+.sunim-embed-pair {
+  margin-block: var(--spacing-space-3);
+}
+
+.sunim-embed[data-embed-theme='dark'] {
+  display: none;
+}
+
+:root[data-theme='dark'] .sunim-embed[data-embed-theme='light'] {
+  display: none;
+}
+
+:root[data-theme='dark'] .sunim-embed[data-embed-theme='dark'] {
+  display: block;
+}
+
+/* The header strip: what this component is, and the three places it lives. */
+.sunim-pageheader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-space-3);
+  font: var(--font-ui-xs);
+  margin-block: var(--spacing-space-4) var(--spacing-space-2);
+}
+
+.sunim-pageheader a {
+  color: var(--color-text-muted);
+  text-decoration-color: var(--color-line-default);
+}
+
+.sunim-pageheader a:hover {
+  color: var(--color-accent-ink);
 }

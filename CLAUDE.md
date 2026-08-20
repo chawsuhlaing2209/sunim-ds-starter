@@ -103,15 +103,22 @@ clears 2.5.8 at AA and misses 2.5.5 at AAA" is.
 - **Storybook is where components render. `docs/` is where they are explained.**
 Every variant and state, live, in the first; intent, props, tokens, limits and
 promises in the second. Neither repeats the other.
+- **A component is documented only once it is `Completed` in the registry.** A page
+for something that has not shipped reads exactly like a page for something that
+has, so a reader cannot tell — and the first they learn of it is an import that
+does not resolve. `docs/registry-status.json` carries the reading that decides
+this, and no flag overrides it.
 - No component page in `docs/` is written by hand. They come out of
 `scripts/generate-docs.mjs`, from the intent, the props interface, the token
 build and the stories. Editing one is the same mistake as editing
 `build/tokens/` — it lasts until the next build.
 - The reference site is its own npm package, and nothing in it may depend on
 `src/`. It documents the surface; it is not part of it.
-- The site links into Storybook and never embeds it. The deployed CSP sets
-`frame-ancestors 'self'`, and widening a real protection to save a click is not
-a trade this repo makes.
+- The site embeds and links into Storybook and re-renders nothing. The frames
+are Storybook itself, so there is no second rendering to keep in step.
+- A blocked frame is answered by naming an origin in `frame-ancestors`, never by
+`*` and never by deleting the directive. Every frame carries a fallback link, so
+the worst case is a click.
 
 ## The public surface
 

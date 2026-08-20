@@ -16,10 +16,14 @@ questions.
 | Contains | Every variant, size and state, live | Intent, props, tokens, limits |
 | Written by | 🔨 Engineer, alongside the component | Nobody — it is generated |
 
-Every component page here deep-links into the matching stories. It does not embed
-them: the deployed Storybook sets `frame-ancestors 'self'`, so a cross-origin
-frame is blocked — and widening a real protection to save a click is not a trade
-worth making.
+Every component page embeds the matching stories and links to them. Nothing here
+re-renders a component: the frames *are* Storybook, so there is no second
+rendering that can quietly disagree with the first.
+
+Frames are subject to Storybook's `frame-ancestors 'self'`, which is why they can
+come up blank on a cross-origin deployment. [Embedding](/start/embedding/) says
+what to do about it — and every frame carries a direct link, so the worst case is
+a click rather than missing content.
 
 ## Why nothing here is hand-written
 

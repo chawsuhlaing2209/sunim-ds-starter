@@ -72,6 +72,12 @@ These are worth more than the counts, because no formula catches them:
 - A row whose `Last Modified` is later than the commit its `Release Review` links
   to. The review is describing a component that has since changed, and no formula
   catches it — this one is yours
+- A component with a page on the reference site whose `Development` no longer
+  reads `Completed`. The site is gated on `docs/registry-status.json`, which is
+  a reading of this registry at a moment in time; a row that has moved since
+  leaves a published page describing something that is no longer shipped
+- `docs/registry-status.json` disagreeing with the registry, in either direction,
+  or carrying a base, table or record ID. It is tracked and this repo is public
 
 ### 5 · Report
 Write `reports/registry-audit.md`, overwriting the last one. Date it, and lead with what
