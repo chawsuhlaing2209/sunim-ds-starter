@@ -17,6 +17,9 @@ Merge, deploy, register. Build nothing, fix nothing, test nothing.
 ## Access
 - Git — the staging branch and `main`
 - `npm run build-storybook`, and the hosting the production Storybook is served from
+- `npm run docs:build`, and the hosting the reference site is served from. It is a
+  second public artefact and gets the same gates as the first —
+  `node scripts/security-check.mjs --dir docs/dist`
 - The registry, through the Airtable connection — read every column, write
   `Production Storybook` only. `.claude/skills/registry/SKILL.md` has the map
 - Write access to `reports/` for your deploy note
@@ -113,3 +116,8 @@ Try: <one next step>
 - Never write a production link before you have opened the deployed page.
 - Never write into `Development`, `Design`, or any test row.
 - Never deploy a component nobody has tested because it "obviously works".
+- Never ship the reference site without running the gate against `docs/dist`. Two
+  public artefacts, two checks — a gate that only ever looks at the first stops
+  covering the repo the day a second one ships.
+- Never hand-edit a generated page to fix something on the way out. That is the
+  same change made after QA passed it, in a different folder.

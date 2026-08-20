@@ -49,8 +49,9 @@ inside.
 - The engineer builds and fixes. It never verifies its own work.
 - QA tests and reports. It never repairs.
 - DevOps ships what QA passed. It never changes what was tested on the way.
-- The doc generator writes what a component is for. It never changes the component
-to make that true.
+- The doc generator writes what a component is for, and generates the reference
+site from it. It never changes a component to make its documentation true, and it
+never hand-writes a generated page.
 - The reviewer decides whether a shipped component can be lived with in public.
 It repairs nothing and it never bumps a version.
 - The PM audits the registry and reports. It writes nothing but a report.
@@ -81,15 +82,36 @@ actually has.
 for, what it is not for, where it goes, the tokens it needs, and what it
 guarantees to a keyboard and a screen reader. The format is in
 `.claude/skills/intent/SKILL.md`.
-- That file is the only copy. The component's docs page appends it, and
-`Documentation/Component Intent` collects every one by glob — write the JSON and
-both surfaces update. Prose written twice is prose that disagrees.
+- That file is the only copy, and three surfaces read it: the component's own
+Storybook docs page, the `Documentation/Component Intent` gallery, and the
+reference site in `docs/`. Write the JSON and all three update. Prose written
+twice is prose that disagrees.
+- The intent is checked and published through **one reader**,
+`scripts/lib/contract.mjs`. 🧭 Reviewer's gate 6 fails a release over it, and the
+site generator **refuses to publish a page for a component that would fail that
+gate**. Written once, checked once, published once — and a page can never
+describe something the gate rejected.
 - `dont_use_when` names the alternative for every case in it. Telling somebody
 they are wrong without telling them what to reach for sends them back to
 building their own.
 - `a11y` states at least one thing the component does **not** guarantee, measured
 rather than asserted. "Accessible" is not a commitment; "Md is 36px, which
 clears 2.5.8 at AA and misses 2.5.5 at AAA" is.
+
+## Documentation
+
+- **Storybook is where components render. `docs/` is where they are explained.**
+Every variant and state, live, in the first; intent, props, tokens, limits and
+promises in the second. Neither repeats the other.
+- No component page in `docs/` is written by hand. They come out of
+`scripts/generate-docs.mjs`, from the intent, the props interface, the token
+build and the stories. Editing one is the same mistake as editing
+`build/tokens/` — it lasts until the next build.
+- The reference site is its own npm package, and nothing in it may depend on
+`src/`. It documents the surface; it is not part of it.
+- The site links into Storybook and never embeds it. The deployed CSP sets
+`frame-ancestors 'self'`, and widening a real protection to save a click is not
+a trade this repo makes.
 
 ## The public surface
 

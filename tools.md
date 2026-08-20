@@ -9,7 +9,9 @@ Stack facts and commands only. Rules about how we work live in `CLAUDE.md`.
 - Package manager: npm
 - Styling: CSS custom properties, generated from tokens
 - Tokens: Style Dictionary v5, reading the Figma "Design Tokens" plugin export
-- Component workshop: Storybook 10 (react-vite)
+- Component workshop: Storybook 10 (react-vite) — where components render
+- Reference site: Astro 7 + Starlight, in `docs/`, its own npm package — where
+components are explained. Generated; never hand-written
 - Tests: Vitest
 - Accessibility: Storybook a11y addon
 - Typefaces: Schibsted Grotesk, Instrument Sans, Caveat — self-hosted via `@fontsource`,
@@ -25,8 +27,12 @@ loaded in `.storybook/preview.ts`. Not a CDN; the deployed CSP forbids one
 | Build Storybook | `npm run build-storybook` |
 | Test | `npm test` |
 | Type check | `npm run lint` |
-| Security gate | `npm run security-check` (add `--url <url>` after deploying) |
+| Security gate | `npm run security-check` (add `--url <url>` after deploying, `--dir <path>` for another build) |
 | Release gate | `npm run release-review -- <Component>` (or `-- --all --version 0.1.0`) |
+| Install the site | `npm run docs:install` (once — `docs/` has its own `node_modules`) |
+| Generate the site | `npm run docs:generate` |
+| Run the site | `npm run docs:dev` (port 4321) |
+| Build the site | `npm run docs:build` → `docs/dist` |
 
 ## Registry and design sources
 
@@ -54,8 +60,12 @@ crew — nothing that talks to the registry works until you do.
 - Component intent: `src/components/<Name>/<Name>.intent.json`, typed by `src/intent.ts`
 - The public surface: `src/index.ts` — nothing outside it is released
 - What a version promises: `VERSIONING.md`
+- The one reader everything downstream shares: `scripts/lib/contract.mjs`
+- Reference site: `docs/` — source in `docs/src/content/docs/`, generated pages
+  under `components/` and two files in `start/`, all gitignored
+- Site config: `docs/reference.config.json` — the Storybook URL every page links to
 - Agents: `.claude/agents/` — `engineer`, `qa`, `devops`, `doc-generator`, `reviewer`, `pm`
-- Skills: `.claude/skills/` — `build`, `test`, `registry`, `intent`, `security-check`, `release-review`
+- Skills: `.claude/skills/` — `build`, `test`, `registry`, `intent`, `reference-site`, `security-check`, `release-review`
 - QA reports and the PM sweep: `reports/`
 - Release reviews: `reports/release-review/`
 
@@ -65,4 +75,9 @@ crew — nothing that talks to the registry works until you do.
 - Use the existing package scripts before inventing commands.
 - Do not add a dependency without explaining why in your report.
 - Do not add a UI or component library. This repo is the component library.
+- `docs/` has its own `package.json` and its own `node_modules`, and that is not
+an accident to tidy up. Astro brings ~370 packages and its own Vite major; one
+tree would put all of them one install away from the thing being documented and
+pin two Vite majors against each other. Install site dependencies there, never
+at the root.
 - If this file disagrees with `package.json`, inspect the repo and say so.

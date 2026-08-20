@@ -3,7 +3,7 @@
   "since": "0.1.0",
   "status": "settling",
   "use_when": "Labelling a thing that already exists — a status, a category, a credential someone holds. Sm is the status tag; Md reads as a credential.",
-  "dont_use_when": "Anything clickable: a Chip renders a <span> with no handler, no focus, and no role, so a filter the user can toggle is a Button or a checkbox, not this. A section label above a heading: use Eyebrow. Long text: it does not wrap the way a paragraph does.",
+  "dont_use_when": "Anything clickable: a Chip renders a `<span>` with no handler, no focus, and no role, so a filter the user can toggle is a Button or a checkbox, not this. A section label above a heading: use Eyebrow. Long text: it does not wrap the way a paragraph does.",
   "placement": "Inside cards, table cells, list rows, and beside headings — always attached to the thing it describes.",
   "required_tokens": [
     "color.accent.ink",
@@ -24,5 +24,5 @@
     "spacing.space.2",
     "spacing.space.4"
   ],
-  "a11y": "Non-interactive by construction: a <span> with no role, no tabindex and no handler, so there is no focus state to make visible and none is drawn. The mark is an IconSlot with no label, so it is aria-hidden and the text is what gets read. The label is real text, so it scales with the page and is selectable. Colour is never the only carrier of meaning — every tone ships a word beside it. Six of the eight variants fall below 4.5:1 in day mode; that is measured, ruled on, and recorded in decisions.md, not an oversight."
+  "a11y": "Non-interactive by construction: a `<span>` with no role, no tabindex and no handler, so there is no focus state to make visible and none is drawn. The mark is an IconSlot with no label, so it is aria-hidden and the text is what gets read. The label is real text, so it scales with the page and is selectable. Colour is never the only carrier of meaning — every tone ships a word beside it. Six of the eight variants fall below 4.5:1 in day mode; that is measured, ruled on, and recorded in decisions.md, not an oversight."
 }

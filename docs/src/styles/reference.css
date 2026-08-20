@@ -1,0 +1,42 @@
+/*
+ * The reference site's own chrome.
+ *
+ * Deliberately thin. This site explains the design system; it is not built out
+ * of it, and dressing it up in the system's own tokens would be a claim that
+ * every page is a live example when none of them are. Storybook is where things
+ * render. What follows is only what the generated pages need to be readable.
+ */
+
+/* The stability badge in a component's frontmatter title area. */
+.sunim-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: var(--sl-text-xs);
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  color: var(--sl-color-gray-2);
+}
+
+/*
+ * Token swatches. The value shown is the default mode's, and the page says so —
+ * a swatch that silently showed one of seven modes would be worse than no
+ * swatch, because it looks authoritative.
+ */
+.sunim-swatch {
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  border-radius: 3px;
+  border: 1px solid var(--sl-color-gray-5);
+  vertical-align: -0.1em;
+  margin-inline-end: 0.35em;
+}
+
+/* Prop tables get wide. Let them scroll rather than squeezing the type column. */
+.sl-markdown-content table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}

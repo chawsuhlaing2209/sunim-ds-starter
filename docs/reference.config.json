@@ -1,0 +1,8 @@
+{
+  "_comment": "Everything the generated site needs to know that is not in the repo. storybookUrl is where components actually render — every generated page deep-links into it, so a wrong value here produces a site full of dead links rather than a build error. Check it opens before you ship.",
+  "title": "Sunim Design System",
+  "description": "What each component is for, when not to use it, and what the version number promises.",
+  "siteUrl": "https://sunim-ds-starter.vercel.app",
+  "storybookUrl": "https://sunim-ds-starter.vercel.app",
+  "repoUrl": "https://github.com/chawsuhlaing2209/sunim-ds-starter"
+}

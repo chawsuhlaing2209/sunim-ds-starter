@@ -8,8 +8,9 @@
  * something private on a public URL, or ship a known-vulnerable dependency.
  *
  * Usage:
- *   node scripts/security-check.mjs              # pre-deploy: build output + deps + repo
- *   node scripts/security-check.mjs --url <url>  # post-deploy: also check the live response
+ *   node scripts/security-check.mjs               # pre-deploy: build output + deps + repo
+ *   node scripts/security-check.mjs --dir docs/dist   # …against another build
+ *   node scripts/security-check.mjs --url <url>   # post-deploy: also check the live response
  *   … --url <url> --expect protected             # assert the URL DOES require a login
  *
  * Exit 0 = every gate passed. Exit 1 = at least one FAIL. Warnings never fail.
@@ -19,7 +20,15 @@ import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join, extname } from 'node:path';
 import { execSync } from 'node:child_process';
 
-const BUILD_DIR = 'storybook-static';
+/*
+ * The directory that is about to be served. There are two deployables now — the
+ * Storybook and the reference site — and a gate that only ever looks at one of
+ * them is a gate that stops covering the repo the day a second thing ships.
+ */
+const BUILD_DIR = (() => {
+  const a = process.argv.slice(2);
+  return a.includes('--dir') ? a[a.indexOf('--dir') + 1] : 'storybook-static';
+})();
 const TEXT_EXT = new Set(['.js', '.mjs', '.cjs', '.css', '.html', '.json', '.txt', '.map', '.svg']);
 
 let fails = 0, warns = 0, passes = 0;
@@ -30,6 +39,7 @@ const head = (m) => console.log(`\n\x1b[1m${m}\x1b[0m`);
 
 const args = process.argv.slice(2);
 const urlArg = args.includes('--url') ? args[args.indexOf('--url') + 1] : null;
+if (BUILD_DIR !== 'storybook-static') console.log(`  (checking ${BUILD_DIR}/)`);
 // Whether this URL is *meant* to be readable without logging in. A gate cannot
 // check an intention it was never told, and "200, no redirect" is a pass for a
 // public site and a failure for a protected one.
