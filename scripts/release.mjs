@@ -131,9 +131,29 @@ ok(`all ${candidates.length} exported from src/index.ts, with their Props types`
 
 /* ── 3 · The working tree is clean ──────────────────────────────────────── */
 head(3, 'The working tree is clean');
-const dirty = sh('git status --porcelain').trim();
+
+/*
+ * `reports/` is excluded, and the reason is that this run writes into it.
+ *
+ * Step 9 puts its report there. So a first run left the tree dirty and a second
+ * run refused at step 3 because of a file the first run had just written — the
+ * gate poisoning its own next invocation, which is exactly what it felt like
+ * from the outside: a release that worked once and then never again.
+ *
+ * Excluding it costs nothing, because the check is not about tidiness. It exists
+ * so that what gets packed is what somebody reviewed, and `files` is
+ * ["dist", "CHANGELOG.md"] — nothing under `reports/` can reach the tarball
+ * whatever state it is in. The security gate carries the same exclusion for the
+ * same reason.
+ */
+const dirty = sh('git status --porcelain')
+  .split('\n')
+  .filter((l) => l.trim() && !/^..\s+reports\//.test(l))
+  .join('\n')
+  .trim();
 if (dirty) {
-  stop(`the working tree has ${dirty.split('\n').length} uncommitted change(s).`,
+  stop(`the working tree has ${dirty.split('\n').length} uncommitted change(s) outside reports/:\n`
+    + dirty.split('\n').map((l) => `      ${l}`).join('\n'),
     'What would be packed is not what anybody reviewed, and the tarball is\n'
     + '  unreproducible from that moment on. Commit or stash, then re-run.');
 }
