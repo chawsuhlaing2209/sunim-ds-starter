@@ -81,6 +81,13 @@ the ladder moves itself.
 ### The report
 One file per run: `reports/<Component>.md`.
 
+**Commit it, and push it to `staging`, before you hand over.** The report and its
+screenshots are the evidence a human reads, and evidence that only exists on one
+machine is not evidence. Leaving it uncommitted also strands it in the shared
+working tree, where the next agent's deploy gate finds files it does not own and
+cannot judge — that happened twice before this rule existed. Commit `reports/`
+only; you have no business committing anything else.
+
 | Section | What goes in it |
 |---|---|
 | The matrix | One row per variant, size, and state. Pass **and** fail, never only the failures |
