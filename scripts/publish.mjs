@@ -29,6 +29,13 @@
  *   npm login
  *   npm run release:publish -- 0.1.0
  *   npm run release:publish -- 0.1.0 --dry-run
+ *   npm run release:publish -- 0.1.0 --otp 123456
+ *
+ * On `--otp`: the code is passed straight through to npm and is never read,
+ * logged, or stored here. npm has required a second factor to publish since
+ * 2025 — either a one-time code, or a granular access token with "bypass 2FA"
+ * enabled. Having 2FA *disabled* on the account does not exempt you; it only
+ * removes the option of using a code.
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -36,7 +43,9 @@ import { execSync } from 'node:child_process';
 
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
-const wanted = args.find((a) => !a.startsWith('--'));
+/* Passed through to npm untouched. Never read, never logged, never stored. */
+const otp = args.includes('--otp') ? args[args.indexOf('--otp') + 1] : null;
+const wanted = args.find((a) => !a.startsWith('--') && a !== otp);
 
 const step = (m) => console.log(`\n\x1b[1m${m}\x1b[0m`);
 const ok = (m) => console.log(`  \x1b[32m✓\x1b[0m ${m}`);
@@ -151,7 +160,7 @@ process.on('SIGINT', () => { restore(); process.exit(130); });
 let failure = null;
 try {
   writeFileSync('package.json', opened);
-  run(`npm publish --access public${dryRun ? ' --dry-run' : ''}`);
+  run(`npm publish --access public${dryRun ? ' --dry-run' : ''}${otp ? ` --otp=${otp}` : ''}`);
 } catch (e) {
   failure = e;
 }
@@ -159,9 +168,29 @@ restore();
 ok('`private: true` restored');
 
 if (failure) {
+  /*
+   * The one failure worth explaining rather than echoing. npm has required a
+   * second factor to publish since 2025, and the message it prints sends you
+   * looking at your security policy or your access rights — neither of which is
+   * the problem.
+   */
+  const needsSecondFactor = /E403|two-factor|bypass 2fa/i.test(
+    ((failure.stdout || '') + (failure.stderr || '')).toString(),
+  );
   stop('npm publish failed — see above.',
-    'package.json is back as it was. Nothing is half-published: npm either took the\n'
-    + '  whole tarball or none of it.');
+    needsSecondFactor
+      ? 'npm wants a second factor. Two ways, and neither involves this script holding\n'
+        + '  anything:\n\n'
+        + '    · A one-time code, if your account has 2FA on:\n'
+        + '        npm run release:publish -- ' + pkg.version + ' --otp <code>\n\n'
+        + '    · A granular access token with "Bypass 2FA" enabled, which is what CI\n'
+        + '      needs anyway — one token covers both:\n'
+        + '        npmjs.com → Access Tokens → Granular → scope @sunim, Read and write,\n'
+        + '        Bypass 2FA on\n'
+        + '        npm config set //registry.npmjs.org/:_authToken <token>\n\n'
+        + '  package.json is back as it was. Nothing is half-published.'
+      : 'package.json is back as it was. Nothing is half-published: npm either took the\n'
+        + '  whole tarball or none of it.');
 }
 ok(dryRun ? 'dry run complete — nothing was published' : `published ${pkg.name}@${pkg.version}`);
 
