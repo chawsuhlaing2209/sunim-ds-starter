@@ -102,6 +102,22 @@ export function Button({
   icon,
   className,
   type = 'button',
+  /*
+   * Pulled out of `...rest` deliberately.
+   *
+   * Both are on the public type — `ButtonProps` omits only `children` — and both
+   * used to be silently discarded, because `{...rest}` spread first and the
+   * assignments below always won. `disabled={isSubmitting}` is the commonest
+   * React button idiom there is: it type-checked, read correctly, and kept
+   * submitting.
+   *
+   * There are two sources of truth for each, and they are OR-ed rather than
+   * overridden. `state` is the Figma variant axis; the attribute is the
+   * consumer's runtime condition. Either one being true means the button is
+   * unavailable, and neither gets to cancel the other.
+   */
+  disabled: disabledProp,
+  'aria-busy': ariaBusyProp,
   ...rest
 }: ButtonProps) {
   const isLoading = state === 'Loading';
@@ -124,8 +140,8 @@ export function Button({
       {...rest}
       type={type}
       className={classes}
-      disabled={isDisabled || isLoading}
-      aria-busy={isLoading || undefined}
+      disabled={disabledProp || isDisabled || isLoading}
+      aria-busy={ariaBusyProp ?? (isLoading || undefined)}
     >
       <span className="sunim-Button__label">{label}</span>
       {showTrailing && (
