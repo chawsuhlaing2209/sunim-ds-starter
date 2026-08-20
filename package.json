@@ -18,6 +18,7 @@
     },
     "./styles.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css",
+    "./fonts/*": "./dist/fonts/*",
     "./package.json": "./package.json"
   },
   "files": [
