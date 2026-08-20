@@ -72,3 +72,5 @@ Then compare each story against the Figma node: spacing, colour, size, radius, s
 - [ ] Storybook renders every story with no console errors
 - [ ] `npm run lint` passes
 - [ ] Anything the design left unbound is reported, not guessed
+- [ ] The component is handed to 📝 Doc Generator for its intent. You do not write
+      that file — see `.claude/skills/intent/SKILL.md`

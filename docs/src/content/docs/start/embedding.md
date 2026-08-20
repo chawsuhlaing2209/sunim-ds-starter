@@ -1,0 +1,62 @@
+---
+title: Embedding
+description: Why the Storybook and Figma frames on a component page can come up blank, and the one header that fixes it.
+sidebar:
+  order: 4
+---
+
+Component pages embed two things they do not own: a Storybook story, and the
+Figma node the component was built from. Both can come up blank, for different
+reasons, and neither failure produces a build error — so this page exists to make
+them recognisable.
+
+## The Storybook frames
+
+The deployed Storybook sends:
+
+```
+Content-Security-Policy: … frame-ancestors 'self' …
+```
+
+`frame-ancestors 'self'` means **only a page on the same origin may frame it**.
+That is the correct default and it is doing its job: it is what stops an
+arbitrary site putting our Storybook in an invisible frame and dressing it up as
+their own.
+
+It also means the frames work in two situations and not a third:
+
+| Where | Frames render? |
+|---|---|
+| Local development, `:4321` framing `:6006` | **Yes** — the dev server sends no CSP |
+| Both deployed to one origin, site under a path | **Yes** — same origin |
+| Site and Storybook on different hosts | **No** — blocked, silently |
+
+### If they are on different hosts
+
+Name the site's origin in the header. Do not remove the directive and do not
+replace it with `*`:
+
+```json
+"value": "… frame-ancestors 'self' https://<the reference site's origin> …"
+```
+
+An allowlist of one origin we control is a different thing from no protection at
+all. Widening it further to save a click is not a trade this repo makes — and if
+that ever looks tempting, deploying both artefacts to one origin gets the frames
+back without touching the header.
+
+A blank frame always carries a direct link beside it, so a reader is never
+stranded by this — they lose the convenience, not the content.
+
+## The Figma frames
+
+A Figma embed renders for whoever can already see the file. If the component
+file is not shared to *anyone with the link*, the frame shows a sign-in wall
+instead, and a build cannot tell the two apart — the URL is valid either way.
+
+So the check is manual and belongs to whoever ships the site: **open a component
+page in a logged-out browser** and look at the Design tab. Every frame carries a
+link to the node beside it for exactly this case.
+
+Sharing the file is a decision about the design work, not a technical fix, and it
+is 🎨 Human's to make.

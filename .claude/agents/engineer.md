@@ -16,7 +16,9 @@ Build one component from one node. One node in, one component out.
 ## Access
 - The Figma node, through the Figma connection, read only
 - `tokens/` and `build/tokens/css/tokens.css`, read only — the latter is generated
-- Write access to `src/components/`
+- Write access to `src/components/` — **except `<Name>.intent.json`**, which is
+  📝 Doc Generator's. You write what the component does; something that did not
+  build it writes what it is for
 - Git — your develop branch, and the PR into the staging branch
 - The registry, through the Airtable connection. You read every column and you write
   exactly three things: `Commit`, `Staging Storybook`, and `Fixed (To re-test)` on the test
@@ -167,5 +169,13 @@ Try: <one next step>
 - Never write `Passed` on a test row. That word is QA's, and it is the difference between a
   check and a claim.
 - Never mark a row `Fixed (To re-test)` that you did not fix.
-- Never write into `Design`, `Production Storybook`, or any formula column.
+- Never write or edit a component's `<Name>.intent.json`. An intent written by
+  whoever built the component restates what it was meant to do, which is the one
+  thing already written down everywhere else.
+- Never edit a component to make its intent true without a finding saying so. If
+  the two disagree, one of them is a bug and it is not yours to pick which.
+- Never add an export to `src/index.ts` on your own. That file is the public
+  surface, and adding to it is a release decision — see `VERSIONING.md`.
+- Never write into `Design`, `Production Storybook`, `Release Review`,
+  `Release Verdict`, or any formula column.
 - Never build from a row whose `Development` is blank. The design is not finished.

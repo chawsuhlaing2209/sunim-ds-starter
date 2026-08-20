@@ -112,3 +112,19 @@ Say so plainly rather than implying coverage:
   the pattern with a comment explaining what it was matching by accident.
 - Never treat `CLEAR` as proof the system is secure. It means these five specific
   mistakes are not present in this deploy.
+
+## A second public artefact
+
+There are two things this repo deploys: the production Storybook, built to
+`storybook-static/`, and the reference site, built to `docs/dist/`. The gate
+checks whichever build directory it is pointed at, and defaults to the first:
+
+```
+npm run security-check                              # storybook-static/
+node scripts/security-check.mjs --dir docs/dist     # the reference site
+```
+
+Run it against both before shipping either. A gate that only ever looks at the
+first artefact stops covering the repo the day a second one ships — and the
+reference site is generated from repo content, which is exactly the path a
+credential in a config file would take to a public URL.

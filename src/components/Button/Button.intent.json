@@ -1,0 +1,23 @@
+{
+  "component": "Button",
+  "since": "0.1.0",
+  "status": "settling",
+  "use_when": "A user-initiated action that resolves on the page it is on — submit, confirm, cancel, toggle a mode, open a dialog.",
+  "dont_use_when": "Navigating to another URL: this renders a native `<button>` with no href, so it is invisible to a middle-click, a bookmark, and a crawler — use an anchor. Showing an arrow or glyph on its own: use IconSlot. A second Primary in the same view: demote it to Secondary, because Primary means the one thing this view wants you to do.",
+  "placement": "Forms, cards, dialogs, toolbars, and the call to action closing a page section.",
+  "required_tokens": [
+    "color.accent.ink",
+    "color.accent.ink-deep",
+    "color.accent.soft",
+    "color.text.on-accent",
+    "color.surface.card",
+    "color.line.default",
+    "effect.focus-ring",
+    "effect.shadow-button",
+    "font.action.md",
+    "font.action.lg",
+    "radius.radius.pill",
+    "spacing.space.2"
+  ],
+  "a11y": "Native `<button>`, so it is in the tab order and Enter and Space activate it. Focus is visible on all three variants: :focus-visible replaces the shadow with effect.focus-ring. State=Disabled sets the native disabled attribute, which both announces it as unavailable and removes it from the tab order; State=Loading disables it too and adds aria-busy. The trailing arrow is aria-hidden — the label carries the meaning. Target size is per-size and not equal: Md is 36px tall from its tokens (13.5/16.2 type plus 10px padding), which clears WCAG 2.5.8 AA at 24x24 and misses 2.5.5 AAA at 44x44; Lg is 47px and clears both. Choose Lg where a 44px target is required. The loading spinner stops under prefers-reduced-motion."
+}

@@ -4,8 +4,27 @@
     {
       "name": "storybook",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "storybook", "--", "--no-open"],
+      "runtimeArgs": [
+        "run",
+        "storybook",
+        "--",
+        "--no-open"
+      ],
       "port": 6006
+    },
+    {
+      "name": "reference",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "docs",
+        "run",
+        "dev",
+        "--",
+        "--host",
+        "127.0.0.1"
+      ],
+      "port": 4321
     }
   ]
 }

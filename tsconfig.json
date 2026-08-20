@@ -9,6 +9,9 @@
     "noEmit": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
+    /* The intent files are JSON so a Node gate can read them without a
+       compiler; this is what lets the stories import the same file. */
+    "resolveJsonModule": true,
     "allowImportingTsExtensions": true
   },
   "include": ["src", ".storybook"]

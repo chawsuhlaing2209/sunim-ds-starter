@@ -4,6 +4,8 @@
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Eyebrow } from './Eyebrow';
+import { asIntent, intentDoc } from '../../docs/intent';
+import intentJson from './Eyebrow.intent.json';
 
 const FIGMA_FILE =
   'https://www.figma.com/design/mFnN1Sr8MAmOdmx0ABXPsb/2.-Sunim-Component';
@@ -23,6 +25,12 @@ const node = (id: string) => ({
 const meta = {
   title: 'Components/Eyebrow',
   component: Eyebrow,
+  /*
+   * Without this there is no docs page at all — and every word of the
+   * description below, and the intent appended after this meta, renders
+   * nowhere. The prose was already here and already invisible.
+   */
+  tags: ['autodocs'],
   argTypes: {
     tone: {
       control: 'inline-radio',
@@ -85,6 +93,15 @@ are **not** matrix rows and have no node to test against.`,
     },
   },
 } satisfies Meta<typeof Eyebrow>;
+
+/*
+ * The intent block is appended here rather than written into the description
+ * above. The prose is the engineer's, `Eyebrow.intent.json` is 📝 Doc
+ * Generator's, and a gate reads the second one — keeping them separate keeps
+ * one owner per thing while both land on the same docs page.
+ */
+meta.parameters.docs.description.component +=
+  '\n\n' + intentDoc(asIntent(intentJson));
 
 export default meta;
 type Story = StoryObj<typeof meta>;
