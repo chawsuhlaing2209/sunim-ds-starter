@@ -1,4 +1,5 @@
 import { useId, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { IconSlot } from '../IconSlot/IconSlot';
 import './Button.css';
 
 /*
@@ -39,38 +40,25 @@ export interface ButtonProps
 }
 
 /*
- * The arrow and spinner are inlined rather than loaded as exported assets, for
- * one reason: the node recolours them per variant (the export bakes `white` on
- * Primary and `#1A78BD` on Secondary, each equal to that variant's text
- * colour), and an <img> cannot inherit `currentColor`. An exported asset would
- * be the wrong colour on 20 of the 30 variants.
+ * The trailing arrow is Icon Slot at Size=16 — the same component Chip uses,
+ * not a second copy of the same vector. Button drew it privately only because
+ * Icon Slot did not exist yet; the private `Arrow()` this replaced was that
+ * component's Size=16 glyph byte for byte, down to the translate and the 3.2
+ * stroke, so consuming it is a substitution rather than a redraw.
  *
- * The geometry is not hand-drawn. Both paths were diffed against the assets
- * Figma exports for these nodes and match exactly, including stroke width, caps
- * and joins. The arrow's translate places the 9.867x7.867 vector at its node
- * offset (3.0667, 4.0667) inside the 16x16 icon frame.
+ * Colour still comes from Button. Icon Slot resolves its own colour through
+ * `--sunim-IconSlot-color`, which Button.css sets to `currentColor`, so the
+ * per-variant `color` rules keep driving the arrow exactly as they did when the
+ * vector was inlined here — white on Primary, accent ink on Secondary and
+ * Ghost. That override is the one Icon Slot documents, used as documented.
+ *
+ * The spinner stays inlined. It is not an Icon Slot: it has no Size=14 variant
+ * in that set, it is a 14x14 filled-and-masked vector rather than a stroked
+ * glyph, and it carries an animation Icon Slot knows nothing about.
+ *
+ * Its geometry is not hand-drawn — the path was diffed against the asset Figma
+ * exports for the node and matches exactly, including stroke width and mask.
  */
-
-function Arrow() {
-  return (
-    <svg
-      className="sunim-Button__arrow"
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden="true"
-    >
-      <g transform="translate(3.06667 4.06667)">
-        <path
-          d="M1.6 3.93333H8.26667M5.93333 6.26667L8.26667 3.93333L5.93333 1.6"
-          stroke="currentColor"
-          strokeWidth="3.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </g>
-    </svg>
-  );
-}
 
 function Spinner() {
   const maskId = useId();
@@ -142,7 +130,7 @@ export function Button({
       <span className="sunim-Button__label">{label}</span>
       {showTrailing && (
         <span className="sunim-Button__trailing">
-          {isLoading ? <Spinner /> : (icon ?? <Arrow />)}
+          {isLoading ? <Spinner /> : (icon ?? <IconSlot size="16" />)}
         </span>
       )}
     </button>
