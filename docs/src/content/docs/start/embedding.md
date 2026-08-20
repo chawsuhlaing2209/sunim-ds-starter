@@ -48,6 +48,31 @@ back without touching the header.
 A blank frame always carries a direct link beside it, so a reader is never
 stranded by this — they lose the convenience, not the content.
 
+### Both headers have to agree
+
+A frame is permitted by two headers on two origins, and either one alone blocks
+it. They are set in different files and it is easy to fix one and think the job
+is done.
+
+| Origin | File | Directive | Says |
+|---|---|---|---|
+| Storybook | `vercel.json` | `frame-ancestors` | who may frame **me** |
+| This site | `docs/vercel.json` | `frame-src` | who **I** may frame |
+
+As deployed:
+
+```
+# vercel.json — Storybook
+frame-ancestors 'self' https://sunim-ds-reference.vercel.app
+
+# docs/vercel.json — this site
+frame-src 'self' https://sunim-ds-starter.vercel.app https://embed.figma.com
+```
+
+Two named origins and Figma, on both sides. Neither is `*`, and neither directive
+is absent — an absent `frame-src` falls back to `default-src 'self'`, which blocks
+exactly the same frames while looking like nothing is configured at all.
+
 ## The Figma frames
 
 A Figma embed renders for whoever can already see the file. If the component
