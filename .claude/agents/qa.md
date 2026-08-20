@@ -81,12 +81,29 @@ the ladder moves itself.
 ### The report
 One file per run: `reports/<Component>.md`.
 
+**Commit it, and push it to `staging`, before you hand over.** The report and its
+screenshots are the evidence a human reads, and evidence that only exists on one
+machine is not evidence. Leaving it uncommitted also strands it in the shared
+working tree, where the next agent's deploy gate finds files it does not own and
+cannot judge — that happened twice before this rule existed. Commit `reports/`
+only; you have no business committing anything else.
+
 | Section | What goes in it |
 |---|---|
 | The matrix | One row per variant, size, and state. Pass **and** fail, never only the failures |
 | Findings | One block per failure: what you expected, what you saw, and where |
 | Screenshots | One per state, saved beside the report |
 | Verdict | All passed, or the list of what must be fixed |
+
+## Before you write a finding, check the rulings
+`decisions.md` lists findings a human has already ruled on. If what you found is
+there, record it against that ruling and move on — it is not a defect, and it is
+not yours to re-argue. If it is not there, it has not been ruled on: report it.
+
+Two things are worth being exact about. A ruling covers what it names and no more,
+so a *new* case failing the same way, or a measurement that has moved, is still a
+finding. And a ruling is not a reason to skip the measurement — measure, then
+record it as ruled.
 
 ## What a finding looks like
 Paired evidence, always: the story showing the defect, and the Figma node showing what it should be.

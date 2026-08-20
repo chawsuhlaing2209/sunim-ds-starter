@@ -154,7 +154,15 @@ try {
 // ── 5 · Repository state ─────────────────────────────────────────────────────
 head('5 · Repository state');
 try {
-  const dirty = execSync('git status --porcelain', { encoding: 'utf8' }).trim();
+  // reports/ is QA's evidence, not a build input — it is never bundled. A
+  // stray report there blocked two unrelated deploys before this filter
+  // existed, and a gate that fails for files you do not own is a gate people
+  // learn to override. Anything that can reach the build still counts.
+  const dirty = execSync('git status --porcelain', { encoding: 'utf8' })
+    .split('\n')
+    .filter((l) => l.trim() && !/^..\s+reports\//.test(l))
+    .join('\n')
+    .trim();
   if (dirty) fail(`working tree is dirty — you would deploy something that is not committed:\n        ${dirty.split('\n').slice(0, 5).join('\n        ')}`);
   else pass('working tree clean — what is committed is what deploys');
 } catch { warn('not a git repository'); }
