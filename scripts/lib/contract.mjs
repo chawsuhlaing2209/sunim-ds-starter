@@ -456,6 +456,35 @@ export function validateIntent(component, tokens = readTokens()) {
         out.push({ key: 'tokens', message: `required token ${dotted} (${v}) is declared but never referenced by ${name}` });
       }
     }
+
+    /*
+     * And the other direction, which this check missed until a review found it.
+     *
+     * Declared-but-unused was caught; used-but-undeclared was not, so an intent
+     * could name twelve tokens while the component rendered from sixteen and
+     * pass cleanly. The four it omitted were the padding on every variant —
+     * exactly the kind of load-bearing token the field exists to list.
+     *
+     * A warning rather than a failure: `required_tokens` means "cannot render
+     * without", which is a judgement about which of the tokens it touches are
+     * load-bearing. The gate can surface the gap; it cannot make that call.
+     */
+    const declared = new Set(required.filter((t) => !/[{}]/.test(t)).map(cssVar));
+    const referenced = new Set(
+      [...`${css ?? ''}`.matchAll(/var\(\s*(--[a-z0-9-]+)/gi)]
+        .map((m) => m[1])
+        .filter((v) => !v.startsWith('--sunim-') && tokens.has(v)),
+    );
+    const undeclared = [...referenced].filter((v) => !declared.has(v));
+    if (undeclared.length) {
+      out.push({
+        key: 'tokens-undeclared',
+        severity: 'warn',
+        message: `${name} renders from ${referenced.size} semantic tokens but declares ${declared.size}. `
+          + `Not listed: ${undeclared.join(', ')}. If any of those is load-bearing, the intent under-states `
+          + 'what breaks when the palette moves.',
+      });
+    }
   }
 
   return out;

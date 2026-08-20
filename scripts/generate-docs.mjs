@@ -752,7 +752,7 @@ for (const name of listComponents()) {
     continue;
   }
 
-  const findings = validateIntent(c, tokens);
+  const findings = validateIntent(c, tokens).filter((f) => f.severity !== 'warn');
   if (findings.length && !force) {
     bad(`${name} — intent fails gate 6, so no page is published:`);
     for (const f of findings) console.log(`      ${f.message}`);

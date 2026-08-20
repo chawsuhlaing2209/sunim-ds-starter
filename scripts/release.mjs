@@ -85,6 +85,25 @@ for (const name of listComponents()) {
   candidates.push({ ...c, entry });
 }
 
+/*
+ * An empty verdict and a `Blocked` one are not the same thing.
+ *
+ * Empty means nobody looked — that is a warning, and the card says so, because
+ * there are reasons to ship something unreviewed and a person can weigh them.
+ * `Blocked` means somebody looked and said no. Carrying on past that would make
+ * the review advisory, and a gate nobody can fail is not a gate.
+ */
+const blockedByReview = candidates.filter((c) => c.entry.verdict === 'Blocked');
+if (blockedByReview.length) {
+  for (const c of blockedByReview) info(`\x1b[31mblocked — ${c.name}: Release Verdict reads "Blocked"\x1b[0m`);
+  stop(
+    `${blockedByReview.length} of ${candidates.length} candidate(s) carry a \`Blocked\` verdict.`,
+    'Read reports/release-review/ for what each one found, fix what it names, and have the\n'
+    + '  component reviewed again. A `Blocked` verdict is a person saying no; this run does not\n'
+    + '  get to overrule it, and neither does --version.',
+  );
+}
+
 if (!candidates.length) {
   stop('no component on the board reads `Completed`.',
     'There is nothing to release. That is a result, not a failure.');

@@ -163,8 +163,8 @@ function reviewComponent(name) {
   /* ── 6 · Is the intent documented? ────────────────────────────────────── */
   gate(6, 'Is the intent documented?');
   const findings = validateIntent(c, tokens);
-  for (const f of findings) fail(f.message);
-  if (!findings.length) {
+  for (const f of findings) (f.severity === 'warn' ? warn : fail)(f.message);
+  if (!findings.some((f) => f.severity !== 'warn')) {
     pass(`intent states use, misuse, placement, ${c.intent.required_tokens.length} tokens and accessibility`);
     pass('every required token exists in the build and is referenced by the component');
   }
