@@ -190,6 +190,15 @@ one. It is the fallback, not the default: it cannot publish with `--provenance`,
 because that needs the OIDC token a CI runner has and a laptop does not. What it
 publishes is trusted because a person ran it, and nothing else.
 
+npm has required a second factor to publish since 2025. Having 2FA *disabled* on
+the account does not exempt you — it only removes the option of using a code:
+
+- **A one-time code**, if the account has 2FA on: `--otp <code>`. Passed straight
+  through to npm; nothing here reads or stores it.
+- **A granular access token with "Bypass 2FA" enabled.** Scope it to `@sunim`,
+  read and write. This is the same token CI needs for `NPM_TOKEN`, so making one
+  covers both paths.
+
 ## Never
 - Never publish, tag, or deploy anything. Preparing and performing are different
   jobs, and the second one is a human's to start.

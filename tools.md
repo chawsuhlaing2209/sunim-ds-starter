@@ -37,6 +37,7 @@ loaded in `.storybook/preview.ts`. Not a CDN; the deployed CSP forbids one
 | Prepare a release | `npm run release` (add `--branch` to push `release/<version>`) |
 | Publish a release | GitHub Actions → **Publish release**, version typed by a human. Preferred — publishes with `--provenance` |
 | …when CI cannot run | `npm login`, then `npm run release:publish -- <version>`. A human runs it; no agent does |
+| …and npm asks for a second factor | add `--otp <code>`, or set a granular token with Bypass 2FA. Required since 2025 even with account 2FA off |
 | Install the site | `npm run docs:install` (once — `docs/` has its own `node_modules`) |
 | Generate the site | `npm run docs:generate` (add `--storybook <url>` to embed a different one) |
 | Run the site | `npm run docs:dev` (port 4321) |
