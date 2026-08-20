@@ -1,15 +1,26 @@
 #!/usr/bin/env node
 /**
- * The manual publish. **Run this yourself — no agent runs it.**
+ * The publish. **Run this yourself — no agent runs it.**
  *
- * `.github/workflows/release-publish.yml` is the better path and stays the
- * default: it publishes from a clean checkout with `--provenance`, which
- * attaches a signed attestation of the commit and workflow that built the
- * tarball. This script cannot do that — provenance needs the OIDC token a CI
- * runner has and a laptop does not — so what it publishes is trusted because you
- * ran it, and nothing else.
+ * This is the working path, not the fallback. `.github/workflows/release-publish.yml`
+ * still exists and is still correct, but it cannot run: GitHub locks Actions
+ * account-wide over an unpaid balance, and this account cannot clear one —
+ * PayPal does not operate in Myanmar and international card processing from
+ * Myanmar banks is largely cut off. The repository is public, so Actions would
+ * otherwise be free; the lock is not about what CI costs. GitLab is not a way
+ * round it either — its free runners have required card verification since 2022,
+ * and those two are the only providers npm accepts for provenance.
  *
- * Use it when CI cannot run. Prefer CI when it can.
+ * So `--provenance` is unavailable, not deferred. What it would have given is a
+ * signed attestation binding the tarball to the commit and workflow that built
+ * it. What replaces it is weaker and worth being precise about: step 7 prints
+ * the commit, the tag and the registry's own checksum for the tarball, and
+ * appends them to the release report. Anyone can re-run that comparison later.
+ * It is a recorded claim a person can check, not a cryptographic one a machine
+ * can verify — and the difference matters.
+ *
+ * What this publishes is trusted because you ran it, and because the numbers
+ * below can be checked against the registry. Nothing else.
  *
  * What it will not do:
  *
@@ -38,7 +49,7 @@
  * removes the option of using a code.
  */
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 
 const args = process.argv.slice(2);
@@ -185,8 +196,8 @@ if (failure) {
         + '        npm run release:publish -- ' + pkg.version + ' --otp <code>\n\n'
         + '    · A granular access token with "Bypass 2FA" enabled, which is what CI\n'
         + '      needs anyway — one token covers both:\n'
-        + '        npmjs.com → Access Tokens → Granular → scope @sunim, Read and write,\n'
-        + '        Bypass 2FA on\n'
+        + '        npmjs.com → Access Tokens → Granular → scope @theproductiveschedule,\n'
+        + '        Read and write, Bypass 2FA on\n'
         + '        npm config set //registry.npmjs.org/:_authToken <token>\n\n'
         + '  package.json is back as it was. Nothing is half-published.'
       : 'package.json is back as it was. Nothing is half-published: npm either took the\n'
@@ -249,13 +260,80 @@ console.log('  the published version installs and renders');
   console.log('      The publish itself succeeded. Check by hand before telling anyone to install it.');
 }
 
+/* ── What binds this tarball to this commit ──────────────────────────────── */
+/*
+ * The stand-in for `--provenance`, and deliberately not called provenance.
+ *
+ * CI would have signed an attestation tying the published artefact to the commit
+ * and workflow that produced it — something a machine can verify without
+ * trusting anybody. This cannot. What it can do is record the numbers a person
+ * needs to check the same claim by hand, at the moment they are still true,
+ * because six months from now nobody will remember which commit went out.
+ *
+ * Written into the release report rather than only printed. A number that
+ * scrolls past in a terminal is not a record.
+ */
+step('8 · Record what was published');
+
+const readOrNull = (cmd) => {
+  try {
+    return sh(cmd).trim() || null;
+  } catch {
+    return null;
+  }
+};
+
+const commit = readOrNull('git rev-parse HEAD');
+const shasum = readOrNull(`npm view ${pkg.name}@${pkg.version} dist.shasum`);
+const integrity = readOrNull(`npm view ${pkg.name}@${pkg.version} dist.integrity`);
+
+console.log(`  commit     ${commit ?? '— git rev-parse failed'}`);
+console.log(`  shasum     ${shasum ?? '— the registry is not serving it yet'}`);
+console.log(`  integrity  ${integrity ?? '—'}`);
+
+const reportPath = `reports/release/${pkg.version}.md`;
+const record = [
+  '',
+  `## Published ${pkg.version}`,
+  '',
+  `- Package · \`${pkg.name}@${pkg.version}\``,
+  `- Commit · \`${commit ?? 'unknown'}\``,
+  `- Tag · \`v${pkg.version}\``,
+  `- Registry shasum · \`${shasum ?? 'not readable at publish time'}\``,
+  `- Registry integrity · \`${integrity ?? 'not readable at publish time'}\``,
+  '',
+  'Published by hand, without `--provenance`. The header of `scripts/publish.mjs`',
+  'says why that is unavailable rather than skipped. These numbers are a recorded',
+  'claim a person can re-check against the registry — not an attestation a machine',
+  'can verify, and the difference is the whole point of writing them down.',
+  '',
+  'To check it:',
+  '',
+  '```bash',
+  `npm view ${pkg.name}@${pkg.version} dist.shasum`,
+  `git rev-parse v${pkg.version}`,
+  '```',
+  '',
+].join('\n');
+
+try {
+  if (existsSync(reportPath)) {
+    appendFileSync(reportPath, record);
+    ok(`appended to ${reportPath}`);
+  } else {
+    console.log(`  \x1b[33m!\x1b[0m ${reportPath} does not exist — nothing to append to.`);
+    console.log('      Run the release first if you want this on the record.');
+  }
+} catch (e) {
+  console.log(`  \x1b[33m!\x1b[0m could not write ${reportPath} — ${e.message}`);
+}
+
 console.log(`
 \x1b[1m📦 Published\x1b[0m  ${pkg.name}@${pkg.version}
 
   Still to do, by hand:
     · Deploy the reference site, then write Astro Link on each component's row.
       That is the last cell Development needs to read Released.
-    · Prefer the CI workflow next time. It publishes with --provenance, which this
-      cannot: a signed attestation of the commit and workflow that built the
-      tarball. Manual publishes are trusted because you ran them, and nothing else.
+    · Check the numbers above against the registry before telling anyone to
+      install it. They are the whole of what ties this tarball to this commit.
 `);
