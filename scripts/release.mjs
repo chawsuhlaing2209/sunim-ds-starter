@@ -202,6 +202,26 @@ if (!files.includes('dist/styles.css')) {
 if (!files.some((f) => f.endsWith('.d.ts'))) {
   stop('the tarball has no type declarations — consumers get `any`.');
 }
+
+/*
+ * Things that are not the library.
+ *
+ * This check exists because the run that first read this list out loud was
+ * shipping `dist/components/accessible-props.test.d.ts` — the build tsconfig
+ * excluded `*.test.ts` and the file was `.test.tsx`. Nothing failed: it built,
+ * it packed, it installed, it rendered. A consumer would simply have received
+ * the design system's test declarations forever.
+ *
+ * That is exactly the failure step 6 is written to catch by reading rather than
+ * by exit code, so it is worth catching mechanically now that we have seen it.
+ */
+const notTheLibrary = files.filter((f) => /\.(test|spec|stories)\./.test(f));
+if (notTheLibrary.length) {
+  stop(`the tarball contains ${notTheLibrary.length} file(s) that are not the library: ${notTheLibrary.join(', ')}`,
+    'Tests and stories are how the components are checked, not what ships. Narrow the\n'
+    + '  excludes in tsconfig.build.json — note that an exclude for "*.test.ts" does not\n'
+    + '  cover "*.test.tsx".');
+}
 for (const f of files) info(f);
 ok(`${tar.entryCount} files, ${(tar.size / 1024).toFixed(1)} kB packed`);
 
@@ -270,7 +290,7 @@ const lastTag = (() => {
   try { return sh('git describe --tags --abbrev=0').trim(); } catch { return null; }
 })();
 const range = lastTag ? `${lastTag}..HEAD` : '';
-const commits = sh(`git log --no-merges --format=%h %s ${range} -- src/ package.json`)
+const commits = sh(`git log --no-merges --format='%h %s' ${range} -- src/ package.json`)
   .split('\n').filter(Boolean)
   .map((l) => ({ sha: l.slice(0, l.indexOf(' ')), subject: l.slice(l.indexOf(' ') + 1) }));
 
