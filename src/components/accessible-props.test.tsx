@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 import { Button } from './Button/Button';
+import { Chip } from './Chip/Chip';
+import { Eyebrow } from './Eyebrow/Eyebrow';
 import { IconSlot } from './IconSlot/IconSlot';
 
 /*
@@ -19,6 +21,13 @@ import { IconSlot } from './IconSlot/IconSlot';
  * and nothing rendered a component at all. That is the gap this closes — not
  * these two lines specifically, but the whole class: **the attributes we
  * advertise on the public type are the attributes that come out.**
+ *
+ * It covered half the class on its first pass. Two reviews caught that: the file
+ * claimed to close the whole thing while importing Button and IconSlot only, so
+ * Chip and Eyebrow stayed exactly as unprotected as everything had been before
+ * it existed — and Eyebrow's blocking finding is a wrong default that no test
+ * would catch. All four are here now, and the passthrough loop runs over all
+ * four rather than over the two that happened to be broken.
  *
  * `renderToStaticMarkup` rather than a DOM testing library on purpose. The
  * question here is what HTML the component produces, which is exactly what it
@@ -98,10 +107,23 @@ describe('IconSlot · a named icon is never hidden', () => {
 
 describe('the public type and the rendered attributes agree', () => {
   /*
-   * The general form of both defects. Every attribute below is reachable through
-   * `HTMLAttributes`, which both components extend, so each one type-checks — and
-   * each one has to survive the spread rather than being quietly dropped.
+   * The general form of both defects, across every component on the surface.
+   * Every attribute below is reachable through `HTMLAttributes`, which all four
+   * extend, so each one type-checks — and each one has to survive the spread
+   * rather than being quietly dropped.
+   *
+   * Eyebrow omits `title` from its inherited attributes on purpose, because the
+   * Figma property is called Title and the prop has to carry that name; it is
+   * skipped rather than expected to pass, which is the difference between a
+   * documented exception and a hole.
    */
+  const components = {
+    Button: (props: Record<string, unknown>) => <Button label="Apply" {...props} />,
+    Chip: (props: Record<string, unknown>) => <Chip label="Reviewed" {...props} />,
+    Eyebrow: (props: Record<string, unknown>) => <Eyebrow title="Components" {...props} />,
+    IconSlot: (props: Record<string, unknown>) => <IconSlot size="16" {...props} />,
+  };
+
   const passthrough = [
     ['id', 'apply'],
     ['title', 'Apply now'],
@@ -109,15 +131,51 @@ describe('the public type and the rendered attributes agree', () => {
     ['aria-describedby', 'hint'],
   ] as const;
 
-  for (const [attr, value] of passthrough) {
-    it(`Button passes ${attr} through`, () => {
-      const tag = open(renderToStaticMarkup(<Button label="Apply" {...{ [attr]: value }} />));
-      expect(tag).toContain(`${attr}="${value}"`);
-    });
-
-    it(`IconSlot passes ${attr} through`, () => {
-      const tag = open(renderToStaticMarkup(<IconSlot size="16" {...{ [attr]: value }} />));
-      expect(tag).toContain(`${attr}="${value}"`);
-    });
+  for (const [name, render] of Object.entries(components)) {
+    for (const [attr, value] of passthrough) {
+      if (name === 'Eyebrow' && attr === 'title') continue;
+      it(`${name} passes ${attr} through`, () => {
+        expect(open(renderToStaticMarkup(render({ [attr]: value }))))
+          .toContain(`${attr}="${value}"`);
+      });
+    }
   }
+});
+
+/*
+ * The defaults, asserted.
+ *
+ * Eyebrow's blocking release finding is that its prop doc says one default and
+ * its code has another — the documentation and the component disagreed for long
+ * enough to be published, and nothing anywhere would have noticed. These do not
+ * decide which is right; they make the code's answer explicit, so that changing
+ * it is a deliberate act with a failing test attached rather than a one-word
+ * edit nobody sees.
+ */
+describe('the defaults a component ships with', () => {
+  it('Button is Primary, Md, and type=button', () => {
+    const tag = open(renderToStaticMarkup(<Button label="Apply" />));
+    expect(tag).toContain('sunim-Button--Primary');
+    expect(tag).toContain('sunim-Button--Md');
+    // Not `submit` — a Button dropped into a form would otherwise submit it.
+    expect(tag).toContain('type="button"');
+  });
+
+  it('Chip is Default and Sm', () => {
+    const tag = open(renderToStaticMarkup(<Chip label="Reviewed" />));
+    expect(tag).toContain('sunim-Chip--Default');
+    expect(tag).toContain('sunim-Chip--Sm');
+  });
+
+  it('Eyebrow is Agentic', () => {
+    // The code's answer. The prop doc says Sky; that contradiction is a live
+    // release finding and a human's to settle. If the ruling goes the other way,
+    // this test fails and says so.
+    expect(open(renderToStaticMarkup(<Eyebrow title="Components" />)))
+      .toContain('sunim-Eyebrow--Agentic');
+  });
+
+  it('IconSlot is 14', () => {
+    expect(open(renderToStaticMarkup(<IconSlot />))).toContain('sunim-IconSlot--14');
+  });
 });
