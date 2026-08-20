@@ -67,9 +67,12 @@ An agent that finds one of them wrong reports it and stops.
 | `Staging Storybook` | 🔨 Engineer | Deployed staging Storybook URL, opening on this component |
 | `[Staging] Test Records` | 🔍 QA | Links to the Staging Testing rows |
 | `Production Storybook` | 🚀 DevOps | Deployed production Storybook URL |
+| `Astro Link` | 🚀 DevOps | The component's page on the deployed reference site |
 | `Semantic Tokens` | 🎨 Human | The semantic tokens this component consumes |
 | `Composes` | 🔨 Engineer | The components this one imports. Written when you compose another component |
 | `Composed Into` | **nobody** | The reverse of `Composes`, derived. Who depends on this component |
+| `Release Review` | 📦 Release | URL of the committed review report, at the commit it reviewed |
+| `Release Verdict` | 📦 Release | `Cleared` · `Blocked`. Empty means not reviewed |
 | `Development` | **nobody** | Formula. Derived from the columns above |
 | `Synchronization %` | **nobody** | Formula. Passed staging tests ÷ total staging tests |
 | `Last Modified` | **nobody** | Automatic |
@@ -89,6 +92,68 @@ positional, and an atom may compose a lower atom and remain an atom. And it is n
 yet wired into `Development`: nothing derives from it, so a stale consumer is
 something the sweep must notice, not something a formula will catch.
 
+## The release columns
+
+Three columns carry a component from shipped to published, and they are the last
+three cells in its life.
+
+| Column | Owner | What it says |
+|---|---|---|
+| `Release Review` | 📦 Release | The report, at the commit it reviewed |
+| `Release Verdict` | 📦 Release | `Cleared` or `Blocked`, from the seven gates |
+| `Astro Link` | 🚀 DevOps | The page on the deployed reference site |
+
+They answer a question no other column asks: **can this component's name go into a
+public version.** Everything upstream checks it against its design; this checks it
+against the next two years — the names, the exported surface, the promises.
+
+They sit **after** `Completed`, because only a component that has shipped has
+something to review. The seven gates are in
+`.claude/skills/release-review/SKILL.md`.
+
+Four things worth knowing:
+
+- **Together, all three produce `Released`.** Separately, none of them changes
+  anything. A `Cleared` verdict with no site link still reads `Completed`, which
+  is the truth: reviewed, not published.
+- **The verdict and its report are written together or not at all.** A verdict
+  with no report behind it is an opinion in a cell.
+- **The report link is pinned to a commit**, never a branch. A branch URL points
+  at whatever the file says today, which is exactly what a review must not do.
+- **📦 Release never writes `Astro Link`.** It prepares releases and never
+  performs them, so a link written by the agent that proposed the release would be
+  a claim rather than a record. 🚀 DevOps writes it, after opening the page.
+
+A review goes stale on its own. `Last Modified` later than the commit the report
+links to means the review is describing a component that has since changed, and no
+formula catches it — that one is the sweep's to notice.
+
+## The registry outside Airtable
+
+One thing reads the registry and cannot reach it: the reference-site generator.
+It is a build script, and giving a build a token so it could ask Airtable
+directly would put a credential in every CI run to answer a question that changes
+twice a week.
+
+So 📝 Doc Generator reads the registry and writes what it saw into
+`docs/registry-status.json`, and the generator refuses to publish a page for any
+component that is not `Completed` there. Three rules make that safe:
+
+- **Names and statuses only.** No base, table, or record IDs — that file is
+  tracked, and this repository is public.
+- **It is evidence, so it carries when it was read.** The generator compares
+  `readAt` against the last commit to each component's own directory: a component
+  that changed after the reading is blocked until somebody reads again, because
+  the recorded status predates the change.
+- **Nobody edits it by hand.** It is a record of what the registry said. Editing
+  it is writing down something that did not happen, which is the one thing this
+  whole contract exists to prevent.
+
+Note that the registry row for Icon Slot is named `Icon Slot` while the folder
+and the export are `IconSlot`. The generator matches on the name with spacing
+ignored and says so when it has to — two systems disagreeing about a name is a
+finding for 📦 Release's gate 4, not a detail to absorb quietly.
+
 ## Development — the derived status
 
 `Development` is a formula. It cannot be set, and an agent that wants to change it
@@ -99,16 +164,23 @@ changes the evidence underneath it. It reads, in this order, and the first match
 | 1 | Test summary has both `Failed` and `re-test` | `Fixing` |
 | 2 | Test summary has `Failed` | `To be fixed` |
 | 3 | Test summary has `re-test` | `Fixed` |
-| 4 | `Production Storybook` has a link | `Completed` |
-| 5 | Any staging test rows exist | `To be deployed` |
-| 6 | `Staging Storybook` has a link | `Ready for Testing` |
-| 7 | `Figma` has a link **and** `Design` = `Done` | `To-do` |
-| 8 | none of the above | blank |
+| 4 | `Astro Link` **and** `Release Review` set **and** `Release Verdict` = `Cleared` | `Released` |
+| 5 | `Production Storybook` has a link | `Completed` |
+| 6 | Any staging test rows exist | `To be deployed` |
+| 7 | `Staging Storybook` has a link | `Ready for Testing` |
+| 8 | `Figma` has a link **and** `Design` = `Done` | `To-do` |
+| 9 | none of the above | blank |
 
-Two consequences worth knowing before you are surprised by them:
+Three consequences worth knowing before you are surprised by them:
 
-- A single `Failed` row outranks a production link. A component that has shipped and
-  then failed a re-test reads `To be fixed`, not `Completed`. That is correct.
+- A single `Failed` row outranks a production link **and a release**. A component
+  that has shipped and then failed a re-test reads `To be fixed`, not `Completed`
+  and not `Released`. That is correct — and when it is `Released`, it is urgent,
+  because the broken thing is published.
+- `Released` needs all three cells, not just the link. The `Astro Link` says it is
+  documented; `Release Review` and `Release Verdict` say somebody checked the
+  name, the surface and the promise before it went public. Any one alone is not a
+  release.
 - `Staging Storybook` is QA's starting gun, and the only one. A row without that link has
   nothing deployed behind it, so QA does not test it — 🔨 Engineer deploys and writes the link
   once its local checks are 100% green, and QA waits until then.
@@ -159,5 +231,9 @@ QA creates these rows. One row per variant × size × state, never one row per c
 - Never write a base, table, or record ID into a tracked file, a report, or a commit
   message. Name the component, not the row.
 - Never mark a row `Passed` unless you are QA and you watched it pass.
+- Never write `Cleared` without the report link beside it, and never link a
+  review to a branch instead of a commit.
+- Never write `Astro Link` before the page has been opened and seen to render,
+  and never write it as the agent that proposed the release.
 - Never delete a test row to clear a failure. A failure is cleared by fixing the
   component and re-testing the row.

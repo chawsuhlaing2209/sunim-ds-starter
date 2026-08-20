@@ -1,0 +1,8 @@
+{
+  "_comment": "Everything the generated site needs to know that is not in the repo. storybookUrl is where components actually render \u2014 every page deep-links and embeds into it, so a wrong value produces a site full of dead links and blank frames rather than a build error. Check it opens before you ship. In development the frames need a Storybook that is not sending frame-ancestors: `npm run docs:dev` passes --storybook http://localhost:6006 for exactly that. If siteUrl and storybookUrl end up on different origins, the deployed frames stay blank until Storybook's CSP names this site \u2014 start/embedding says how.",
+  "title": "Sunim Design System",
+  "description": "What each component is for, when not to use it, and what the version number promises.",
+  "siteUrl": "https://sunim-ds-starter.vercel.app",
+  "storybookUrl": "https://sunim-ds-starter.vercel.app",
+  "repoUrl": "https://github.com/chawsuhlaing2209/sunim-ds-starter"
+}

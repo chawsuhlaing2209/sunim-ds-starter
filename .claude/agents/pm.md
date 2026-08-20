@@ -40,6 +40,8 @@ For each component, check the status against what is actually underneath it:
 | `Fixed` | Fixes claimed, re-test not done | 🔍 QA |
 | `To be deployed`, `100%` | Passed and waiting | 🚀 DevOps |
 | `Completed` | Shipped. Confirm the production link still opens | — |
+| `Completed`, `Release Verdict` empty | Shipped, never reviewed for release | 📦 Release |
+| `Release Verdict` = `Blocked` | A gate failed. The report names the owner | per the report |
 
 ### 3 · Check the links, don't just count them
 A URL in a cell is not evidence that a page exists. Open the `Figma`, `Staging Storybook`
@@ -62,6 +64,20 @@ These are worth more than the counts, because no formula catches them:
 - `Synchronization %` at `100%` with rows reading `Fixed (To re-test)` — a claimed fix
   counted as a pass
 - A component in `src/components/` with no row in the registry, or a row with no component
+- A component in `src/components/` with no `<Name>.intent.json` — it is buildable,
+  shippable, and undocumented, and nothing upstream of 📦 Release will say so
+- A `Completed` row with an empty `Release Verdict` — shipped and never reviewed
+- A `Release Verdict` of `Cleared` with no `Release Review` link beside it, which
+  is a verdict nobody can read the reasoning for
+- A row whose `Last Modified` is later than the commit its `Release Review` links
+  to. The review is describing a component that has since changed, and no formula
+  catches it — this one is yours
+- A component with a page on the reference site whose `Development` no longer
+  reads `Completed`. The site is gated on `docs/registry-status.json`, which is
+  a reading of this registry at a moment in time; a row that has moved since
+  leaves a published page describing something that is no longer shipped
+- `docs/registry-status.json` disagreeing with the registry, in either direction,
+  or carrying a base, table or record ID. It is tracked and this repo is public
 
 ### 5 · Report
 Write `reports/registry-audit.md`, overwriting the last one. Date it, and lead with what

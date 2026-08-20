@@ -1,0 +1,27 @@
+{
+  "//": [
+    "Declarations only. Vite compiles the JavaScript; tsc's job here is the .d.ts",
+    "files, because a typed component library whose types are inferred by the",
+    "consumer's compiler is a library whose types change when they upgrade theirs.",
+    "",
+    "Stories, tests and docs are excluded: they are how the components are checked,",
+    "not part of what ships. src/tokens is excluded for the same reason — the token",
+    "gallery is a Storybook page, and the tokens themselves ship as CSS."
+  ],
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src"],
+  "exclude": [
+    "src/**/*.stories.tsx",
+    "src/**/*.test.ts",
+    "src/docs",
+    "src/tokens"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "component": "Eyebrow",
+  "since": "0.1.0",
+  "status": "settling",
+  "use_when": "Naming the layer above a section head — the small marked label that makes a page read as a design file rather than a brochure.",
+  "dont_use_when": "As the heading itself: it is a `<span>` and carries no heading semantics, so screen-reader users navigating by heading will not find it — put a real `<h2>` underneath. As a status on a thing: use Chip. Anywhere it needs to be clicked.",
+  "placement": "Directly above a section heading, at the top of a page section or a card.",
+  "required_tokens": [
+    "color.agentic.default",
+    "color.accent.default",
+    "color.accent.ink",
+    "color.gold.deep",
+    "color.text.faint",
+    "font.eyebrow",
+    "font.eyebrow-strong",
+    "type.ls-eyebrow",
+    "spacing.space.2"
+  ],
+  "a11y": "The mark is a decorative character and is aria-hidden, so a screen reader reads the title rather than announcing 'white diamond'. Title and label are ordinary text — selectable, scalable, and read in visual order. It carries no heading role and no landmark: it labels the heading that follows and does not replace it. All four tones fall below 4.5:1 in day mode; that is measured, ruled on, and recorded in decisions.md. The mark also renders narrower than its Figma node because Instrument Sans has no glyph for it — a design gap raised in Eyebrow.css, not a layout bug."
+}
