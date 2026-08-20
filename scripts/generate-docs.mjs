@@ -155,7 +155,7 @@ function usageExample(c, defaults, metaArgs) {
     : [`  return (`, `    ${open}`, ...attrs.map((a) => `      ${a}`), `    />`, `  );`].join('\n');
 
   return [
-    `import { ${c.name} } from '@sunim/design-system';`,
+    `import { ${c.name} } from '${pkg.name}';`,
     '',
     `export function Example() {`,
     jsx,
@@ -295,7 +295,7 @@ function componentPage(c, index) {
   push('### Import');
   push('');
   push('```tsx');
-  push(`import { ${c.name}${c.props ? `, type ${c.name}Props` : ''} } from '@sunim/design-system';`);
+  push(`import { ${c.name}${c.props ? `, type ${c.name}Props` : ''} } from '${pkg.name}';`);
   push('```');
   push('');
   push(`The package is private at \`${pkg.version}\` and is not on npm yet — that is the import once `

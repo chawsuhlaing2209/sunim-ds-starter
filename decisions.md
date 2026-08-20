@@ -168,7 +168,7 @@ passing `label` names nothing, so the failure is visible rather than silent.
 **Ruled** 2026-08-20 · **Scope** the 0.1.0 release · **Status** accepted, not re-reviewed
 
 Four components were reviewed and cleared against a public surface that did not
-include `@sunim/design-system/fonts/*`. The export was added afterwards, so
+include `@theproductiveschedule/sunim-design-system/fonts/*`. The export was added afterwards, so
 strictly every one of those verdicts was given against a different surface than
 the one being published.
 
