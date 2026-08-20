@@ -208,10 +208,22 @@ if (urlArg) {
       else if (!res.ok) fail(`returned HTTP ${res.status}`);
       else pass(`serves HTTP ${res.status} without a login redirect — public, as intended`);
     }
+    /*
+     * On a protected URL that redirected us to a login, the response we are
+     * holding is the auth layer's, not the site's — Vercel serves that redirect
+     * before vercel.json headers apply. Reporting its missing headers as
+     * failures says the site is unprotected when what actually happened is that
+     * we never reached the site.
+     *
+     * So they warn instead, and say why. The public path is untouched: there the
+     * response *is* the content, and a missing header is a real failure.
+     */
+    const behindLogin = expect === 'protected' && isLogin;
     for (const [h, ok] of Object.entries(REQUIRED)) {
       const v = res.headers.get(h);
       if (v && ok(v)) pass(`${h}: ${v.slice(0, 60)}${v.length > 60 ? '…' : ''}`);
       else if (v) fail(`${h} present but weak: ${v.slice(0, 60)}`);
+      else if (behindLogin) warn(`${h} not on the login redirect — the site's own headers are behind it, and cannot be checked from out here`);
       else fail(`${h} missing`);
     }
   } catch (e) {
