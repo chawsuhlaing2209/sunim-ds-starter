@@ -59,6 +59,15 @@ broken the handoff for everyone downstream.
 
 
 
+## Rulings
+
+Some findings have already been ruled on by a human. They are in `decisions.md`,
+with what each one means for an agent that hits it.
+
+Check that file before reporting a finding as new. A ruling recorded there is not
+a defect to fix and not an argument to have again — and a finding that is *not*
+there has not been ruled on, whatever anyone remembers.
+
 ## Common failures to avoid
 
 - Inventing a token that does not exist. Report the gap instead and stop.
