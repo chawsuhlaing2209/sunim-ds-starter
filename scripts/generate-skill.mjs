@@ -277,6 +277,24 @@ npm install ${pkg.name}
 
 React is a **peer dependency** at \`${pkg.peerDependencies?.react ?? '>=18.0.0'}\` and is never bundled.
 
+## Check this skill is not stale
+
+This skill was generated from **\`${pkg.version}\`** and is a copy, not a link.
+Upgrading the package does not update it, so before relying on anything here,
+compare that number against what is actually installed:
+
+\`\`\`bash
+npm ls ${pkg.name}
+\`\`\`
+
+If they differ, say so rather than proceeding — the props, the components and the
+limits described here are the ones that shipped in \`${pkg.version}\`. Re-copying
+fixes it:
+
+\`\`\`bash
+cp -R node_modules/${pkg.name}/skill .claude/skills/sunim-design-system
+\`\`\`
+
 ## The stylesheet, and the order inside it
 
 \`\`\`js

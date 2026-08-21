@@ -106,6 +106,7 @@ export default defineConfig({
             'get-started/roadmap',
             'get-started/news',
             'get-started/versioning',
+            'get-started/upgrading',
           ],
         },
         {
