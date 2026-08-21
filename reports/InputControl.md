@@ -133,12 +133,26 @@ field can be both invalid and focused, and the component composes the two states
 *does* define rather than inventing a third appearance — which is the right instinct. It
 still needs design to confirm the composition is what they want.
 
-### Minor — the `State` choice list has no `filled`
+### Closed — the `State` choice list had no `filled`; a human ruled, and it does now
 
-`Staging Testing`'s `State` column offers no `filled`. The Filled row is recorded as `idle`
-with the node's own name in `Variants`, which is honest — Filled is the resting state with a
-value in it. **No choice was added to make the write succeed.** Flagged per the registry
-contract.
+`Staging Testing`'s `State` column offered no `filled`. Under the registry contract as
+written — *"If a value you need is not in the list of choices, that is a gap. Report it. Do
+not add a choice to make your write succeed."* — the Filled row was recorded as `idle` and
+the gap was reported rather than worked around.
+
+The human then ruled, in response to this report, that **QA may create a choice on a select
+column when the value it needs does not exist.** On that ruling `filled` was added to the
+column, in the column's own lowercase convention (`idle`, `hovered`, `focus`, …) rather than
+the node's `State=Filled` capitalisation, and the row was corrected from `idle` to `filled`.
+`Variants` still reads `State=Filled`, unchanged — that column carries the node's own name on
+all five rows and was never the workaround.
+
+Adding the choice disturbed neither rollup: `Development` still reads `To be deployed` and
+`Synchronization %` still reads 100%.
+
+The ruling is scoped to a value the design genuinely defines that the column lacks. It is not
+licence to invent a choice when the real answer is that the value is wrong — that remains a
+gap to report.
 
 ---
 
