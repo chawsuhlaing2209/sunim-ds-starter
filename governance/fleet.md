@@ -117,6 +117,48 @@ Vercel token, no `git tag`, no `npm publish`."
 
 ---
 
+## Type sets the ceiling
+
+Type and level are not the same kind of fact. **Type is what kind of machine an agent
+is** — whether it needs memory, a plan, a judgement call. It comes from the shape of
+the work and it does not change. **Level is how much authority it has earned**, from
+evidence, and it changes constantly. An agent is promoted and demoted; it is never
+re-typed.
+
+Type matters because it caps how far level can go:
+
+| Type | Ceiling | Why |
+|---|---|---|
+| simple reflex, model-based | **Autonomous** | Their failure modes are enumerable, so a verifier can check them completely |
+| goal-based | **Senior** | Autonomous only behind a verifier that checks the *route it chose*, not only the result |
+| utility-based | **Advisor** | What it does is weigh competing values, and that decision belongs to a human |
+| learning | no fixed ceiling | But its level is re-reviewed every cadence, because the record that earned the level keeps changing |
+
+### Applied to this table
+
+**No agent is above its ceiling.** Two are sitting exactly on it:
+
+- **🔨 Engineer — goal-based at Senior.** At its ceiling. It cannot reach Autonomous
+  on evidence alone; that needs a verifier checking the route — that the variant
+  matrix came from the Figma node rather than the story file, and that every value
+  resolved to a token rather than being chosen. QA checks the result today, not the
+  route.
+- **🚀 DevOps — model-based at Autonomous.** At its ceiling, and permitted there,
+  because its failure modes are enumerable and its gates check them: the registry
+  row, the security gate, lint and tests on `main`, and opening the deployed page.
+  The ceiling holds only while those gates keep running.
+
+**The reverse case is worth naming too.** 🔍 QA and 📋 PM are both model-based, so
+their type permits Autonomous — but neither has a verifier at all, which caps them at
+Junior no matter what their type allows. Type sets the ceiling; the verifier decides
+how much of it is reachable.
+
+No agent in this fleet is utility-based or learning, so those two rows are unused
+today. They are here because the first agent that weighs one value against another
+must not be promoted past Advisor by analogy with the ones above it.
+
+The simpler the machine, the further you can safely let it run.
+
 ## How levels change
 
 Each block is a test somebody can apply without asking the orchestrator. Numbers are
