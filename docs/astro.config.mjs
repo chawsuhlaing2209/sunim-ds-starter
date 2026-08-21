@@ -44,6 +44,42 @@ export default defineConfig({
    * configured separately in reference.config.json.
    */
   server: { port: Number(process.env.PORT) || 4321 },
+    /*
+     * The URLs this site used before the pages were regrouped.
+     *
+     * Every one of these returned 200 the day they were moved, and at least
+     * four of them are written into the registry as a component's `Astro
+     * Link` — the cell that lets the `Development` formula derive `Released`.
+     * Moving a page is a decision this repository gets to make; breaking a
+     * link somebody else recorded is not, and a 404 is a poor way to tell them.
+     *
+     * These stay. There is no expiry on them and no plan to remove them: the
+     * cost is a handful of redirect pages in the build, and the thing they buy
+     * is that a URL pasted into a message a year ago still lands somewhere
+     * useful. `start/what-this-is` no longer has a page at all — its content
+     * became the home page and half of help/contributing — so it redirects to
+     * the home page rather than to a near-match that would be a lie.
+     *
+     * The component names are written out rather than derived, and the list is
+     * closed rather than merely current. Only a URL that was once live needs a
+     * redirect, and the last `/components/<name>/` URL this site ever served was
+     * one of these four. A component added tomorrow has no old address to
+     * forward from, so nothing here has to know about it — which is why this is
+     * a fixed list and not a generated one.
+     */
+    redirects: {
+      '/components': '/core/components/overview/',
+      '/components/overview': '/core/components/overview/',
+      '/components/button': '/core/components/button/',
+    '/components/chip': '/core/components/chip/',
+    '/components/eyebrow': '/core/components/eyebrow/',
+    '/components/iconslot': '/core/components/iconslot/',
+      '/start': '/get-started/changelog/',
+      '/start/tokens': '/core/tokens/',
+      '/start/versioning': '/get-started/versioning/',
+      '/start/embedding': '/help/embedding/',
+      '/start/what-this-is': '/',
+    },
   integrations: [
     starlight({
       title: site.title,
