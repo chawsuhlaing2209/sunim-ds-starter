@@ -400,6 +400,9 @@ const breaking = groups.Removed.length > 0 || groups.Deprecated.length > 0;
 
 let proposed;
 let forcing;
+/* Whether anything in the history actually requires a new number. When nothing
+ * does, no report is written — see below. */
+let nothingForces = false;
 if (versionOverride) {
   proposed = versionOverride;
   forcing = 'Named on the command line, overriding the proposal.';
@@ -414,9 +417,12 @@ if (versionOverride) {
   forcing = `${e.subject} (${e.sha}) — a removal or deprecation, which below 1.0.0 is a minor bump.`;
 } else {
   proposed = `${current[0]}.${current[1]}.${current[2] + 1}`;
-  forcing = groups.Added.length
-    ? `${groups.Added[0].subject} (${groups.Added[0].sha}) — additive only, so a patch.`
-    : 'Nothing forces a bump. A release with no reason is one worth not doing.';
+  if (groups.Added.length) {
+    forcing = `${groups.Added[0].subject} (${groups.Added[0].sha}) — additive only, so a patch.`;
+  } else {
+    forcing = 'Nothing forces a bump. A release with no reason is one worth not doing.';
+    nothingForces = true;
+  }
 }
 ok(`proposed \x1b[1m${proposed}\x1b[0m — package.json currently reads ${pkg.version}`);
 info(forcing);
@@ -535,8 +541,34 @@ const report = [
   '',
 ].join('\n');
 
-writeFileSync(`reports/release/${proposed}.md`, report);
-ok(`report → reports/release/${proposed}.md`);
+/*
+ * Two reasons not to write this file, both found by it going wrong.
+ *
+ * `reports/release/` holds the record of releases that happened. A report named
+ * for a version nobody is cutting sits in it under the same naming convention as
+ * the real ones and reads exactly like a proposal — `0.1.2.md` appeared that way
+ * and had to be explained. If nothing forces a bump, this run has said so; it
+ * does not also need to leave a file behind claiming otherwise.
+ *
+ * And a report carrying a `## Published` section is evidence that a human
+ * published that version, appended by `scripts/publish.mjs`. Overwriting it
+ * destroys the shasum, the integrity hash and the commit — the only things
+ * tying that tarball to this repository, since there is no provenance
+ * attestation to fall back on.
+ */
+const reportPath = `reports/release/${proposed}.md`;
+if (nothingForces) {
+  warn(`no report written — nothing forces a bump, so ${reportPath} would name a version`);
+  info('nobody is cutting. Everything above still stands; it just does not need a file.');
+} else if (existsSync(reportPath) && readFileSync(reportPath, 'utf8').includes('## Published')) {
+  stop(`${reportPath} already records a published release.`,
+    'Overwriting it would destroy the shasum, integrity hash and commit that tie that\n'
+    + '  tarball to this repository — and without provenance those numbers are the only\n'
+    + '  link there is. Propose a different version, or move that file first.');
+} else {
+  writeFileSync(reportPath, report);
+  ok(`report → ${reportPath}`);
+}
 
 /* ── The branch ─────────────────────────────────────────────────────────── */
 let branchLine = 'not created (pass --branch)';

@@ -117,6 +117,11 @@ const forVersion = argv.includes('--version')
  */
 const EXIT_CHANGELOG_MISSING = 2;
 
+if (forVersion !== pkg.version) {
+  note(`building for ${forVersion}, which package.json does not carry yet — a release `
+    + 'preparing itself. Nothing is written to package.json.');
+}
+
 /* ── Markdown helpers ────────────────────────────────────────────────────── */
 
 /** A table cell cannot contain a raw pipe or a newline and survive. */
