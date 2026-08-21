@@ -224,6 +224,27 @@ if (!files.some((f) => f.endsWith('.d.ts'))) {
 }
 
 /*
+ * The knowledge skill.
+ *
+ * `exports` promises `./skill/*` and the changelog tells people to copy the
+ * directory, so a tarball without it publishes an instruction that does not
+ * work. Checked by reading the file list rather than by trusting that the build
+ * ran: `skill/` is generated and gitignored, so a publish from a tree where
+ * only `dist/` happened to survive would pack the library and silently drop it.
+ */
+const skillFiles = files.filter((f) => f.startsWith('skill/'));
+if (!skillFiles.includes('skill/SKILL.md')) {
+  stop('the tarball has no skill/SKILL.md — `exports` promises `./skill/*` and the changelog '
+    + 'tells people to copy it.',
+    'Run `npm run build:skill`. It is generated and gitignored, so it does not survive a clean checkout.');
+}
+if (!skillFiles.some((f) => f.startsWith('skill/components/'))) {
+  stop('the tarball ships skill/SKILL.md with no component pages.',
+    'SKILL.md links to every one of them, so each link would be a dead path for an agent.');
+}
+ok(`the knowledge skill is in the tarball — ${skillFiles.length} files`);
+
+/*
  * Things that are not the library.
  *
  * This check exists because the run that first read this list out loud was

@@ -154,6 +154,7 @@ is allowed to break anything, which is the semver contract rather than a warning
 | Install | `npm install` |
 | Build tokens | `npm run build:tokens` |
 | Build the library | `npm run build` |
+| Build the knowledge skill alone | `npm run build:skill` |
 | Run Storybook | `npm run storybook` |
 | Run the reference site | `npm run docs:install` once, then `npm run docs:dev` |
 | Test | `npm test` |

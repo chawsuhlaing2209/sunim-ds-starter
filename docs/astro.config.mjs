@@ -86,8 +86,7 @@ export default defineConfig({
         },
         {
           label: 'Skills',
-          badge: { text: 'Soon', variant: 'caution' },
-          items: ['skills/component-recommender'],
+          items: ['skills/knowledge-skill'],
         },
         {
           label: 'Core',
