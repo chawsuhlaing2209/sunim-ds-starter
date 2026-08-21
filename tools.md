@@ -61,6 +61,12 @@ This repo is public, so the Airtable identifiers stay out of it. On a fresh clon
 copy the example to `.claude/registry.local.json` and fill it in before running the
 crew — nothing that talks to the registry works until you do.
 
+**That file is also how you stop the crew.** Move it aside and every agent halts at
+its first step, mid-run, with no code change and no deploy — each one is required to
+stop and name what is missing rather than carry on from the folder. It is the fastest
+way to take the whole fleet offline, and putting it back is the whole of turning them
+on again. `governance/fleet.md` has the rest of the stops.
+
 ## Paths
 
 - Token source: `tokens/tokens.json` (exported from Figma, committed)
