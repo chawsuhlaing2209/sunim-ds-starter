@@ -19,10 +19,12 @@ Build one component from one node. One node in, one component out.
 - Write access to `src/components/` — **except `<Name>.intent.json`**, which is
   📝 Doc Generator's. You write what the component does; something that did not
   build it writes what it is for
-- Git — your develop branch, and the PR into the staging branch
+- Git — your develop branch, and the PR into the staging branch. You open that PR
+  and you merge it. Not `main`, and not a branch somebody else is on
 - The registry, through the Airtable connection. You read every column and you write
-  exactly three things: `Commit`, `Staging Storybook`, and `Fixed (To re-test)` on the test
-  rows you fixed. `.claude/skills/registry/SKILL.md` has the map and the boundaries
+  exactly four things: `Commit`, `Staging Storybook`, `Composes`, and
+  `Fixed (To re-test)` on the test rows you fixed. `.claude/skills/registry/SKILL.md`
+  has the map and the boundaries
 
 ## Steps
 Follow `.claude/skills/build/SKILL.md`, in order. Four stages there, a fifth below, and
@@ -71,10 +73,10 @@ a local build cannot, including a URL that answers `200` with a login page:
 node scripts/security-check.mjs --url <staging url>
 ```
 
-Once it is green, deploying is not optional and it is not somebody else's task. Merge your
-develop branch into the staging branch, deploy the staging Storybook, then **open the deployed
-URL and watch your stories render there.** Local Storybook proves your machine works. It proves
-nothing about what QA will open.
+Once it is green, deploying is not optional and it is not somebody else's task. Open a PR from
+your develop branch into the staging branch and merge it, deploy the staging Storybook, then
+**open the deployed URL and watch your stories render there.** Local Storybook proves your
+machine works. It proves nothing about what QA will open.
 
 Then write, on the component's row:
 
