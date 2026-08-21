@@ -664,25 +664,55 @@ function changelogPage() {
 }
 
 /**
- * The most recent released version, read out of the changelog's first `##`.
+ * The changelog's entry for one specific version.
  *
- * Returns `null` rather than guessing when the file has no release heading yet.
- * A home page that invents a release is worse than one that admits there has not
- * been a release, and a system with an empty changelog is a real state — every
- * one of these has been in it.
+ * `package.json` is the version — it is what npm serves — so the home page asks
+ * the changelog about *that* number rather than taking whichever release heading
+ * happens to be first.
+ *
+ * That used to be the other way round, and it drifted the first time it could:
+ * `0.1.1` was published while the changelog still said `## Unreleased`, so the
+ * site went on announcing `0.1.0` to everybody who opened it. Reading the first
+ * heading meant the site was reporting *the last version somebody wrote about*
+ * and calling it the current release. Those are different facts and only one of
+ * them is what a reader wants.
+ *
+ * Returns null when there is no entry for this version, which the caller turns
+ * into a failed build rather than a quiet fallback. A site that silently shows
+ * the previous release is the exact failure this replaces.
  */
-function latestRelease() {
+function releaseFor(version) {
   if (!existsSync('CHANGELOG.md')) return null;
   const md = readFileSync('CHANGELOG.md', 'utf8');
-  const heading = md.match(/^##\s+(\d[^\s—-]*)\s*[—-]\s*(\S+)\s*$/m);
+  const heading = md.match(
+    new RegExp(`^##\\s+${version.replace(/\./g, '\\.')}\\s*[—-]\\s*(\\S+)\\s*$`, 'm'),
+  );
   if (!heading) return null;
-  const [, version, date] = heading;
   /* The lead line is the bolded sentence directly under the heading — the one
    * that says what this version is, before the Added/Changed lists. */
   const after = md.slice(md.indexOf(heading[0]) + heading[0].length);
   const lead = after.match(/\*\*(.+?)\*\*/s);
-  return { version, date, lead: lead ? lead[1].replace(/\s+/g, ' ').trim() : null };
+  return { version, date: heading[1], lead: lead ? lead[1].replace(/\s+/g, ' ').trim() : null };
 }
+
+/**
+ * Whether this repository has ever released anything.
+ *
+ * Read from the changelog rather than from `package.json`, and the first attempt
+ * got this wrong in a way worth recording: it tested `pkg.private`, which is
+ * always `true` here. `private: true` lives in this package.json deliberately, so
+ * an absent-minded `npm publish` is refused — `scripts/publish.mjs` removes it
+ * for exactly one command and puts it straight back. So the flag says nothing
+ * about whether the package is published; it says the opposite of what it looks
+ * like it says, and the gate below silently never fired.
+ *
+ * One release heading in `CHANGELOG.md` is the honest signal: a repository that
+ * has cut a version has one, and a repository that has not — the headstart clone
+ * is exactly that — has none, and is not failed for it.
+ */
+const hasReleaseHistory = () =>
+  existsSync('CHANGELOG.md')
+  && /^##\s+\d+\.\d+\.\d+\s*[—-]\s*\S+\s*$/m.test(readFileSync('CHANGELOG.md', 'utf8'));
 
 /* ── The home page ───────────────────────────────────────────────────────── */
 
@@ -695,7 +725,7 @@ function latestRelease() {
  * notices — it is the page a reader trusts most and re-reads least.
  */
 function homePage(components) {
-  const rel = latestRelease();
+  const rel = releaseFor(pkg.version);
   const tokenCount = new Set(components.flatMap((c) => c.intent.required_tokens)).size;
 
   const out = [];
@@ -752,8 +782,8 @@ function homePage(components) {
   } else {
     out.push('## Nothing released yet');
     out.push('');
-    out.push('`CHANGELOG.md` carries no released version, so there is nothing here to install. '
-      + 'This page will say otherwise the moment there is.');
+    out.push('`CHANGELOG.md` carries no entry for this version, so there is nothing here to '
+      + 'install. This page will say otherwise the moment there is.');
     out.push('');
   }
 
@@ -1003,8 +1033,32 @@ if (existsSync(TOKENS_SRC)) {
 
 if (existsSync('CHANGELOG.md')) {
   writeFileSync(join(GET_STARTED_OUT, 'changelog.md'), changelogPage());
-  const rel = latestRelease();
-  ok(rel ? `changelog page — latest is ${rel.version}, ${rel.date}` : 'changelog page — no release in it yet');
+  const rel = releaseFor(pkg.version);
+  if (rel) {
+    ok(`changelog page — ${rel.version}, released ${rel.date}`);
+  } else if (hasReleaseHistory()) {
+    /*
+     * The gate that keeps the site and the registry in step.
+     *
+     * `package.json` says what npm serves. If the changelog has no entry for
+     * that number, then either a version was cut without recording it, or the
+     * `## Unreleased` heading was never moved — and both produce a home page
+     * announcing the *previous* release to everybody who opens it. That has
+     * already happened once here.
+     *
+     * Failing the build is the point. A warning would be read by whoever ran
+     * the build, which is exactly the person who already knows.
+     */
+    bad(`CHANGELOG.md has no entry for ${pkg.version}, which is the version package.json carries.`);
+    console.log(`      Add a "## ${pkg.version} — <date>" heading — move "## Unreleased" if the`);
+    console.log('      release has been cut. Until then this site would announce the previous');
+    console.log('      version as the current one, which is what it did the last time these two');
+    console.log('      were allowed to disagree.');
+    blockedByRegistry++;
+  } else {
+    note(`no entry for ${pkg.version} in CHANGELOG.md, and no release in it at all — nothing `
+      + 'has been cut from here yet, so that is expected rather than a gap.');
+  }
 } else {
   bad('CHANGELOG.md is missing — the site cannot say what changed, and the home page cannot say '
     + 'what the current release is');
