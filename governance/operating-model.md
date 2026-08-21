@@ -40,9 +40,10 @@ any of them. The question marks stay until somebody defines one.
 
 - **[The fleet table](fleet.md)** — every agent, what it can write, what checks it,
   how to stop it. Every level in it is still marked PROPOSED.
-- **[Rulings](../decisions.md)** — findings a human has already decided on. Check it
-  before reporting something as new. ⚠️ It lives at the repo root, not in this
-  folder.
+- **[The decision log](decisions.md)** — what was decided about each agent and why.
+  Append-only; entries are never edited.
+- **[Rulings](../decisions.md)** — findings a human has already decided on, at the
+  repo root. Check it before reporting something as new.
 
 ### Review cadence
 
