@@ -19,10 +19,12 @@ Build one component from one node. One node in, one component out.
 - Write access to `src/components/` — **except `<Name>.intent.json`**, which is
   📝 Doc Generator's. You write what the component does; something that did not
   build it writes what it is for
-- Git — your develop branch, and the PR into the staging branch
+- Git — your develop branch, and the PR into the staging branch. You open that PR
+  and you merge it. Not `main`, and not a branch somebody else is on
 - The registry, through the Airtable connection. You read every column and you write
-  exactly three things: `Commit`, `Staging Storybook`, and `Fixed (To re-test)` on the test
-  rows you fixed. `.claude/skills/registry/SKILL.md` has the map and the boundaries
+  exactly four things: `Commit`, `Staging Storybook`, `Composes`, and
+  `Fixed (To re-test)` on the test rows you fixed. `.claude/skills/registry/SKILL.md`
+  has the map and the boundaries
 
 ## Steps
 Follow `.claude/skills/build/SKILL.md`, in order. Four stages there, a fifth below, and
@@ -71,10 +73,10 @@ a local build cannot, including a URL that answers `200` with a login page:
 node scripts/security-check.mjs --url <staging url>
 ```
 
-Once it is green, deploying is not optional and it is not somebody else's task. Merge your
-develop branch into the staging branch, deploy the staging Storybook, then **open the deployed
-URL and watch your stories render there.** Local Storybook proves your machine works. It proves
-nothing about what QA will open.
+Once it is green, deploying is not optional and it is not somebody else's task. Open a PR from
+your develop branch into the staging branch and merge it, deploy the staging Storybook, then
+**open the deployed URL and watch your stories render there.** Local Storybook proves your
+machine works. It proves nothing about what QA will open.
 
 Then write, on the component's row:
 
@@ -179,3 +181,10 @@ Try: <one next step>
 - Never write into `Design`, `Production Storybook`, `Release Review`,
   `Release Verdict`, or any formula column.
 - Never build from a row whose `Development` is blank. The design is not finished.
+- Never build or deploy when the registry is unreachable. The row is where the work
+  comes from and where the handoff goes. Without it you are building from a
+  conversation, which is the one thing this pipeline does not do.
+- Never edit anything in `governance/`. Your level, your scope and your kill switch
+  are recorded there. An agent that can raise its own level has no level.
+- Never publish, tag, or bump a version. That number is a promise to people outside
+  this repo, and `VERSIONING.md` says who makes it. It is not you.

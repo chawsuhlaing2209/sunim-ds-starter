@@ -64,6 +64,17 @@ registry: one agent writes evidence, a formula derives a status, and the next ag
 up the rows carrying its status. An agent that writes into a column it does not own has
 broken the handoff for everyone downstream.
 
+**Preparing a release provokes the doc generator.** A version is not prepared until the
+site that documents it is built for that version — `scripts/release.mjs` step 10 does it,
+and records in the release report whether it built. Otherwise "released" and "documented"
+are two acts separated by whoever remembers the second one, and the site goes on
+announcing the previous release. That has happened twice.
+
+**Building it is not deploying it.** 📦 Release builds and never deploys; the publish
+builds again for the real number and then hands the deploy over. 🚀 DevOps performs it,
+once a human says so. The boundary costs one command, and the publish prints it rather
+than leaving it to be discovered.
+
 
 
 ## Rulings

@@ -6,8 +6,10 @@ node_modules/
 # Generated from the meta contract by scripts/generate-docs.mjs.
 # Never edit a file in here by hand — the same rule as build/tokens/.
 # It lasts until the next build, and the intent it disagreed with is still wrong.
-src/content/docs/components/*
-!src/content/docs/components/.gitkeep
-src/content/docs/start/versioning.md
-src/content/docs/start/tokens.md
+src/content/docs/index.mdx
+src/content/docs/core/components/*
+!src/content/docs/core/components/.gitkeep
+src/content/docs/core/tokens.md
+src/content/docs/get-started/versioning.md
+src/content/docs/get-started/changelog.md
 src/styles/tokens.generated.css

@@ -39,8 +39,18 @@ import {
 const DOCS = 'docs/src/content/docs';
 const STYLES_OUT = 'docs/src/styles';
 const TOKENS_SRC = 'build/tokens/css/tokens.css';
-const COMPONENTS_OUT = join(DOCS, 'components');
-const START_OUT = join(DOCS, 'start');
+/*
+ * Where each generated page lands.
+ *
+ * The directory is the URL, and the URL is what somebody pastes into a message
+ * six months from now. `core/` is the reference material — the components and
+ * the tokens they stand on. `get-started/` is what changed and what a number
+ * promises. Both are groups a reader picked out of the sidebar, so the path and
+ * the label say the same word.
+ */
+const COMPONENTS_OUT = join(DOCS, 'core', 'components');
+const CORE_OUT = join(DOCS, 'core');
+const GET_STARTED_OUT = join(DOCS, 'get-started');
 const CONFIG = 'docs/reference.config.json';
 
 const argv = process.argv.slice(2);
@@ -56,16 +66,61 @@ const site = JSON.parse(readFileSync(CONFIG, 'utf8'));
  * trying to look at is the one thing you cannot see. `--storybook` points them
  * at a local dev server, which sends no CSP.
  */
-if (argv.includes('--storybook')) {
-  site.storybookUrl = argv[argv.indexOf('--storybook') + 1];
-}
 const pkg = readPackage();
 const tokens = readTokens();
+/*
+ * Every custom property that any `[data-theme="…"]` block redeclares.
+ *
+ * The flattened map cannot answer this — it keeps the first declaration and
+ * throws the mode blocks away, which is right for resolving a value and useless
+ * for asking whether a mode moves it. Read once here rather than per page.
+ */
+const perModeNames = (() => {
+  const set = new Set();
+  if (!existsSync(TOKENS_SRC)) return set;
+  const css = readFileSync(TOKENS_SRC, 'utf8');
+  for (const [, body] of css.matchAll(/\[data-theme="[a-z]+"\][^{]*\{([\s\S]*?)\n\}/g)) {
+    for (const [, name] of body.matchAll(/^\s*(--[a-z0-9-]+)\s*:/gm)) set.add(name);
+  }
+  return set;
+})();
 const modes = readModes();
 
 const ok = (m) => console.log(`  \x1b[32m✓\x1b[0m ${m}`);
 const bad = (m) => console.log(`  \x1b[31m✗\x1b[0m ${m}`);
 const note = (m) => console.log(`  \x1b[33m·\x1b[0m ${m}`);
+
+/*
+ * The version this build is *for*.
+ *
+ * Normally `package.json` — it is what npm serves. `--version` overrides it for
+ * the one case where they legitimately differ: 📦 Release preparing a version
+ * before a human has written the number into the file. That agent must never
+ * write `version` itself, so the only way it can ask "will the site build for
+ * 0.1.2?" is to name the number without committing to it.
+ *
+ * Nothing is mutated. The override changes which changelog entry is required and
+ * which number the home page announces, and nothing else.
+ */
+const forVersion = argv.includes('--version')
+  ? argv[argv.indexOf('--version') + 1]
+  : pkg.version;
+
+/*
+ * Exit 2 means one thing only: the changelog has no entry for the version being
+ * built.
+ *
+ * 📦 Release needs to tell that apart from every other failure. A site that
+ * cannot build is a problem that stops a release; a changelog heading that has
+ * not been written yet is the ordinary state of a release being prepared, and
+ * belongs in the report as the next thing to do rather than as a red gate.
+ */
+const EXIT_CHANGELOG_MISSING = 2;
+
+if (forVersion !== pkg.version) {
+  note(`building for ${forVersion}, which package.json does not carry yet — a release `
+    + 'preparing itself. Nothing is written to package.json.');
+}
 
 /* ── Markdown helpers ────────────────────────────────────────────────────── */
 
@@ -155,7 +210,7 @@ function usageExample(c, defaults, metaArgs) {
     : [`  return (`, `    ${open}`, ...attrs.map((a) => `      ${a}`), `    />`, `  );`].join('\n');
 
   return [
-    `import { ${c.name} } from '@sunim/design-system';`,
+    `import { ${c.name} } from '${pkg.name}';`,
     '',
     `export function Example() {`,
     jsx,
@@ -235,12 +290,12 @@ function componentPage(c, index) {
     push('### Composition');
     push('');
     if (c.composes.length) {
-      push(`**Imports** ${c.composes.map((d) => `[${d}](/components/${d.toLowerCase()}/)`).join(', ')} — `
+      push(`**Imports** ${c.composes.map((d) => `[${d}](/core/components/${d.toLowerCase()}/)`).join(', ')} — `
         + 'the component itself, not a copy of it, so a repair there is a repair here.');
       push('');
     }
     if (consumers.length) {
-      push(`**Imported by** ${consumers.map((d) => `[${d}](/components/${d.toLowerCase()}/)`).join(', ')}. `
+      push(`**Imported by** ${consumers.map((d) => `[${d}](/core/components/${d.toLowerCase()}/)`).join(', ')}. `
         + 'Changing this component means re-testing those.');
       push('');
     }
@@ -253,7 +308,7 @@ function componentPage(c, index) {
   push('');
   push(`The package is at \`${pkg.version}\`. Below \`1.0.0\` a minor bump is allowed to break anything: `
     + 'that is the semver contract, not a loophole, and it is why the version starts with a zero. '
-    + '[What the number promises](/start/versioning/) has the detail.');
+    + '[What the number promises](/get-started/versioning/) has the detail.');
   push('');
   push('</TabItem>');
   push('');
@@ -295,7 +350,7 @@ function componentPage(c, index) {
   push('### Import');
   push('');
   push('```tsx');
-  push(`import { ${c.name}${c.props ? `, type ${c.name}Props` : ''} } from '@sunim/design-system';`);
+  push(`import { ${c.name}${c.props ? `, type ${c.name}Props` : ''} } from '${pkg.name}';`);
   push('```');
   push('');
   push(`The package is private at \`${pkg.version}\` and is not on npm yet — that is the import once `
@@ -362,7 +417,7 @@ function componentPage(c, index) {
     push(storyEmbed(storybook, docsId, { view: 'docs', kind: 'props', title: `${c.name} — full API` }));
     push('');
     push(`<p class="sunim-embed-note">If this frame is blank, the deployed Storybook is refusing to be `
-      + `embedded — see <a href="/start/embedding/">Embedding</a>. `
+      + `embedded — see <a href="/help/embedding/">Embedding</a>. `
       + `<a href="${storybook}/?path=/docs/${docsId}">Open it directly</a>.</p>`);
     push('');
   }
@@ -467,7 +522,7 @@ function componentPage(c, index) {
       + 'that a commit message **is** the entry — which is arguably the point.');
     push('');
     push(`There are no version numbers here yet. Nothing has been tagged, and the package is still at `
-      + `\`${pkg.version}\` — see [Versioning](/start/versioning/).`);
+      + `\`${pkg.version}\` — see [Versioning](/get-started/versioning/).`);
     push('</Aside>');
   }
   push('');
@@ -501,7 +556,7 @@ function overviewPage(components) {
   out.push('| Component | Use when | Stability |');
   out.push('|---|---|---|');
   for (const c of components) {
-    out.push(`| [${c.name}](/components/${c.name.toLowerCase()}/) | ${cell(c.intent.use_when)} | \`${c.intent.status}\` |`);
+    out.push(`| [${c.name}](/core/components/${c.name.toLowerCase()}/) | ${cell(c.intent.use_when)} | \`${c.intent.status}\` |`);
   }
   out.push('');
   out.push('## What is not here');
@@ -526,10 +581,10 @@ function tokensPage(components) {
 
   const out = [];
   out.push('---');
-  out.push('title: Tokens in use');
+  out.push('title: Tokens');
   out.push('description: Every semantic token a released component depends on, and which components break if it moves.');
   out.push('sidebar:');
-  out.push('  order: 3');
+  out.push('  order: 2');
   out.push('---');
   out.push('');
   out.push(`${used.size} semantic tokens carry the ${components.length} released components. This is not `
@@ -546,8 +601,25 @@ function tokensPage(components) {
     out.push(`| \`${dotted}\` | ${swatch}\`${cell(resolved ?? '—')}\`${via} | ${users.join(', ')} |`);
   }
   out.push('');
+  /*
+   * Which of these tokens a mode actually moves.
+   *
+   * This used to claim every one of them was redeclared in every mode. It is
+   * not true and never was: the export redeclares colour per mode and declares
+   * everything else once. Somebody reading the old sentence would expect the
+   * focus ring to darken at night, and it does not — so the count is measured
+   * here rather than asserted.
+   */
+  const perMode = [...used.keys()].filter((dotted) => perModeNames.has(cssVar(dotted))).length;
+
   out.push(`Values shown are the \`${modes[0]}\` mode. The export defines ${modes.length} — `
-    + `${modes.map((m) => `\`${m}\``).join(', ')} — and redeclares every one of these names in each.`);
+    + `${modes.map((m) => `\`${m}\``).join(', ')}.`);
+  out.push('');
+  out.push(`**${perMode} of these ${used.size} tokens are redeclared per mode; the other `
+    + `${used.size - perMode} are declared once and are the same in all ${modes.length}.** A mode `
+    + 'moves colour and nothing else — spacing, radius, type and the effects keep their values, so '
+    + 'the focus ring is the same blue at night as at noon. That is worth knowing before you design '
+    + 'a dark screen against it. See [Theming](/styling/theming/).');
   out.push('');
   out.push('## Where they come from');
   out.push('');
@@ -575,7 +647,7 @@ function versioningPage() {
     'title: Versioning',
     'description: What a version number promises about this system, and what it deliberately does not.',
     'sidebar:',
-    '  order: 2',
+    '  order: 4',
     '---',
     '',
     md.trim(),
@@ -586,6 +658,209 @@ function versioningPage() {
     + 'that cannot fall behind it.</small>',
     '',
   ].join('\n');
+}
+
+/* ── The changelog page ─────────────────────────────────────────────────── */
+
+/**
+ * Reads the release history out of `CHANGELOG.md`.
+ *
+ * Same arrangement as the versioning page: the repository file is the source and
+ * this is a copy that cannot fall behind it, because it is rewritten on every
+ * build. A changelog maintained separately for the website is a changelog that
+ * disagrees with the one inside the published tarball — and the tarball's copy
+ * is the one a consumer actually has.
+ */
+function changelogPage() {
+  const md = readFileSync('CHANGELOG.md', 'utf8').replace(/^#\s+.*\n/, '');
+
+  return [
+    '---',
+    'title: Changelog',
+    'description: Every released version, and what it means for somebody who has the previous one installed.',
+    'sidebar:',
+    '  order: 1',
+    '---',
+    '',
+    md.trim(),
+    '',
+    '---',
+    '',
+    '<small>Generated from `CHANGELOG.md` in the repository — the same file that ships inside the '
+    + 'published package. That one is the source; this is a copy that cannot fall behind it.</small>',
+    '',
+  ].join('\n');
+}
+
+/**
+ * The changelog's entry for one specific version.
+ *
+ * `package.json` is the version — it is what npm serves — so the home page asks
+ * the changelog about *that* number rather than taking whichever release heading
+ * happens to be first.
+ *
+ * That used to be the other way round, and it drifted the first time it could:
+ * `0.1.1` was published while the changelog still said `## Unreleased`, so the
+ * site went on announcing `0.1.0` to everybody who opened it. Reading the first
+ * heading meant the site was reporting *the last version somebody wrote about*
+ * and calling it the current release. Those are different facts and only one of
+ * them is what a reader wants.
+ *
+ * Returns null when there is no entry for this version, which the caller turns
+ * into a failed build rather than a quiet fallback. A site that silently shows
+ * the previous release is the exact failure this replaces.
+ */
+function releaseFor(version) {
+  if (!existsSync('CHANGELOG.md')) return null;
+  const md = readFileSync('CHANGELOG.md', 'utf8');
+  const heading = md.match(
+    new RegExp(`^##\\s+${version.replace(/\./g, '\\.')}\\s*[—-]\\s*(\\S+)\\s*$`, 'm'),
+  );
+  if (!heading) return null;
+  /* The lead line is the bolded sentence directly under the heading — the one
+   * that says what this version is, before the Added/Changed lists. */
+  const after = md.slice(md.indexOf(heading[0]) + heading[0].length);
+  const lead = after.match(/\*\*(.+?)\*\*/s);
+  return { version, date: heading[1], lead: lead ? lead[1].replace(/\s+/g, ' ').trim() : null };
+}
+
+/**
+ * Whether this repository has ever released anything.
+ *
+ * Read from the changelog rather than from `package.json`, and the first attempt
+ * got this wrong in a way worth recording: it tested `pkg.private`, which is
+ * always `true` here. `private: true` lives in this package.json deliberately, so
+ * an absent-minded `npm publish` is refused — `scripts/publish.mjs` removes it
+ * for exactly one command and puts it straight back. So the flag says nothing
+ * about whether the package is published; it says the opposite of what it looks
+ * like it says, and the gate below silently never fired.
+ *
+ * One release heading in `CHANGELOG.md` is the honest signal: a repository that
+ * has cut a version has one, and a repository that has not — the headstart clone
+ * is exactly that — has none, and is not failed for it.
+ */
+const hasReleaseHistory = () =>
+  existsSync('CHANGELOG.md')
+  && /^##\s+\d+\.\d+\.\d+\s*[—-]\s*\S+\s*$/m.test(readFileSync('CHANGELOG.md', 'utf8'));
+
+/* ── The home page ───────────────────────────────────────────────────────── */
+
+/**
+ * Generated, like every other page here, and for the same reason.
+ *
+ * The home page carries the current version, the current release date and the
+ * count of what has shipped. Every one of those is a fact that moves, and a
+ * hand-written home page is the first page to go stale and the last one anybody
+ * notices — it is the page a reader trusts most and re-reads least.
+ */
+function homePage(components) {
+  const rel = releaseFor(forVersion);
+  const tokenCount = new Set(components.flatMap((c) => c.intent.required_tokens)).size;
+
+  const out = [];
+  out.push('---');
+  out.push(`title: ${yaml(site.title)}`);
+  out.push(`description: ${yaml(site.description)}`);
+  out.push('template: splash');
+  /* The page title and the site title are the same string here, and Starlight
+   * joins them — "Sunim Design System | Sunim Design System" in the tab, in a
+   * bookmark and in a search result. Override the one tag rather than renaming
+   * the page, because the title is also the hero heading. */
+  out.push('head:');
+  out.push('  - tag: title');
+  out.push(`    content: ${yaml(site.title)}`);
+  out.push('hero:');
+  out.push('  tagline: |');
+  out.push('    Props tell you how to call a component. Nothing in them tells you when you should —');
+  out.push('    or when to reach for a different one. That is the question this site answers.');
+  out.push('  actions:');
+  out.push('    - text: Start designing');
+  out.push('      link: /designing/introduction/');
+  out.push('      icon: right-arrow');
+  out.push('    - text: Start coding');
+  out.push('      link: /developing/introduction/');
+  out.push('      icon: right-arrow');
+  out.push('      variant: secondary');
+  out.push('    - text: Open Storybook');
+  out.push(`      link: ${site.storybookUrl}`);
+  out.push('      icon: external');
+  out.push('      variant: minimal');
+  out.push('---');
+  out.push('');
+  out.push("import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';");
+  out.push('');
+
+  /* ── Latest release ─────────────────────────────────────────────────── */
+  if (rel) {
+    out.push(`## Latest release — \`${rel.version}\``);
+    out.push('');
+    out.push(`<p class="sunim-release-date">Published ${rel.date}. `
+      + `${components.length} component${components.length === 1 ? '' : 's'} on the public surface, `
+      + `carried by ${tokenCount} semantic tokens across ${modes.length} Figma modes.</p>`);
+    out.push('');
+    if (rel.lead) out.push(`${rel.lead}`);
+    out.push('');
+    out.push('```bash');
+    out.push(`npm install ${pkg.name}`);
+    out.push('```');
+    out.push('');
+    out.push('<LinkCard title="Read the release notes" '
+      + `description="Everything ${rel.version} added, and every limitation it states rather than hides." `
+      + 'href="/get-started/changelog/" />');
+    out.push('');
+  } else {
+    out.push('## Nothing released yet');
+    out.push('');
+    out.push('`CHANGELOG.md` carries no entry for this version, so there is nothing here to '
+      + 'install. This page will say otherwise the moment there is.');
+    out.push('');
+  }
+
+  /* ── The four doors ─────────────────────────────────────────────────── */
+  out.push('## Where to go');
+  out.push('');
+  out.push('<CardGrid>');
+  out.push('  <LinkCard title="Start designing" href="/designing/introduction/" '
+    + 'description="Get the library and the variables into your Figma file, and know which modes you '
+    + 'are designing against." />');
+  out.push('  <LinkCard title="Start coding" href="/developing/introduction/" '
+    + `description="Install ${pkg.name}, load one stylesheet in the right order, and render the first `
+    + 'component." />');
+  out.push('  <LinkCard title="Components" href="/core/components/overview/" '
+    + `description="All ${components.length} of them — what each is for, what it is not for, and what it `
+    + 'refuses to promise." />');
+  out.push('  <LinkCard title="Tokens" href="/core/tokens/" '
+    + `description="The ${tokenCount} semantic tokens the components stand on, and what breaks if one `
+    + 'moves." />');
+  out.push('</CardGrid>');
+  out.push('');
+
+  /* ── What this site is, in four lines ───────────────────────────────── */
+  out.push('## What this site is');
+  out.push('');
+  out.push('<CardGrid stagger>');
+  out.push('  <Card title="Explained here, rendered there" icon="open-book">');
+  out.push('    Storybook is where the variants render, live, in every state. This is where they are');
+  out.push('    *explained*. Each page embeds and deep-links into the matching stories rather than');
+  out.push('    re-rendering anything, so there is no second rendering to keep in step.');
+  out.push('  </Card>');
+  out.push('  <Card title="Written once, checked once" icon="approve-check">');
+  out.push("    The intent that becomes a page's *When to use* section is the same file the release gate");
+  out.push('    reads. A page cannot be published for a component whose intent would fail that gate —');
+  out.push('    the generator refuses.');
+  out.push('  </Card>');
+  out.push('  <Card title="The reference is generated" icon="setting">');
+  out.push('    Components, tokens, the changelog, the versioning page and this one come out of');
+  out.push('    `scripts/generate-docs.mjs` — from the props, the intent, the token build and the');
+  out.push('    stories. The guides are written by hand; the reference cannot be, or it drifts.');
+  out.push('  </Card>');
+  out.push('  <Card title="It says what it does not promise" icon="warning">');
+  out.push('    Accessibility limits, values Figma never bound, and what a `0.x` version explicitly does');
+  out.push('    not guarantee. Every page carries them rather than leaving them to be discovered.');
+  out.push('  </Card>');
+  out.push('</CardGrid>');
+  out.push('');
+  return out.join('\n');
 }
 
 /* ── The token stylesheet ────────────────────────────────────────────────── */
@@ -667,7 +942,8 @@ function tokenStylesheet() {
 console.log('\n\x1b[1mGenerating the reference site\x1b[0m');
 
 mkdirSync(COMPONENTS_OUT, { recursive: true });
-mkdirSync(START_OUT, { recursive: true });
+mkdirSync(CORE_OUT, { recursive: true });
+mkdirSync(GET_STARTED_OUT, { recursive: true });
 
 /* Clear the generated directory first. A component removed from the surface must
  * lose its page — leaving stale files behind is how a site keeps documenting
@@ -707,6 +983,9 @@ const published = [];
 let blockedByIntent = 0;
 let blockedByRegistry = 0;
 let skipped = 0;
+/* Tracked separately from the counters because it is the one failure 📦 Release
+ * has to tell apart from the rest — see EXIT_CHANGELOG_MISSING. */
+let changelogMissing = false;
 
 for (const name of listComponents()) {
   const c = readComponent(name);
@@ -770,8 +1049,9 @@ for (const name of listComponents()) {
 
 if (published.length) {
   writeFileSync(join(COMPONENTS_OUT, 'overview.md'), overviewPage(published));
-  writeFileSync(join(START_OUT, 'tokens.md'), tokensPage(published));
-  ok(`overview + tokens pages`);
+  writeFileSync(join(CORE_OUT, 'tokens.md'), tokensPage(published));
+  writeFileSync(join(DOCS, 'index.mdx'), homePage(published));
+  ok('overview + tokens + home pages');
 }
 
 if (existsSync(TOKENS_SRC)) {
@@ -783,8 +1063,43 @@ if (existsSync(TOKENS_SRC)) {
   blockedByRegistry++;
 }
 
+if (existsSync('CHANGELOG.md')) {
+  writeFileSync(join(GET_STARTED_OUT, 'changelog.md'), changelogPage());
+  const rel = releaseFor(forVersion);
+  if (rel) {
+    ok(`changelog page — ${rel.version}, released ${rel.date}`);
+  } else if (hasReleaseHistory()) {
+    /*
+     * The gate that keeps the site and the registry in step.
+     *
+     * `package.json` says what npm serves. If the changelog has no entry for
+     * that number, then either a version was cut without recording it, or the
+     * `## Unreleased` heading was never moved — and both produce a home page
+     * announcing the *previous* release to everybody who opens it. That has
+     * already happened once here.
+     *
+     * Failing the build is the point. A warning would be read by whoever ran
+     * the build, which is exactly the person who already knows.
+     */
+    bad(`CHANGELOG.md has no entry for ${forVersion}`
+      + `${forVersion === pkg.version ? ', which is the version package.json carries' : ''}.`);
+    console.log(`      Add a "## ${forVersion} — <date>" heading — move "## Unreleased" if the`);
+    console.log('      release has been cut. Until then this site would announce the previous');
+    console.log('      version as the current one, which is what it did the last time these two');
+    console.log('      were allowed to disagree.');
+    changelogMissing = true;
+  } else {
+    note(`no entry for ${forVersion} in CHANGELOG.md, and no release in it at all — nothing `
+      + 'has been cut from here yet, so that is expected rather than a gap.');
+  }
+} else {
+  bad('CHANGELOG.md is missing — the site cannot say what changed, and the home page cannot say '
+    + 'what the current release is');
+  blockedByRegistry++;
+}
+
 if (existsSync('VERSIONING.md')) {
-  writeFileSync(join(START_OUT, 'versioning.md'), versioningPage());
+  writeFileSync(join(GET_STARTED_OUT, 'versioning.md'), versioningPage());
   ok('versioning page, from VERSIONING.md');
 } else {
   bad('VERSIONING.md is missing — the site cannot say what its version numbers promise');
@@ -803,7 +1118,7 @@ try {
   if (siteOrigin !== sbOrigin) {
     note(`the site (${siteOrigin}) and Storybook (${sbOrigin}) are different origins.`);
     note('  Storybook sends `frame-ancestors \'self\'`, so the embedded stories will be blank in');
-    note('  production until that header names the site\'s origin. See docs start/embedding.');
+    note('  production until that header names the site\'s origin. See docs help/embedding.');
     note('  Local development is unaffected — the dev server sends no CSP.');
   }
 } catch {
@@ -816,7 +1131,7 @@ const blocked = blockedByIntent + blockedByRegistry;
  * that has not shipped — so a registry block fails the run whatever flags were
  * passed, and PARTIAL exists for the one case that is a deliberate choice.
  */
-const failing = blockedByRegistry > 0 || (blockedByIntent > 0 && !force);
+const failing = blockedByRegistry > 0 || changelogMissing || (blockedByIntent > 0 && !force);
 
 console.log(
   `\n${failing ? '\x1b[31mBLOCKED\x1b[0m' : blocked ? '\x1b[33mPARTIAL\x1b[0m' : '\x1b[32mDONE\x1b[0m'}  `
@@ -828,5 +1143,11 @@ if (failing) {
   console.log('  whose intent would fail the release gate. Ship it, fix the intent');
   console.log('  (`.claude/skills/intent/SKILL.md`), or re-read the registry — whichever the failure');
   console.log('  above names. `--force` publishes with the gaps named and is not a release.\n');
+}
+/* The changelog case exits 2 so a caller can tell "not written yet" from "broken",
+ * but only when it is the *only* thing wrong — anything else is an ordinary
+ * failure and must not be softened by it. */
+if (changelogMissing && blockedByRegistry === 0 && blockedByIntent === 0) {
+  process.exit(EXIT_CHANGELOG_MISSING);
 }
 process.exit(failing ? 1 : 0);

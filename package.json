@@ -1,6 +1,6 @@
 {
-  "name": "@sunim/design-system",
-  "version": "0.0.1",
+  "name": "@theproductiveschedule/sunim-design-system",
+  "version": "0.1.1",
   "private": true,
   "description": "Sunim Design System — course starter (Day 2)",
   "type": "module",
@@ -18,10 +18,14 @@
     },
     "./styles.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css",
+    "./fonts/*": "./dist/fonts/*",
+    "./skill/*": "./skill/*",
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "skill",
+    "CHANGELOG.md"
   ],
   "sideEffects": [
     "*.css"
@@ -31,7 +35,7 @@
   },
   "scripts": {
     "build:tokens": "style-dictionary build --config style-dictionary.config.js",
-    "build": "npm run build:tokens && vite build && tsc -p tsconfig.build.json && node scripts/bundle-css.mjs",
+    "build": "npm run build:tokens && vite build && tsc -p tsconfig.build.json && node scripts/bundle-css.mjs && node scripts/generate-skill.mjs",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test": "vitest run",
@@ -39,10 +43,13 @@
     "security-check": "node scripts/security-check.mjs",
     "release-review": "node scripts/release-review.mjs",
     "release": "node scripts/release.mjs",
+    "release:publish": "node scripts/publish.mjs",
     "docs:install": "npm --prefix docs install --no-audit --no-fund",
     "docs:generate": "node scripts/generate-docs.mjs",
     "docs:dev": "npm --prefix docs run dev",
-    "docs:build": "npm run build:tokens && npm --prefix docs run build"
+    "docs:build": "npm run build:tokens && npm --prefix docs run build",
+    "docs:deploy": "node scripts/deploy-docs.mjs",
+    "build:skill": "node scripts/generate-skill.mjs"
   },
   "peerDependencies": {
     "react": ">=18.0.0",

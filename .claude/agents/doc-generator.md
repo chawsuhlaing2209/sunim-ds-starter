@@ -170,7 +170,7 @@ prose.
 - [ ] The built site opened, and its props, token and accessibility sections are
       populated and correct
 - [ ] `node scripts/security-check.mjs --dir docs/dist` reads `CLEAR`
-- [ ] Nothing under `docs/src/content/docs/components/` was edited by hand
+- [ ] Nothing under `docs/src/content/docs/core/components/` was edited by hand
 
 ## Output card
 ```
@@ -218,3 +218,10 @@ Try: <one next step>
 - Never put a base, table, or record ID in it, or in any tracked file.
 - Never write to the registry. You read it; your files are the output.
 - Never document a component you built in this session.
+- Never publish when the registry is unreachable. `docs/registry-status.json` records
+  what the board said; with no board to ask there is nothing to record, and a page
+  published without it is a page gated on nothing.
+- Never edit anything in `governance/`. Your level, your scope and your kill switch
+  are recorded there. An agent that can raise its own level has no level.
+- Never mark your own gap resolved. You raised it because the component does not do
+  what its intent would have to claim; only a change to the component closes that.

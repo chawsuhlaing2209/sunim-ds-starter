@@ -28,7 +28,14 @@ export interface ButtonProps
    * keyboard drives them. `Hover` and `Focus` pin that appearance on, which is
    * what the stories use to show a state that cannot be screenshotted
    * otherwise. `Disabled` and `Loading` are behavioural: both mark the button
-   * non-interactive, and `Loading` also announces itself with `aria-busy`.
+   * non-interactive, and `Loading` also sets `aria-busy`.
+   *
+   * `aria-busy` does not announce anything on its own. It is not a live region,
+   * and disabling the button removes it from the tab order — so a keyboard user
+   * who was focused on it loses focus to `<body>` and cannot get it back. That
+   * is the ordinary cost of the double-submit guard rather than a defect here,
+   * but it is not something this component can solve: if the wait needs
+   * announcing, put a live region beside the button and write to it.
    */
   state?: ButtonState;
   /** The text of the action. */
@@ -37,6 +44,17 @@ export interface ButtonProps
   showTrailing?: boolean;
   /** Replace the default arrow with an icon from Sunim Icon. */
   icon?: ReactNode;
+  /**
+   * The native button type. Defaults to `button`, not `submit`.
+   *
+   * That default is deliberate and worth knowing: a `<button>` inside a form
+   * submits it unless told otherwise, so a Button dropped into a form to open a
+   * dialog would submit instead. Pass `type="submit"` when you want the form
+   * behaviour.
+   *
+   * Declared here only so it carries this note — it is inherited either way.
+   */
+  type?: ButtonHTMLAttributes<HTMLButtonElement>['type'];
 }
 
 /*

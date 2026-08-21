@@ -34,7 +34,24 @@ const meta = {
   argTypes: {
     size: { control: 'inline-radio', options: ['14', '16', '22'] },
     icon: { control: false },
-    label: { control: 'text' },
+    'aria-label': {
+      control: 'text',
+      /*
+       * Storybook sources a row's description from the matching interface
+       * member. `aria-label` has none — it is inherited, which is precisely why
+       * the ruling could drop `label` without adding anything back — so the row
+       * renders bare unless the description is supplied here. A release review
+       * caught the prop the ruling elevated to being the naming API rendering as
+       * the one row that said nothing about itself.
+       */
+      description:
+        'What the icon means, for a screen reader. Set it and the slot becomes '
+        + '`role="img"` with that name; leave it off and the slot is decorative '
+        + 'and hidden, which is correct beside a label that already says the same '
+        + 'thing and is how Button and Chip use it. There is no `label` prop — see '
+        + '`decisions.md`.',
+      table: { type: { summary: 'string' } },
+    },
   },
   parameters: {
     docs: {
@@ -56,7 +73,7 @@ loading appearance of its own, and takes its colour from whatever it sits in.
 The stories after the matrix — AllSizes, Playground, WithCustomIcon, Retinted
 and Labelled — are **not** matrix rows and have no node to test against. They
 exercise the two props the Figma set has no variant for: \`icon\` (the swap
-this component exists for) and \`label\` (whether the icon is announced or
+this component exists for) and \`aria-label\` (whether the icon is announced or
 decorative).`,
       },
     },
@@ -172,10 +189,10 @@ export const Retinted: Story = {
 };
 
 /**
- * With no `label` the slot is decorative and hidden from assistive technology,
+ * With no `aria-label` the slot is decorative and hidden from assistive technology,
  * which is right when it sits beside text that already says the same thing.
  * With one it becomes an announced image. Check both in the a11y panel.
  */
 export const Labelled: Story = {
-  args: { size: '22', label: 'Next' },
+  args: { size: '22', 'aria-label': 'Next' },
 };

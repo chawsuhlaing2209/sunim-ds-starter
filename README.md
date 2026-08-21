@@ -109,25 +109,31 @@ component changed. You never touched the component.
 Once a version is published:
 
 ```bash
-npm install @sunim/design-system react react-dom
+npm install @theproductiveschedule/sunim-design-system react react-dom
 ```
 
 React is a **peer** dependency — the package never bundles it. Import the
 stylesheet once, at the root of your app, and the components anywhere:
 
 ```tsx
-import '@sunim/design-system/styles.css';
-import { Button, Chip } from '@sunim/design-system';
+import '@theproductiveschedule/sunim-design-system/styles.css';
+import { Button, Chip } from '@theproductiveschedule/sunim-design-system';
 
 export function Apply() {
   return <Button variant="Primary" size="Lg" label="Apply for this cohort" />;
 }
 ```
 
-One stylesheet carries the token layer and the component CSS, in that order,
-because a component resolves nothing but `var(--token)` and a cascade cannot read
-forwards. If you only want the tokens — to build your own components against this
-system — import `@sunim/design-system/tokens.css` instead.
+One stylesheet carries the typefaces, the token layer and the component CSS, in
+that order — a component resolves nothing but `var(--token)`, and a cascade cannot
+read forwards. If you only want the tokens, to build your own components against
+this system, import `@theproductiveschedule/sunim-design-system/tokens.css` instead; it carries the
+typefaces too.
+
+**The fonts ship inside the package.** Schibsted Grotesk and Instrument Sans, as
+`.woff2`, at the weights the tokens actually name — no CDN, no `@fontsource`
+install, nothing to remember. Your bundler will hash them into your own assets and
+fetch only the weights a page renders.
 
 Themes are the seven Figma modes. Set `data-theme` on any element and everything
 inside it follows:
@@ -148,6 +154,7 @@ is allowed to break anything, which is the semver contract rather than a warning
 | Install | `npm install` |
 | Build tokens | `npm run build:tokens` |
 | Build the library | `npm run build` |
+| Build the knowledge skill alone | `npm run build:skill` |
 | Run Storybook | `npm run storybook` |
 | Run the reference site | `npm run docs:install` once, then `npm run docs:dev` |
 | Test | `npm test` |

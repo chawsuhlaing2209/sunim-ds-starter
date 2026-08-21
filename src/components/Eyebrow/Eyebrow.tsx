@@ -8,9 +8,15 @@ import './Eyebrow.css';
  * The layer label above a section head. It is what makes the site read as a
  * design file rather than a brochure.
  *
- * Prop names and values mirror the Figma properties exactly: Tone is the one
- * variant property; Mark, Title, Label and Show Label are the component
- * properties.
+ * `Tone` is the node's one variant property, and its four values mirror it
+ * exactly.
+ *
+ * The other four prop names do NOT come from Figma component properties, and an
+ * earlier version of this comment said they did. The node exposes one axis;
+ * `Mark`, `Title` and `Label` are text *layer* names inside it, and no `Show
+ * Label` property exists anywhere on the set. The names are still right — they
+ * are what the design calls those pieces — but the provenance was wrong, and it
+ * was being used below to settle a question it cannot settle.
  *
  * The mark is a typographic glyph, not an icon. The node carries it as a text
  * layer (`22:24`, alongside the Title and Label text layers) and the design
@@ -30,16 +36,31 @@ export type EyebrowTone = 'Agentic' | 'Sky' | 'Ink' | 'Gold';
 export interface EyebrowProps
   extends Omit<HTMLAttributes<HTMLSpanElement>, 'children' | 'title'> {
   /*
-   * `title` is omitted from the inherited HTML attributes on purpose. The
-   * Figma property is called Title, CLAUDE.md requires the prop to carry that
-   * name exactly, and React's native `title` (the browser tooltip) would
-   * otherwise collide with it. The Figma name wins and the tooltip is dropped.
+   * `title` is omitted from the inherited HTML attributes on purpose, and the
+   * reason is worth stating correctly because it was stated wrongly before.
+   *
+   * It is NOT that Figma defines a `Title` component property — it does not.
+   * The real reason stands on its own: the loud half of an eyebrow is its
+   * title, that is what the design calls it, and React's native `title` is the
+   * browser tooltip. One name cannot be both. Dropping the tooltip costs
+   * nothing here; renaming the prop would cost the word the design uses.
+   *
+   * Un-shadowing it after 0.1.0 is a minor bump. Anyone weighing that should
+   * weigh it against this reason, not against the constraint that used to be
+   * written here.
    */
   /**
    * What the eyebrow is marking.
    *
    * `Agentic` marks an AI moment. `Sky` is the default. `Ink` is for quiet
    * sections. `Gold` is for anything earned or paid.
+   *
+   * Note the default is deliberately **not** the node's first variant, which is
+   * `Agentic`. The prose and the code disagreed here for long enough to be
+   * published, and the owner ruled the prose right: an eyebrow appearing with no
+   * tone set should be the ordinary one, not the AI-moment one. Recorded in
+   * `decisions.md`; a test asserts it, so changing it back is a deliberate act
+   * rather than a one-word edit.
    */
   tone?: EyebrowTone;
   /**
@@ -63,7 +84,7 @@ export interface EyebrowProps
 }
 
 export function Eyebrow({
-  tone = 'Agentic',
+  tone = 'Sky',
   mark = '◇',
   title = 'Components',
   label = '/ Card',

@@ -45,6 +45,16 @@ const meta = {
     label: { control: 'text' },
     showTrailing: { control: 'boolean' },
     icon: { control: false },
+    /*
+     * Without an entry, Storybook cannot infer a control for a union this wide
+     * and falls back to a JSON object editor — for a prop whose three values are
+     * a closed set. Named here so the control matches the type.
+     */
+    type: {
+      control: 'inline-radio',
+      options: ['button', 'submit', 'reset'],
+      table: { defaultValue: { summary: 'button' } },
+    },
   },
   parameters: {
     docs: {
