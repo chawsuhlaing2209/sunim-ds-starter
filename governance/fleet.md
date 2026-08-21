@@ -10,12 +10,12 @@ agent file states a level of its own.
 
 | Agent | Type | Level | Scope | Verifier | Kill switch |
 |---|---|---|---|---|---|
-| 🔨 `engineer` | goal-based | **Senior — PROPOSED** | `src/components/` except `<Name>.intent.json`; its develop branch; the staging branch; registry cells `Commit`, `Staging Storybook`, `Composes`, and `Fixed (To re-test)` on test rows it fixed. Report path not stated | 🔍 QA, plus machine gates it must run itself: `npm run lint`, Storybook rendering every story, `npm run security-check`, and `security-check --url <staging>` | **not stated** → proposed **P1 · P2 · P3**. De-facto stop: it may not start from a row whose `Development` is blank |
-| 🔍 `qa` | model-based | **Observer — PROPOSED** | `reports/` only, committed and pushed to `staging`; rows in the registry's `Staging Testing` table, which it creates and owns. Nothing on the `Components` row | none for the verdict — a human reads it ("no verdict of yours is final until a human reads it"). 📋 PM's sweep catches structural faults in its rows, e.g. an empty `Composed In` | **not stated** → proposed **P1 · P3**. De-facto stop: no `Staging Storybook` link, no test |
+| 🔨 `engineer` | goal-based | **Senior — PROPOSED** | `src/components/` except `<Name>.intent.json`; its develop branch; a PR into the staging branch, which it also merges; registry cells `Commit`, `Staging Storybook`, `Composes`, and `Fixed (To re-test)` on test rows it fixed. Report path not stated | 🔍 QA, plus machine gates it must run itself: `npm run lint`, Storybook rendering every story, `npm run security-check`, and `security-check --url <staging>` | **not stated** → proposed **P1 · P2 · P3**. De-facto stop: it may not start from a row whose `Development` is blank |
+| 🔍 `qa` | model-based | **Observer — PROPOSED** | `reports/` only, committed and pushed to `staging`; rows in the registry's `Staging Testing` table, which it creates and owns. Nothing on the `Components` row | none automated — 🎨 Human, the repo owner, reads it ("no verdict of yours is final until a human reads it"). 📋 PM's sweep catches structural faults in its rows, e.g. an empty `Composed In` | **not stated** → proposed **P1 · P3**. De-facto stop: no `Staging Storybook` link, no test |
 | 🚀 `devops` | model-based | **Autonomous — PROPOSED** (human-initiated for jobs 2 and 3) | Git: the staging branch and `main`; the production Storybook host; the reference-site host; registry cells `Production Storybook` and `Astro Link`; `reports/` for the deploy note. Named hosts not stated | its own gates: `npm run lint` and `npm test` on `main`, `npm run security-check` on the build, `security-check --url <production> --expect public`, opening the deployed page, and the `Development → Completed` formula. For job 3, installing the published version from the registry into an empty folder. 📋 PM re-opens its links on every sweep | **not stated** → proposed **P1 · P2 · P3 · P4**. De-facto stops: a row not reading `To be deployed`; jobs 2 and 3 require a human to ask |
-| 📋 `pm` | model-based | **Observer — PROPOSED** | `reports/` only — `reports/registry-audit.md`. Registry is read-only, every table. Whether it commits `reports/` is not stated | none — a human reads it. "The report is the deliverable" | **not stated** → proposed **P0**. It holds no registry write access, so a stale sweep changes nothing |
+| 📋 `pm` | model-based | **Observer — PROPOSED** | `reports/` only — `reports/registry-audit.md`. Registry is read-only, every table. Whether it commits `reports/` is not stated | none automated — 🎨 Human, the repo owner, reads it. "The report is the deliverable" | **not stated** → proposed **P0**. It holds no registry write access, so a stale sweep changes nothing |
 | 📝 `doc-generator` | goal-based | **Junior — PROPOSED** | `src/components/<Name>/<Name>.intent.json` and nothing else in `src/`; `docs/` except generated content; `docs/registry-status.json`; `reports/` for its note. Branch, and whether it opens a PR, not stated | real and automated: `scripts/lib/contract.mjs` via `npm run release-review -- <Name>` gate 6, the generator's own refusal to publish a page for an intent that would fail that gate, the `Completed` check against `docs/registry-status.json`, `security-check --dir docs/dist`, and `npm run lint` | **not stated** → proposed **P1 · P2**. De-facto stop: the generator publishes nothing without a same-day registry reading |
-| 📦 `release` | goal-based | **Advisor — PROPOSED** | `release/<version>` branch only, branched from `staging`: `CHANGELOG.md`, `reports/release/<version>.md`, `reports/release-review/<Component>.md`. Registry cells `Release Review` and `Release Verdict`, in review mode only. Never `src/`, never `package.json`'s `version`, never `main` or `staging` | a human — "the only thing left is a human deciding to publish it". Partially re-verified by 🚀 DevOps before publishing, which re-checks the branch is unchanged, that every component reads `Cleared`, and re-reads the `npm pack` file list | **not stated** → proposed **P0 · P1**. Structural stops: it holds no publish credential, and it halts before starting if the board is unreachable |
+| 📦 `release` | goal-based | **Advisor — PROPOSED** | `release/<version>` branch only, branched from `staging`: `CHANGELOG.md`, `reports/release/<version>.md`, `reports/release-review/<Component>.md`. Registry cells `Release Review` and `Release Verdict`, in review mode only. Never `src/`, never `package.json`'s `version`, never `main` or `staging` | 🎨 Human, the repo owner — "the only thing left is a human deciding to publish it". Partially re-verified by 🚀 DevOps before publishing, which re-checks the branch is unchanged, that every component reads `Cleared`, and re-reads the `npm pack` file list | **not stated** → proposed **P0 · P1**. Structural stops: it holds no publish credential, and it halts before starting if the board is unreachable |
 
 ---
 
@@ -31,10 +31,10 @@ a goal test at every step and a loop back on failure. Does it choose between opt
 that are all acceptable? No, and it is explicitly forbidden from doing so: "An unbound
 property is reported, not guessed." Plan without choice puts it at goal-based.
 
-Senior rather than Junior because it does not stop at a proposal: "Merge your develop
-branch into the staging branch, deploy the staging Storybook, then **open the deployed
-URL**". It merges and deploys. Not Autonomous because the merge and deploy stop at
-staging — "Never write into `Design`, `Production Storybook`…" — and its work is not
+Senior rather than Junior because it does not stop at a proposal: "Open a PR from your
+develop branch into the staging branch and merge it, deploy the staging Storybook, then
+**open the deployed URL**". A Junior opens the PR and waits; this one merges its own and
+deploys. Not Autonomous because both stop at staging — "Never write into `Design`, `Production Storybook`…" — and its work is not
 signed off by itself: "Never run the QA pass or sign off your own work."
 
 ### 🔍 `qa` — model-based, Observer (PROPOSED)
@@ -104,7 +104,7 @@ mechanism is not stated anywhere in the file.
 
 ### 📦 `release` — goal-based, Advisor (PROPOSED)
 
-Remember? No. Plan? Yes — nine ordered steps toward a defined end state, where each
+Remember? No. Plan? Yes — ten ordered steps toward a defined end state, where each
 step exists to catch something no earlier step can: "This is the only step that tests
 what a consumer experiences. Everything before it tests the repository." Choose
 between acceptables? No; the version is derived, not picked — "Not 'seems like a
@@ -265,15 +265,24 @@ operator would look.
 **Every agent, type and level.** No file states either. All six classifications above
 are readings, and every level is PROPOSED.
 
-**`engineer` — Access and Steps contradict each other on git.** Access says "Git — your
-develop branch, and the **PR** into the staging branch." Stage 5 says "**Merge** your
-develop branch into the staging branch." Those are different permissions, and the
-proposed level of Senior rests entirely on which one is true.
+**`Completed` has two claimants and no stated order.** 📝 Doc Generator gates on it
+("Only `Completed` components get a page") and 📦 Release gates on the same value
+("Value that qualifies | `Completed`"). The order is implied — Release's gate 6 reads
+the intent Doc Generator writes, and Doc Generator lists "when 📦 Release blocks on
+gate 6" as one of its triggers — but nothing states it. A `Completed` row picked up by
+Release first burns a pass discovering it needed Doc Generator.
 
-**`engineer` — `Composes` is written but not granted.** Access says it writes "exactly
-three things: `Commit`, `Staging Storybook`, and `Fixed (To re-test)`." Stage 5's table
-and a "Never" bullet both require it to write `Composes`. Either the count is wrong or
-the column is.
+**📦 Release's Scope does not cover what `release-prepare` step 10 makes it do.** The
+skill is now ten steps, and step 10 runs `scripts/generate-docs.mjs --version`, which
+writes `docs/src/content/docs/` and `docs/src/styles` — and at `scripts/generate-docs.mjs:951`
+deletes every existing component page before regenerating. `release.md`'s Access grants
+`CHANGELOG.md` and two report paths on a release branch; `docs/` is not among them, and
+this table gives `docs/` to 📝 Doc Generator. The skill draws the boundary at build
+versus deploy ("You build it. You never deploy it"), which is the right boundary for
+deployment and not the one at issue here.
+
+**`release.md` still describes nine steps.** The skill it delegates to has ten. An
+agent file out of sync with its own skill is exactly what this table exists to catch.
 
 **`engineer` — report path not stated.** "A short report" is required with no location
 given, while QA, PM, DevOps, Doc Generator and Release all name `reports/`.
