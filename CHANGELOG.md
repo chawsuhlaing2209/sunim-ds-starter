@@ -4,7 +4,7 @@ Every released version, and what it means for somebody who has the previous one
 installed. `VERSIONING.md` says what a number promises and what it deliberately
 does not.
 
-## Unreleased
+## 0.1.1 — 2026-08-21
 
 **A knowledge skill ships inside the package.** Install it, copy one directory into
 `.claude/skills/`, and a coding agent knows which component answers a piece of
@@ -12,9 +12,10 @@ interface, which one does not and what to reach for instead, the exact
 capitalisation of every prop value, and the handful of rules that are the
 difference between using this system and quietly reimplementing it.
 
-There is no version number on this yet. **No agent bumps the version** — that
-number is a promise to people outside this repository, and it is made by whoever
-will be held to it.
+Published 2026-08-21. Additive: nothing was removed, renamed or narrowed, and no
+component changed. If you have `0.1.0`, `npm install` is the whole upgrade —
+**unless you installed the skill**, in which case re-copy it, because it is a copy
+rather than a link.
 
 ### Added
 
