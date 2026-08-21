@@ -5,6 +5,7 @@ import { Button } from './Button/Button';
 import { Chip } from './Chip/Chip';
 import { Eyebrow } from './Eyebrow/Eyebrow';
 import { IconSlot } from './IconSlot/IconSlot';
+import { InputControl } from './InputControl/InputControl';
 
 /*
  * The props a consumer reaches for, and the component honouring them.
@@ -111,6 +112,50 @@ describe('IconSlot · a named icon is never hidden', () => {
   });
 });
 
+describe('InputControl · disabled and aria-invalid have two sources', () => {
+  it('honours disabled from the caller', () => {
+    // The same idiom as Button's, on the control it is most often written on.
+    expect(open(renderToStaticMarkup(<InputControl aria-label="Email" disabled />)))
+      .toContain('disabled=""');
+  });
+
+  it('still disables from State=Disabled', () => {
+    expect(
+      open(renderToStaticMarkup(<InputControl aria-label="Email" state="Disabled" />))
+    ).toContain('disabled=""');
+  });
+
+  it('neither one cancels the other', () => {
+    // A caller passing disabled={false} must not re-enable a Disabled variant.
+    expect(
+      open(
+        renderToStaticMarkup(
+          <InputControl aria-label="Email" state="Disabled" disabled={false} />
+        )
+      )
+    ).toContain('disabled=""');
+  });
+
+  it('marks State=Error invalid', () => {
+    // The state has to reach assistive technology, not only the stroke colour —
+    // gold is the only signal a sighted user gets, and none at all otherwise.
+    expect(open(renderToStaticMarkup(<InputControl aria-label="Email" state="Error" />)))
+      .toContain('aria-invalid="true"');
+  });
+
+  it('leaves aria-invalid to the caller when the variant is not Error', () => {
+    const tag = open(
+      renderToStaticMarkup(<InputControl aria-label="Email" aria-invalid />)
+    );
+    expect(tag).toContain('aria-invalid="true"');
+  });
+
+  it('does not claim validity it was not told about', () => {
+    expect(open(renderToStaticMarkup(<InputControl aria-label="Email" />)))
+      .not.toContain('aria-invalid');
+  });
+});
+
 describe('the public type and the rendered attributes agree', () => {
   /*
    * The general form of both defects, across every component on the surface.
@@ -134,6 +179,9 @@ describe('the public type and the rendered attributes agree', () => {
     Chip: (props: Record<string, unknown>) => <Chip label="Reviewed" {...props} />,
     Eyebrow: (props: Record<string, unknown>) => <Eyebrow title="Components" {...props} />,
     IconSlot: (props: Record<string, unknown>) => <IconSlot size="16" {...props} />,
+    InputControl: (props: Record<string, unknown>) => (
+      <InputControl aria-label="Email address" {...props} />
+    ),
   };
 
   const passthrough = [
@@ -189,5 +237,16 @@ describe('the defaults a component ships with', () => {
 
   it('IconSlot is 14', () => {
     expect(open(renderToStaticMarkup(<IconSlot />))).toContain('sunim-IconSlot--14');
+  });
+
+  it('InputControl is Default — the plain box, enabled and valid', () => {
+    // Default is the node's first variant and the empty box. It carries no
+    // state class at all, which is what makes Filled indistinguishable from it
+    // on an empty input — see the prop doc. Asserted so that giving Default a
+    // class of its own is a deliberate act rather than a silent one.
+    const tag = open(renderToStaticMarkup(<InputControl aria-label="Email" />));
+    expect(tag).toContain('class="sunim-InputControl"');
+    expect(tag).not.toContain('disabled');
+    expect(tag).not.toContain('aria-invalid');
   });
 });

@@ -1,0 +1,133 @@
+/*
+ * Input Control
+ *
+ * Built from Figma node 31:41 — the Input Control component set,
+ * State (Default | Filled | Focus | Error | Disabled) = 5 variants. There is
+ * no Variant and no Size axis in the set, so there is none here.
+ *
+ * ---------------------------------------------------------------------------
+ * UNBOUND IN FIGMA — design gaps, raised rather than guessed.
+ *
+ * The two values below carry no variable binding anywhere on the node. They are
+ * transcribed exactly as the node states them and quarantined in this one
+ * block, deliberately NOT mapped onto a semantic token that happens to share
+ * the same number — doing that would disguise a design gap as a binding and
+ * hide it from the next person. Each becomes a var(--token) the moment design
+ * binds it in Figma.
+ *
+ * Everything else on the node is bound: the padding is the Spacing collection's
+ * `11px` and `13px` variables (built here as --spacing-step-11 and
+ * --spacing-step-13), the radius is `radius-input`, the fills and strokes are
+ * `paper-raised`, `surface-sunk`, `line-quiet`, `accent` and `gold-deep`, the
+ * text is `text-body` and `text-faint`, the ring is the `focus/ring` effect
+ * style, and the type is the `Body/Base` text style.
+ * ---------------------------------------------------------------------------
+ */
+.sunim-InputControl {
+  /* stroke weight on every state */
+  --sunim-InputControl-unbound-border-width: 1.5px;
+  /* node opacity on State=Disabled */
+  --sunim-InputControl-unbound-opacity-disabled: 0.5;
+
+  /*
+   * Auto-layout: horizontal, centre-aligned, with the text frame set to fill.
+   *
+   * The node's own frame is a fixed 320 wide, which is the width the designer
+   * drew it at rather than a rule the component can carry — a form control that
+   * is 320px whatever it is dropped into is unusable, and the node's
+   * description says to wrap it in Field, which is what will size it. So it
+   * fills its container here and the stories pin that container to 320 so each
+   * one matches the node it is tested against. Raised in the report.
+   */
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+
+  margin: 0;
+  appearance: none;
+  border: none;
+  padding: var(--spacing-step-11) var(--spacing-step-13);
+  border-radius: var(--radius-radius-input);
+
+  /* An input does not inherit type; the family has to be stated. */
+  font: var(--font-body-base);
+  color: var(--color-text-body);
+  background-color: var(--color-surface-raised);
+
+  /*
+   * Figma draws an inside stroke, which adds nothing to the frame size — every
+   * state of the node is 320x44, which is 11 + 22 + 11 with the stroke sitting
+   * inside it. An inset box-shadow reproduces that exactly; a real `border`
+   * would push the control 3px taller than the node and 3px wider than whatever
+   * Field sizes it to.
+   */
+  box-shadow: inset 0 0 0 var(--sunim-InputControl-unbound-border-width)
+    var(--color-line-quiet);
+}
+
+/*
+ * State=Default and State=Disabled draw their text in text/faint, which is what
+ * a placeholder is. Firefox dims the placeholder on top of its colour, so the
+ * opacity is reset — that is a browser default being neutralised, not a value
+ * taken from the design.
+ */
+.sunim-InputControl::placeholder {
+  color: var(--color-text-faint);
+  opacity: 1;
+}
+
+/* Focus ------------------------------------------------------------------- */
+
+/*
+ * `:focus-visible` is the real state; `.is-focus` pins the same appearance on
+ * for the story that has to show it standing still. The node replaces the
+ * quiet stroke with accent and adds the ring, so both are drawn together.
+ */
+.sunim-InputControl:focus-visible,
+.sunim-InputControl.is-focus {
+  outline: none;
+  box-shadow:
+    inset 0 0 0 var(--sunim-InputControl-unbound-border-width)
+      var(--color-accent-default),
+    var(--effect-focus-ring);
+}
+
+/* Error ------------------------------------------------------------------- */
+
+/*
+ * Gold, not red. The node's description is explicit that this system has no
+ * alarm colour, so the stroke is gold/deep and nothing here reaches for one.
+ */
+.sunim-InputControl.is-error {
+  box-shadow: inset 0 0 0 var(--sunim-InputControl-unbound-border-width)
+    var(--color-gold-deep);
+}
+
+/*
+ * The set defines no Error+Focus variant — Figma has five variants on one axis,
+ * so the combination cannot be drawn there. A real field can be both, and this
+ * composes the two states the set does define rather than inventing a third
+ * appearance: the error stroke stays, the focus ring is added on top. Raised in
+ * the report for design to confirm.
+ */
+.sunim-InputControl.is-error:focus-visible,
+.sunim-InputControl.is-error.is-focus {
+  box-shadow:
+    inset 0 0 0 var(--sunim-InputControl-unbound-border-width)
+      var(--color-gold-deep),
+    var(--effect-focus-ring);
+}
+
+/* Disabled ---------------------------------------------------------------- */
+
+.sunim-InputControl:disabled {
+  background-color: var(--color-surface-sunk);
+  opacity: var(--sunim-InputControl-unbound-opacity-disabled);
+  cursor: not-allowed;
+  /*
+   * Safari and iOS override the text colour of a disabled input with their own
+   * grey, which would drop the token on the floor. This keeps the colour the
+   * one above, and the node's 0.5 opacity is what fades it.
+   */
+  -webkit-text-fill-color: currentColor;
+}
