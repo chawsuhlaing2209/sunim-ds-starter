@@ -165,3 +165,6 @@ Try: <one next step>
   blocked and name what is missing. Waiting is the correct outcome, not a failure of yours.
 - Never substitute local Storybook for staging. Staging is what shipped; local is what one
   machine happened to compile.
+- Never test when the registry is unreachable. The staging link, the Figma node and
+  the rows you write all live there — without it you cannot find what to test, and you
+  have nowhere to put the result.

@@ -179,3 +179,6 @@ Try: <one next step>
 - Never write into `Design`, `Production Storybook`, `Release Review`,
   `Release Verdict`, or any formula column.
 - Never build from a row whose `Development` is blank. The design is not finished.
+- Never build or deploy when the registry is unreachable. The row is where the work
+  comes from and where the handoff goes. Without it you are building from a
+  conversation, which is the one thing this pipeline does not do.
