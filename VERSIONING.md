@@ -92,6 +92,15 @@ never writes `version` into `package.json`. What comes out is a report at
 `reports/release/<version>.md` carrying a proposed number and the specific change
 that forces it.
 
+Its last step **builds the reference site for the proposed version** and records
+whether it built. A version is not prepared until the site that documents it is —
+and if `CHANGELOG.md` has no heading for that number yet, the report says so, and
+that is the next thing to do rather than a failure.
+
+No report is written when nothing forces a bump. `reports/release/` is the record
+of releases that happened, and a file named for a version nobody is cutting reads
+exactly like a proposal.
+
 Read the report. The proposal is in words; the number is yours.
 
 **3 · A human bumps the version and tags it.**
@@ -136,6 +145,11 @@ A release note may say a publish was **recorded**. It may not say it was
 npm run docs:build && npm run docs:deploy -- --prod
 ```
 
+The build already exists — the publish made it at its step 5, before the
+irreversible one, and step 10 handed it over rather than deploying it. This is
+🚀 DevOps performing what was prepared, which is the boundary; the publish prints
+this command rather than leaving it to be discovered.
+
 The home page reads `package.json` for the version and `CHANGELOG.md` for that
 version's entry, so a redeploy is what makes the site say what was just
 published. Until it runs, the site is announcing the previous release — which is
@@ -159,4 +173,4 @@ Steps 2, 4 and 5 are all guarded now, because each of them has been missed once:
 |---|---|---|
 | The changelog heading | A published tarball whose changelog did not mention the version inside it | `publish.mjs` step 4 refuses |
 | The same, at build time | A site announcing the previous release | `generate-docs.mjs` fails the build |
-| The redeploy | A correct site nobody can see | Step 5 above, and nothing mechanical — this one is still a habit |
+| The redeploy | A correct site nobody can see | The site is built for you and the publish prints the command. Running it is still a habit — there is no CI to hook it to |

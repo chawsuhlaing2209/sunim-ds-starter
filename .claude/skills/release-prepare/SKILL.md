@@ -1,6 +1,6 @@
 ---
 name: release-prepare
-description: The nine checks that turn a set of Completed components into a package a human can decide to publish — board, exports, clean tree, peer deps, build, pack, smoke install, changelog, version. Use to prepare a release, never to perform one.
+description: The ten checks that turn a set of Completed components into a package a human can decide to publish — board, exports, clean tree, peer deps, build, pack, smoke install, changelog, version, reference site. Use to prepare a release, never to perform one.
 ---
 
 # Preparing a release
@@ -23,7 +23,7 @@ upstream ever installs it.
 ## Run it, then read it
 
 ```
-npm run release              # the nine gates, git untouched
+npm run release              # the ten gates, git untouched
 npm run release -- --branch  # …and push release/<version>
 ```
 
@@ -35,7 +35,7 @@ Running it is not the job, though. Each step below says what it is protecting
 against, and step 6 in particular cannot be automated away — the script checks
 for the failures it knows about, and you read the list for the ones it does not.
 
-## The nine steps
+## The ten steps
 
 ### 1 · Read the board
 `Components` table, `Development` column. Everything reading `Completed` is a
@@ -145,6 +145,24 @@ source, and **a human writes the number** — you propose it in words.
 If nothing forces a bump, say so. A release with no reason is one worth not
 doing.
 
+### 10 · Build the reference site for that version
+`scripts/generate-docs.mjs --version <proposed>`, which step 10 runs for you.
+
+`--version` is how this asks about a number nobody has written into `package.json` yet.
+You must never write it — so naming it without committing to it is the only honest
+way to ask *will the site build for this?*
+
+Three outcomes, and only one of them stops a release:
+
+| | |
+|---|---|
+| Builds | Recorded in the report: builds for `<version>`, N pages, **not deployed** |
+| Exit 2 — no changelog heading for it | A line in the report saying so. This is the ordinary state of a release being prepared, not a fault: the number is being proposed in this very run |
+| Anything else | **Stop.** A version whose documentation cannot be generated is not prepared |
+
+**You build it. You never deploy it.** Deploying is 🚀 DevOps's, performed when a
+human says so. The report carries the command; running it is not yours.
+
 ## What ships out of this
 
 A branch — `release/<version>`, pushed, carrying `CHANGELOG.md` and
@@ -162,7 +180,7 @@ You cannot, and neither can anything else on this machine. `scripts/publish.mjs`
 is run by a person, and holds no credential — it reads *whether* you are logged
 in, never what with.
 
-It re-runs all nine gates before anything leaves the machine, refuses a version
+It re-runs all ten gates before anything leaves the machine, refuses a version
 that does not match `package.json`, refuses to republish a version the registry
 already has, and puts `private: true` back afterwards. That last one is
 registered on `exit` and on SIGINT as well as being done inline, because it was
