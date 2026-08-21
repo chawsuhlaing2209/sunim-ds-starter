@@ -117,6 +117,103 @@ Vercel token, no `git tag`, no `npm publish`."
 
 ---
 
+## How levels change
+
+Each block is a test somebody can apply without asking the orchestrator. Numbers are
+based on what that agent actually does, not copied between agents.
+
+**Before any of this: no CI runs on a pull request in this repo.** The only workflow
+is `release-publish.yml`, and it is `workflow_dispatch` only. Every criterion below
+that asks for "a verifier on every PR" is therefore unmet today, including for the
+agent already sitting at Senior.
+
+### 🔨 engineer — Senior
+
+**PROMOTION · Senior → Autonomous.** At Senior for a quarter. Six or more components
+have gone `To-do` → `Completed` with no QA failure that `lint`, Storybook or
+`security-check` should have caught. QA has caught at least one real defect and the
+fix loop closed it without a human relaying anything. The kill switch has been tested
+— somebody moved `.claude/registry.local.json` and watched it stop. A bad merge into
+staging is revertable in under an hour.
+
+**DEMOTION — immediate, no discussion.** It deployed to staging on a red gate, or with
+a known defect. It wrote a status word that is QA's. It marked a row `Fixed (To
+re-test)` it did not fix. Or thirty days of PRs where the same class of correction
+keeps coming back.
+
+### 🔍 QA — Observer
+
+**⚠️ QA cannot pass Junior until a verifier exists.** Its only check today is a human
+reading the report. A verifier would have to answer: does the number of rows in
+`Staging Testing` match the variant × size × state count in the Figma node, is every
+row's `Composed In` filled, and does any row carry `Passed` written in the same run
+that the engineer wrote `Fixed (To re-test)`? That is checkable and nothing checks it.
+
+**PROMOTION · Observer → Advisor.** Ran on four or more components across two weeks,
+and the orchestrator can name two blind spots and how she handles them — beyond the
+two already written into the file (fonts not loaded, `get_variable_defs` answering in
+the wrong mode). Found in practice, not imagined.
+
+**DEMOTION — immediate, no discussion.** A `Passed` reached production on something
+broken. It tested a component it had built. It wrote one row for a whole component.
+Or the reports cost more than an hour to read across thirty days.
+
+### 🚀 DevOps — Autonomous
+
+**No promotion. It is already at the top of the ladder**, and the two human-initiated
+jobs stay human-initiated. To *hold* Autonomous: the live security gate keeps running
+against production, PM's sweep keeps re-opening every link it wrote, and the
+`npm-publish` reviewer requirement stays on.
+
+**DEMOTION — immediate, no discussion.** It shipped past a `Fixed (To re-test)` row.
+It fixed anything on the way to production. It wrote a link to a page it had not
+opened. It published without a human confirming the version. Any one of these drops it
+to Senior — production deploys go behind a human ask until it re-earns the gate.
+
+### 📋 PM — Observer
+
+**⚠️ PM cannot pass Junior until a verifier exists.** Nothing checks its sweep. A
+verifier would have to answer: did it read every row rather than a filtered view, did
+every URL it called good actually return 200, and is every finding addressed to an
+owner who can act on it?
+
+**PROMOTION · Observer → Advisor.** Four sweeps across four weeks where every finding
+was actionable without asking a follow-up question, no dead link was missed, and the
+orchestrator can name two blind spots and how she handles them.
+
+**DEMOTION — immediate, no discussion.** It wrote to the registry. It reported a link
+as good without opening it. It reported counts with no rows behind them. Or two
+consecutive sweeps repeated the same stuck list with nothing new.
+
+### 📝 Doc Generator — Junior
+
+**PROMOTION · Junior → Senior.** Intents merged unchanged for eight consecutive weeks.
+Every rejection in that period is now a rule in `CLAUDE.md`. And `npm run
+release-review` gate 6 runs on every PR in CI — which today it does not, so this
+criterion is currently unreachable by construction.
+
+**DEMOTION — immediate, no discussion.** It published a page for a component not
+reading `Completed`. It softened a field to make it true. It edited a component, its
+stories or its CSS. It hand-edited a generated page or `docs/registry-status.json`. Or
+a published page described something that had never shipped.
+
+### 📦 Release — Advisor
+
+**PROMOTION · Advisor → Junior.** Three releases prepared where the proposed version
+was the one eventually published and the forcing change named was the right one. The
+`npm pack` file list was read and reported every time. And a check exists that would
+catch a bad release branch before a human confirms it — today the only one is DevOps
+re-verifying at publish time, which is late but real.
+
+**DEMOTION — immediate, no discussion.** It edited `package.json`'s version. It wrote
+outside its release branch. It accepted a publish credential. It carried on with a
+partial run when the board was unreachable. Or it included a component whose
+`Release Verdict` was not `Cleared` without saying so on the card.
+
+---
+
+Demotion is a reset, not a failure. Fix the verifier, narrow the scope, re-promote when the criteria are met.
+
 ## Proposed kill switches
 
 **None of this is in an agent file.** Every mechanism below is PROPOSED, on the same
