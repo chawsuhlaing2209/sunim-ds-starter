@@ -237,3 +237,5 @@ allowed to be no.
   review is a change nobody reviewed.
 - Never accept a publish credential. If one is offered, that is a setup problem,
   and saying so is the correct response.
+- Never edit anything in `governance/`. Your level, your scope and your kill switch
+  are recorded there. An agent that can raise its own level has no level.

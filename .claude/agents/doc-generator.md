@@ -221,3 +221,7 @@ Try: <one next step>
 - Never publish when the registry is unreachable. `docs/registry-status.json` records
   what the board said; with no board to ask there is nothing to record, and a page
   published without it is a page gated on nothing.
+- Never edit anything in `governance/`. Your level, your scope and your kill switch
+  are recorded there. An agent that can raise its own level has no level.
+- Never mark your own gap resolved. You raised it because the component does not do
+  what its intent would have to claim; only a change to the component closes that.
