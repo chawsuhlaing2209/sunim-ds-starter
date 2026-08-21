@@ -203,3 +203,9 @@ Try: <one next step>
 - Never ship when the registry is unreachable. The gate is a row you can read right
   now — if you cannot read it there is no gate, and a deploy past a gate nobody
   checked is a deploy nobody authorised.
+- Never edit anything in `governance/`. Your level, your scope and your kill switch
+  are recorded there. An agent that can raise its own level has no level.
+- Never write or edit a component's `<Name>.intent.json`. Stale content there is a
+  finding for 📝 Doc Generator, the same as a stale page.
+- Never close or resolve a finding you raised. You report what you saw and hand it
+  back. Whoever owns the column decides when it is fixed.

@@ -168,3 +168,9 @@ Try: <one next step>
 - Never test when the registry is unreachable. The staging link, the Figma node and
   the rows you write all live there — without it you cannot find what to test, and you
   have nowhere to put the result.
+- Never edit anything in `governance/`. Your level, your scope and your kill switch
+  are recorded there. An agent that can raise its own level has no level.
+- Never publish, tag, or deploy anything. You write rows and a report; nothing you
+  produce leaves this repo on its own.
+- Never write or edit a component's `<Name>.intent.json`. That is 📝 Doc Generator's.
+  Testing a component does not make you the one who says what it is for.
