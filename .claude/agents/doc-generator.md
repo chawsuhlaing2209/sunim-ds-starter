@@ -170,7 +170,7 @@ prose.
 - [ ] The built site opened, and its props, token and accessibility sections are
       populated and correct
 - [ ] `node scripts/security-check.mjs --dir docs/dist` reads `CLEAR`
-- [ ] Nothing under `docs/src/content/docs/components/` was edited by hand
+- [ ] Nothing under `docs/src/content/docs/core/components/` was edited by hand
 
 ## Output card
 ```

@@ -136,15 +136,23 @@ a `--force` build is not a release.
 
 | Page | Built from |
 |---|---|
-| `components/<name>.mdx` | the intent, the props interface with its doc comments, the required tokens resolved through the build, the stories, the unbound-value block |
-| `components/overview.md` | every published component's `use_when` and `status` |
-| `start/tokens.md` | the union of every component's `required_tokens`, resolved, with who depends on each |
-| `start/versioning.md` | `VERSIONING.md`, verbatim |
+| `core/components/<name>.mdx` | the intent, the props interface with its doc comments, the required tokens resolved through the build, the stories, the unbound-value block |
+| `core/components/overview.md` | every published component's `use_when` and `status` |
+| `core/tokens.md` | the union of every component's `required_tokens`, resolved, with who depends on each, and how many of them a mode actually moves |
+| `get-started/changelog.md` | `CHANGELOG.md`, verbatim — the same file that ships inside the published package |
+| `get-started/versioning.md` | `VERSIONING.md`, verbatim |
+| `index.mdx` | the current version and release date from `CHANGELOG.md`, the published component count, the token count and the mode count |
 
-Only `index.mdx` and `start/what-this-is.md` are hand-written. Everything else is
-gitignored for the same reason `build/tokens/` is: **it is generated, so editing
-it by hand lasts until the next build**, and the source it disagreed with is
-still wrong.
+Those six are gitignored for the same reason `build/tokens/` is: **they are
+generated, so editing one by hand lasts until the next build**, and the source it
+disagreed with is still wrong.
+
+Everything else — `designing/`, `developing/`, `skills/`, `styling/`, `help/`,
+`get-started/roadmap.md` and `get-started/news.md` — is written by hand and
+tracked. Those are guides, and a guide has no source to be generated from. The
+line worth holding is that **the reference is generated and the guides are not**:
+a hand-written page describing a prop is a page that will still read perfectly
+after the prop is renamed.
 
 The generated directory is cleared before each run. A component removed from the
 public surface loses its page, which is the behaviour you want — a stale page is
@@ -178,7 +186,8 @@ how a site keeps documenting something that no longer exists.
       section on every page — none of them empty
 - [ ] The Storybook links open the right component
 - [ ] `node scripts/security-check.mjs --dir docs/dist` reads `CLEAR`
-- [ ] No hand-edited file under `docs/src/content/docs/components/`
+- [ ] No hand-edited file under `docs/src/content/docs/core/components/`, and no hand-edited
+      `core/tokens.md`, `get-started/changelog.md`, `get-started/versioning.md` or `index.mdx`
 
 ## Never
 - Never hand-write or hand-edit a component page. If the page is wrong, the

@@ -2,7 +2,7 @@
 title: Embedding
 description: Why the Storybook and Figma frames on a component page can come up blank, and the one header that fixes it.
 sidebar:
-  order: 4
+  order: 6
 ---
 
 Component pages embed two things they do not own: a Storybook story, and the
