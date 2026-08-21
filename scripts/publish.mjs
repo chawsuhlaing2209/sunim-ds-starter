@@ -13,7 +13,7 @@
  *
  * So `--provenance` is unavailable, not deferred. What it would have given is a
  * signed attestation binding the tarball to the commit and workflow that built
- * it. What replaces it is weaker and worth being precise about: step 7 prints
+ * it. What replaces it is weaker and worth being precise about: step 9 prints
  * the commit, the tag and the registry's own checksum for the tarball, and
  * appends them to the release report. Anyone can re-run that comparison later.
  * It is a recorded claim a person can check, not a cryptographic one a machine
@@ -29,6 +29,11 @@
  *     with.
  *   - Publish past a red gate. It runs all nine release checks first, and they
  *     stop at the first failure.
+ *   - Publish a version the changelog does not name. `0.1.1` went out while
+ *     CHANGELOG.md still read `## Unreleased`, so the published tarball carried
+ *     a changelog that did not mention the version inside it and the reference
+ *     site went on announcing `0.1.0`. Step 4 is that failure, turned into a
+ *     gate.
  *   - Publish a version you did not name. The argument must match package.json,
  *     which a human wrote.
  *   - Leave `private: true` off. It is removed for the publish and put straight
@@ -117,8 +122,43 @@ try {
   ok('not published yet');
 }
 
+/* ── The changelog records this version ──────────────────────────────────── */
+step('4 · The changelog records this version');
+/*
+ * Publishing a version the changelog does not name is how the reference site
+ * ends up announcing the previous release.
+ *
+ * That is not hypothetical. `0.1.1` was published while `CHANGELOG.md` still
+ * said `## Unreleased`, and the site went on telling every reader the current
+ * version was `0.1.0` — correct according to the only file it had to go on.
+ *
+ * The changelog is also the one document that ships *inside* the tarball, so an
+ * entry missing here is missing for everybody who installs the package and looks
+ * for what changed. Checked before the irreversible step rather than after it:
+ * a heading can be written in ten seconds now, and not at all once the version
+ * is on the registry.
+ */
+const CHANGELOG = 'CHANGELOG.md';
+if (!existsSync(CHANGELOG)) {
+  stop('CHANGELOG.md is missing.',
+    'It ships inside the tarball. A package that cannot say what changed is not ready.');
+}
+const changelog = readFileSync(CHANGELOG, 'utf8');
+const entry = new RegExp(`^##\\s+${pkg.version.replace(/\./g, '\\.')}\\s*[—-]\\s*(\\S+)\\s*$`, 'm')
+  .exec(changelog);
+if (!entry) {
+  stop(
+    `CHANGELOG.md has no "## ${pkg.version} — <date>" heading.`,
+    `Add one — move "## Unreleased" down to it if that is where the notes are.\n`
+    + '  Without it the published tarball carries a changelog that does not mention\n'
+    + '  the version inside it, and the reference site keeps announcing the previous\n'
+    + '  release. Both have happened.',
+  );
+}
+ok(`recorded as released ${entry[1]}`);
+
 /* ── Every gate, again ───────────────────────────────────────────────────── */
-step('4 · The nine release gates');
+step('5 · The nine release gates');
 try {
   run(`node scripts/release.mjs --version ${pkg.version}`);
 } catch {
@@ -127,7 +167,7 @@ try {
 }
 
 /* ── Publish ─────────────────────────────────────────────────────────────── */
-step(`5 · ${dryRun ? 'Dry run — nothing leaves this machine' : 'Publish'}`);
+step(`6 · ${dryRun ? 'Dry run — nothing leaves this machine' : 'Publish'}`);
 
 /*
  * `private: true` lives in package.json so an absent-minded `npm publish` is
@@ -211,7 +251,7 @@ if (dryRun) {
 }
 
 /* ── Tag, after the publish and never before ─────────────────────────────── */
-step('6 · Tag');
+step('7 · Tag');
 try {
   run(`git tag -a v${pkg.version} -m "Release ${pkg.version}"`);
   run(`git push origin v${pkg.version}`);
@@ -222,7 +262,7 @@ try {
 }
 
 /* ── What the registry actually serves ───────────────────────────────────── */
-step('7 · Install what was published, and render it');
+step('8 · Install what was published, and render it');
 console.log('  waiting for the registry to serve it…');
 const smoke = `/tmp/sunim-verify-${pkg.version}`;
 try {
@@ -273,7 +313,7 @@ console.log('  the published version installs and renders');
  * Written into the release report rather than only printed. A number that
  * scrolls past in a terminal is not a record.
  */
-step('8 · Record what was published');
+step('9 · Record what was published');
 
 const readOrNull = (cmd) => {
   try {

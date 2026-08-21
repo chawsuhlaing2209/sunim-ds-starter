@@ -130,7 +130,33 @@ The publish script records the commit, the tag and the registry checksum instead
 A release note may say a publish was **recorded**. It may not say it was
 **attested**.
 
-**5 · Tell people what upgrading costs them.**
+**5 · Redeploy the reference site.**
+
+```bash
+npm run docs:build && npm run docs:deploy -- --prod
+```
+
+The home page reads `package.json` for the version and `CHANGELOG.md` for that
+version's entry, so a redeploy is what makes the site say what was just
+published. Until it runs, the site is announcing the previous release — which is
+correct for the build that is live, and wrong for the package.
+
+`docs:deploy` deploys the built output rather than the repository, and refuses if
+`docs/dist/index.html` turns out to be a Storybook build. Both of those are there
+because deploying from the repository root put Storybook on the reference domain
+once.
+
+**6 · Tell people what upgrading costs them.**
 [Upgrading](/get-started/upgrading/) is the page a consumer reads. If this
 version needs a step that is not `npm install`, that page is where it goes, and
 this is the moment it is true.
+
+---
+
+Steps 2, 4 and 5 are all guarded now, because each of them has been missed once:
+
+| Missed | What it produced | What catches it |
+|---|---|---|
+| The changelog heading | A published tarball whose changelog did not mention the version inside it | `publish.mjs` step 4 refuses |
+| The same, at build time | A site announcing the previous release | `generate-docs.mjs` fails the build |
+| The redeploy | A correct site nobody can see | Step 5 above, and nothing mechanical — this one is still a habit |
