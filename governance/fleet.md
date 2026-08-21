@@ -10,7 +10,7 @@ agent file states a level of its own.
 
 | Agent | Type | Level | Scope | Verifier | Kill switch |
 |---|---|---|---|---|---|
-| 🔨 `engineer` | goal-based | **Senior — PROPOSED** | `src/components/` except `<Name>.intent.json`; its develop branch; the staging branch; registry cells `Commit`, `Staging Storybook`, `Composes`, and `Fixed (To re-test)` on test rows it fixed. Report path not stated | 🔍 QA, plus machine gates it must run itself: `npm run lint`, Storybook rendering every story, `npm run security-check`, and `security-check --url <staging>` | **not stated** → proposed **P1 · P2 · P3**. De-facto stop: it may not start from a row whose `Development` is blank |
+| 🔨 `engineer` | goal-based | **Senior — PROPOSED** | `src/components/` except `<Name>.intent.json`; its develop branch; a PR into the staging branch, which it also merges; registry cells `Commit`, `Staging Storybook`, `Composes`, and `Fixed (To re-test)` on test rows it fixed. Report path not stated | 🔍 QA, plus machine gates it must run itself: `npm run lint`, Storybook rendering every story, `npm run security-check`, and `security-check --url <staging>` | **not stated** → proposed **P1 · P2 · P3**. De-facto stop: it may not start from a row whose `Development` is blank |
 | 🔍 `qa` | model-based | **Observer — PROPOSED** | `reports/` only, committed and pushed to `staging`; rows in the registry's `Staging Testing` table, which it creates and owns. Nothing on the `Components` row | none for the verdict — a human reads it ("no verdict of yours is final until a human reads it"). 📋 PM's sweep catches structural faults in its rows, e.g. an empty `Composed In` | **not stated** → proposed **P1 · P3**. De-facto stop: no `Staging Storybook` link, no test |
 | 🚀 `devops` | model-based | **Autonomous — PROPOSED** (human-initiated for jobs 2 and 3) | Git: the staging branch and `main`; the production Storybook host; the reference-site host; registry cells `Production Storybook` and `Astro Link`; `reports/` for the deploy note. Named hosts not stated | its own gates: `npm run lint` and `npm test` on `main`, `npm run security-check` on the build, `security-check --url <production> --expect public`, opening the deployed page, and the `Development → Completed` formula. For job 3, installing the published version from the registry into an empty folder. 📋 PM re-opens its links on every sweep | **not stated** → proposed **P1 · P2 · P3 · P4**. De-facto stops: a row not reading `To be deployed`; jobs 2 and 3 require a human to ask |
 | 📋 `pm` | model-based | **Observer — PROPOSED** | `reports/` only — `reports/registry-audit.md`. Registry is read-only, every table. Whether it commits `reports/` is not stated | none — a human reads it. "The report is the deliverable" | **not stated** → proposed **P0**. It holds no registry write access, so a stale sweep changes nothing |
@@ -31,10 +31,10 @@ a goal test at every step and a loop back on failure. Does it choose between opt
 that are all acceptable? No, and it is explicitly forbidden from doing so: "An unbound
 property is reported, not guessed." Plan without choice puts it at goal-based.
 
-Senior rather than Junior because it does not stop at a proposal: "Merge your develop
-branch into the staging branch, deploy the staging Storybook, then **open the deployed
-URL**". It merges and deploys. Not Autonomous because the merge and deploy stop at
-staging — "Never write into `Design`, `Production Storybook`…" — and its work is not
+Senior rather than Junior because it does not stop at a proposal: "Open a PR from your
+develop branch into the staging branch and merge it, deploy the staging Storybook, then
+**open the deployed URL**". A Junior opens the PR and waits; this one merges its own and
+deploys. Not Autonomous because both stop at staging — "Never write into `Design`, `Production Storybook`…" — and its work is not
 signed off by itself: "Never run the QA pass or sign off your own work."
 
 ### 🔍 `qa` — model-based, Observer (PROPOSED)
@@ -264,16 +264,6 @@ operator would look.
 
 **Every agent, type and level.** No file states either. All six classifications above
 are readings, and every level is PROPOSED.
-
-**`engineer` — Access and Steps contradict each other on git.** Access says "Git — your
-develop branch, and the **PR** into the staging branch." Stage 5 says "**Merge** your
-develop branch into the staging branch." Those are different permissions, and the
-proposed level of Senior rests entirely on which one is true.
-
-**`engineer` — `Composes` is written but not granted.** Access says it writes "exactly
-three things: `Commit`, `Staging Storybook`, and `Fixed (To re-test)`." Stage 5's table
-and a "Never" bullet both require it to write `Composes`. Either the count is wrong or
-the column is.
 
 **`engineer` — report path not stated.** "A short report" is required with no location
 given, while QA, PM, DevOps, Doc Generator and Release all name `reports/`.
