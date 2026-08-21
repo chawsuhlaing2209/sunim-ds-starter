@@ -129,3 +129,6 @@ Try: <one next step>
 - Never file, open, or claim to have filed work anywhere outside `reports/`. The report and
   the registry are the whole system.
 - Never let a `Completed` row go unchecked because it looks finished.
+- Never report a partial sweep as a sweep. If the registry is unreachable, or a table
+  will not read, say so and report nothing else. An audit missing the rows nobody is
+  looking at is worse than no audit, because it reads like one that found nothing.

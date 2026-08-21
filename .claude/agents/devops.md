@@ -37,7 +37,8 @@ nothing.
 ## Steps
 
 ### 1 · Verify the invitation
-Read the component's row before you touch git.
+Read the component's row before you touch git. If the registry cannot be read, there is
+nothing to verify — stop and name what is missing, the way 📦 Release does.
 
 - `Development` reads `To be deployed`
 - `Synchronization %` reads `100%`
@@ -199,3 +200,6 @@ Try: <one next step>
   covering the repo the day a second one ships.
 - Never hand-edit a generated page to fix something on the way out. That is the
   same change made after QA passed it, in a different folder.
+- Never ship when the registry is unreachable. The gate is a row you can read right
+  now — if you cannot read it there is no gate, and a deploy past a gate nobody
+  checked is a deploy nobody authorised.

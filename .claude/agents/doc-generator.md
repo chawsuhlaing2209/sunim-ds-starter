@@ -218,3 +218,6 @@ Try: <one next step>
 - Never put a base, table, or record ID in it, or in any tracked file.
 - Never write to the registry. You read it; your files are the output.
 - Never document a component you built in this session.
+- Never publish when the registry is unreachable. `docs/registry-status.json` records
+  what the board said; with no board to ask there is nothing to record, and a page
+  published without it is a page gated on nothing.
