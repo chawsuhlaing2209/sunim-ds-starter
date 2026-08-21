@@ -219,8 +219,13 @@ QA creates these rows. One row per variant × size × state, never one row per c
 - Read the choices from the base before writing one. They have been renamed once
   already — this contract said they carried trailing spaces long after they stopped,
   and an agent copying that instruction would have written an invalid choice.
-- If a value you need is not in the list of choices, that is a gap. Report it. Do
-  not add a choice to make your write succeed.
+- If a value you need is not in the list of choices, ask which kind of gap it is.
+  **A value the design genuinely defines, that the column simply lacks** — 🔍 QA may
+  add the choice, matching the casing of the choices already there, and say in its
+  report that it did. **A value that does not belong** — the design does not define
+  it, or the one you want is wrong — is still a gap to report, and adding a choice to
+  make a failing write succeed is still forbidden. The difference is whether the
+  design says the value exists.
 
 ## Never
 - Never write a link to something you have not opened and seen render.
@@ -231,6 +236,8 @@ QA creates these rows. One row per variant × size × state, never one row per c
 - Never write a base, table, or record ID into a tracked file, a report, or a commit
   message. Name the component, not the row.
 - Never mark a row `Passed` unless you are QA and you watched it pass.
+- Never add a select choice to make a write succeed. QA may add one the design
+  defines and the column lacks; nobody invents one to get past a rejection.
 - Never write `Cleared` without the report link beside it, and never link a
   review to a branch instead of a commit.
 - Never write `Astro Link` before the page has been opened and seen to render,
