@@ -27,7 +27,8 @@ loaded in `.storybook/preview.ts`. Not a CDN; the deployed CSP forbids one
 |---|---|
 | Install | `npm install` |
 | Build tokens | `npm run build:tokens` |
-| Build the library | `npm run build` → `dist/` (tokens, then Vite, then types, then CSS) |
+| Build the library | `npm run build` → `dist/` (tokens, then Vite, then types, then CSS, then the skill) |
+| Build the knowledge skill | `npm run build:skill` → `skill/` (generated from the intent contract; gitignored, packed) |
 | Run Storybook | `npm run storybook` |
 | Build Storybook | `npm run build-storybook` |
 | Test | `npm test` |
@@ -70,7 +71,8 @@ crew — nothing that talks to the registry works until you do.
 - The public surface: `src/index.ts` — nothing outside it is released
 - What a version promises: `VERSIONING.md`
 - The one reader everything downstream shares: `scripts/lib/contract.mjs`
-- Library build config: `vite.config.ts`, `tsconfig.build.json`, `scripts/bundle-css.mjs`
+- Library build config: `vite.config.ts`, `tsconfig.build.json`, `scripts/bundle-css.mjs`,
+  `scripts/generate-skill.mjs`
 - The release run: `scripts/release.mjs` — nine gates, stops at the first failure
 - The publish: `scripts/publish.mjs`, run by a person. The CI workflow
   `.github/workflows/release-publish.yml` is kept and cannot currently run

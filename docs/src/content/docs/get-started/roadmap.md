@@ -58,11 +58,20 @@ That is deliberately weaker and the difference is worth stating precisely: a
 release note here may say a publish was **recorded**. It may not say it was
 **attested**.
 
-## Not started, and honestly described
+## Built, waiting on a version
 
 | | |
 |---|---|
-| **[Component recommender](/skills/component-recommender/)** | A knowledge skill reading the intent contract to answer "which component should this UI use?". The contract it would read already exists. Nothing is built |
+| **[The knowledge skill](/skills/knowledge-skill/)** | Ships inside the package. Generated from the intent contract, so it is a fourth reader of one file rather than a fifth copy of the prose. Built and packaged; it reaches consumers on the next published version, and **no agent cuts that number** |
+
+## Not started
+
+Nothing is recorded here. That is not a claim that nothing is missing — it is
+that nothing else has been designed, requested with evidence, or ruled on. The
+gaps somebody has actually hit are in the two sections above; the ones nobody has
+raised yet are not knowable from inside this repository.
+
+[Request one](/help/feature-request/) and it lands here.
 
 ## What would make `1.0.0`
 

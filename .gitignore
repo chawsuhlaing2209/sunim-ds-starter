@@ -7,6 +7,12 @@ node_modules/
 /dist/
 /storybook-static/
 
+# The knowledge skill that ships inside the package. Generated from the intent
+# contract by scripts/generate-skill.mjs — same rule as /dist/ and build/tokens/:
+# an edit here lasts until the next build, and the component it disagreed with is
+# still right. Anchored, so .claude/skills/ is untouched.
+/skill/
+
 .DS_Store
 *.log
 
