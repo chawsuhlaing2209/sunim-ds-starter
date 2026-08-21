@@ -23,7 +23,7 @@
  */
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, cpSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execSync, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
@@ -41,6 +41,10 @@ let step = 0;
 const head = (n, title) => { step = n; console.log(`\n\x1b[1m${n} · ${title}\x1b[0m`); };
 const ok = (m) => console.log(`  \x1b[32m✓\x1b[0m ${m}`);
 const info = (m) => console.log(`    ${m}`);
+/* Not every shortfall is a stop. A release being prepared legitimately has
+ * things left to do, and the report is where they go — a gate that failed them
+ * all would make preparing impossible before the work it is preparing for. */
+const warn = (m) => console.log(`  \x1b[33m·\x1b[0m ${m}`);
 const stop = (m, fix) => {
   console.log(`  \x1b[31m✗\x1b[0m ${m}`);
   console.log(`\n\x1b[1m\x1b[31mBLOCKED at step ${step}\x1b[0m`);
@@ -396,6 +400,9 @@ const breaking = groups.Removed.length > 0 || groups.Deprecated.length > 0;
 
 let proposed;
 let forcing;
+/* Whether anything in the history actually requires a new number. When nothing
+ * does, no report is written — see below. */
+let nothingForces = false;
 if (versionOverride) {
   proposed = versionOverride;
   forcing = 'Named on the command line, overriding the proposal.';
@@ -410,12 +417,60 @@ if (versionOverride) {
   forcing = `${e.subject} (${e.sha}) — a removal or deprecation, which below 1.0.0 is a minor bump.`;
 } else {
   proposed = `${current[0]}.${current[1]}.${current[2] + 1}`;
-  forcing = groups.Added.length
-    ? `${groups.Added[0].subject} (${groups.Added[0].sha}) — additive only, so a patch.`
-    : 'Nothing forces a bump. A release with no reason is one worth not doing.';
+  if (groups.Added.length) {
+    forcing = `${groups.Added[0].subject} (${groups.Added[0].sha}) — additive only, so a patch.`;
+  } else {
+    forcing = 'Nothing forces a bump. A release with no reason is one worth not doing.';
+    nothingForces = true;
+  }
 }
 ok(`proposed \x1b[1m${proposed}\x1b[0m — package.json currently reads ${pkg.version}`);
 info(forcing);
+
+/* ── 10 · The reference site, for this version ──────────────────────────── */
+head(10, 'The reference site, built for this version');
+/*
+ * Preparing a release provokes 📝 Doc Generator.
+ *
+ * The rule this implements: a version is not prepared until the site that
+ * documents it is. Otherwise "released" and "documented" are two acts separated
+ * by whoever remembers the second one — and twice now they were not, leaving the
+ * site announcing the previous release to everybody who opened it.
+ *
+ * `--version` is how this asks about a number that is not in package.json yet.
+ * 📦 Release must never write that number, so naming it without committing to it
+ * is the only honest way to ask "will the site build for this?".
+ *
+ * This builds. It does not deploy, and it must not: deploying is 🚀 DevOps's,
+ * performed when a human says so. What comes out of here is a build and a line
+ * in the report saying so.
+ */
+let siteState;
+const siteRun = spawnSync('node', ['scripts/generate-docs.mjs', '--version', proposed], {
+  encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+});
+if (siteRun.status === 0) {
+  const pages = /(\d+) published/.exec(siteRun.stdout ?? '')?.[1] ?? '?';
+  siteState = `Builds for ${proposed} — ${pages} component pages. Not deployed.`;
+  ok(siteState);
+  info('deploying is 🚀 DevOps\'s, once a human says so: `npm run docs:deploy -- --prod`');
+} else if (siteRun.status === 2) {
+  /*
+   * The changelog has no heading for the proposed version. That is the ordinary
+   * state of a release being prepared rather than a fault — the number is being
+   * proposed in this very run — so it is the next thing to do, not a red gate.
+   */
+  siteState = `**Not ready.** \`CHANGELOG.md\` has no \`## ${proposed} — <date>\` heading, so the `
+    + 'site would announce the previous release. Add it before publishing; '
+    + '`scripts/publish.mjs` refuses without it.';
+  warn(`the site cannot be built for ${proposed} yet — CHANGELOG.md has no heading for it.`);
+  info('That is expected at this point. Add it before publishing; the publish refuses without it.');
+} else {
+  console.log(siteRun.stdout ?? '');
+  console.log(siteRun.stderr ?? '');
+  stop(`the reference site does not build (\`generate-docs.mjs\` exited ${siteRun.status}).`,
+    'A release whose documentation cannot be generated is not prepared. Fix what it names above.');
+}
 
 /* ── The report ─────────────────────────────────────────────────────────── */
 mkdirSync('reports/release', { recursive: true });
@@ -457,6 +512,20 @@ const report = [
   '',
   forcing,
   '',
+  '## The reference site',
+  '',
+  siteState,
+  '',
+  'Built here, never deployed. Deploying is 🚀 DevOps\'s and happens once a human says so:',
+  '',
+  '```bash',
+  'npm run docs:build && npm run docs:deploy -- --prod',
+  '```',
+  '',
+  'A version is not prepared until the site that documents it is. Otherwise "released" and',
+  '"documented" are two acts separated by whoever remembers the second one, and the site goes',
+  'on announcing the previous release — which has happened twice.',
+  '',
   '## Not verified',
   '',
   '- The changelog wording. Generated from commit subjects; nobody has rewritten it.',
@@ -466,14 +535,40 @@ const report = [
   '',
   '## What happens next',
   '',
-  'Nothing, until a person decides. This run made a branch and a draft; it holds no credential',
-  'and cannot publish. To release: confirm the version, have a human write it into',
-  '`package.json`, and trigger the publish workflow.',
+  'Nothing, until a person decides. This run made a branch, a draft and a site build; it holds',
+  'no credential and cannot publish or deploy. To release: confirm the version, have a human',
+  'write it into `package.json`, publish, then have 🚀 DevOps deploy the site.',
   '',
 ].join('\n');
 
-writeFileSync(`reports/release/${proposed}.md`, report);
-ok(`report → reports/release/${proposed}.md`);
+/*
+ * Two reasons not to write this file, both found by it going wrong.
+ *
+ * `reports/release/` holds the record of releases that happened. A report named
+ * for a version nobody is cutting sits in it under the same naming convention as
+ * the real ones and reads exactly like a proposal — `0.1.2.md` appeared that way
+ * and had to be explained. If nothing forces a bump, this run has said so; it
+ * does not also need to leave a file behind claiming otherwise.
+ *
+ * And a report carrying a `## Published` section is evidence that a human
+ * published that version, appended by `scripts/publish.mjs`. Overwriting it
+ * destroys the shasum, the integrity hash and the commit — the only things
+ * tying that tarball to this repository, since there is no provenance
+ * attestation to fall back on.
+ */
+const reportPath = `reports/release/${proposed}.md`;
+if (nothingForces) {
+  warn(`no report written — nothing forces a bump, so ${reportPath} would name a version`);
+  info('nobody is cutting. Everything above still stands; it just does not need a file.');
+} else if (existsSync(reportPath) && readFileSync(reportPath, 'utf8').includes('## Published')) {
+  stop(`${reportPath} already records a published release.`,
+    'Overwriting it would destroy the shasum, integrity hash and commit that tie that\n'
+    + '  tarball to this repository — and without provenance those numbers are the only\n'
+    + '  link there is. Propose a different version, or move that file first.');
+} else {
+  writeFileSync(reportPath, report);
+  ok(`report → ${reportPath}`);
+}
 
 /* ── The branch ─────────────────────────────────────────────────────────── */
 let branchLine = 'not created (pass --branch)';
@@ -496,6 +591,7 @@ console.log(`
 Ready: ${candidates.map((c) => c.name).join(', ')}${unreviewed.length ? ` \x1b[33m(${unreviewed.join(', ')} not reviewed)\x1b[0m` : ''}
 Not included: ${excluded.length ? excluded.map(([n, w]) => `${n} (${w})`).join(', ') : 'nothing — every component on the board is Completed'}
 Build ✓  Pack ${tar.entryCount} files, ${(tar.size / 1024).toFixed(1)} kB ✓  Smoke install ✓ renders
+Reference site: ${siteRun.status === 0 ? '\x1b[32m✓ builds for ' + proposed + ', not deployed\x1b[0m' : '\x1b[33m· not ready — CHANGELOG.md has no heading for ' + proposed + '\x1b[0m'}
 Proposed: \x1b[1m${proposed}\x1b[0m
 Branch: ${branchLine}
 

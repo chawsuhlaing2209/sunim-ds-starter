@@ -66,9 +66,6 @@ const site = JSON.parse(readFileSync(CONFIG, 'utf8'));
  * trying to look at is the one thing you cannot see. `--storybook` points them
  * at a local dev server, which sends no CSP.
  */
-if (argv.includes('--storybook')) {
-  site.storybookUrl = argv[argv.indexOf('--storybook') + 1];
-}
 const pkg = readPackage();
 const tokens = readTokens();
 /*
@@ -92,6 +89,38 @@ const modes = readModes();
 const ok = (m) => console.log(`  \x1b[32m✓\x1b[0m ${m}`);
 const bad = (m) => console.log(`  \x1b[31m✗\x1b[0m ${m}`);
 const note = (m) => console.log(`  \x1b[33m·\x1b[0m ${m}`);
+
+/*
+ * The version this build is *for*.
+ *
+ * Normally `package.json` — it is what npm serves. `--version` overrides it for
+ * the one case where they legitimately differ: 📦 Release preparing a version
+ * before a human has written the number into the file. That agent must never
+ * write `version` itself, so the only way it can ask "will the site build for
+ * 0.1.2?" is to name the number without committing to it.
+ *
+ * Nothing is mutated. The override changes which changelog entry is required and
+ * which number the home page announces, and nothing else.
+ */
+const forVersion = argv.includes('--version')
+  ? argv[argv.indexOf('--version') + 1]
+  : pkg.version;
+
+/*
+ * Exit 2 means one thing only: the changelog has no entry for the version being
+ * built.
+ *
+ * 📦 Release needs to tell that apart from every other failure. A site that
+ * cannot build is a problem that stops a release; a changelog heading that has
+ * not been written yet is the ordinary state of a release being prepared, and
+ * belongs in the report as the next thing to do rather than as a red gate.
+ */
+const EXIT_CHANGELOG_MISSING = 2;
+
+if (forVersion !== pkg.version) {
+  note(`building for ${forVersion}, which package.json does not carry yet — a release `
+    + 'preparing itself. Nothing is written to package.json.');
+}
 
 /* ── Markdown helpers ────────────────────────────────────────────────────── */
 
@@ -725,7 +754,7 @@ const hasReleaseHistory = () =>
  * notices — it is the page a reader trusts most and re-reads least.
  */
 function homePage(components) {
-  const rel = releaseFor(pkg.version);
+  const rel = releaseFor(forVersion);
   const tokenCount = new Set(components.flatMap((c) => c.intent.required_tokens)).size;
 
   const out = [];
@@ -954,6 +983,9 @@ const published = [];
 let blockedByIntent = 0;
 let blockedByRegistry = 0;
 let skipped = 0;
+/* Tracked separately from the counters because it is the one failure 📦 Release
+ * has to tell apart from the rest — see EXIT_CHANGELOG_MISSING. */
+let changelogMissing = false;
 
 for (const name of listComponents()) {
   const c = readComponent(name);
@@ -1033,7 +1065,7 @@ if (existsSync(TOKENS_SRC)) {
 
 if (existsSync('CHANGELOG.md')) {
   writeFileSync(join(GET_STARTED_OUT, 'changelog.md'), changelogPage());
-  const rel = releaseFor(pkg.version);
+  const rel = releaseFor(forVersion);
   if (rel) {
     ok(`changelog page — ${rel.version}, released ${rel.date}`);
   } else if (hasReleaseHistory()) {
@@ -1049,14 +1081,15 @@ if (existsSync('CHANGELOG.md')) {
      * Failing the build is the point. A warning would be read by whoever ran
      * the build, which is exactly the person who already knows.
      */
-    bad(`CHANGELOG.md has no entry for ${pkg.version}, which is the version package.json carries.`);
-    console.log(`      Add a "## ${pkg.version} — <date>" heading — move "## Unreleased" if the`);
+    bad(`CHANGELOG.md has no entry for ${forVersion}`
+      + `${forVersion === pkg.version ? ', which is the version package.json carries' : ''}.`);
+    console.log(`      Add a "## ${forVersion} — <date>" heading — move "## Unreleased" if the`);
     console.log('      release has been cut. Until then this site would announce the previous');
     console.log('      version as the current one, which is what it did the last time these two');
     console.log('      were allowed to disagree.');
-    blockedByRegistry++;
+    changelogMissing = true;
   } else {
-    note(`no entry for ${pkg.version} in CHANGELOG.md, and no release in it at all — nothing `
+    note(`no entry for ${forVersion} in CHANGELOG.md, and no release in it at all — nothing `
       + 'has been cut from here yet, so that is expected rather than a gap.');
   }
 } else {
@@ -1098,7 +1131,7 @@ const blocked = blockedByIntent + blockedByRegistry;
  * that has not shipped — so a registry block fails the run whatever flags were
  * passed, and PARTIAL exists for the one case that is a deliberate choice.
  */
-const failing = blockedByRegistry > 0 || (blockedByIntent > 0 && !force);
+const failing = blockedByRegistry > 0 || changelogMissing || (blockedByIntent > 0 && !force);
 
 console.log(
   `\n${failing ? '\x1b[31mBLOCKED\x1b[0m' : blocked ? '\x1b[33mPARTIAL\x1b[0m' : '\x1b[32mDONE\x1b[0m'}  `
@@ -1110,5 +1143,11 @@ if (failing) {
   console.log('  whose intent would fail the release gate. Ship it, fix the intent');
   console.log('  (`.claude/skills/intent/SKILL.md`), or re-read the registry — whichever the failure');
   console.log('  above names. `--force` publishes with the gaps named and is not a release.\n');
+}
+/* The changelog case exits 2 so a caller can tell "not written yet" from "broken",
+ * but only when it is the *only* thing wrong — anything else is an ordinary
+ * failure and must not be softened by it. */
+if (changelogMissing && blockedByRegistry === 0 && blockedByIntent === 0) {
+  process.exit(EXIT_CHANGELOG_MISSING);
 }
 process.exit(failing ? 1 : 0);

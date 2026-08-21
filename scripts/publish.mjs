@@ -157,8 +157,30 @@ if (!entry) {
 }
 ok(`recorded as released ${entry[1]}`);
 
+/* ── The site that documents it ──────────────────────────────────────────── */
+step('5 · The reference site builds for this version');
+/*
+ * Built *before* the publish, on purpose.
+ *
+ * The site does not depend on the package being on the registry, so there is no
+ * reason to find out it cannot be built until after the one step that cannot be
+ * taken back. If the documentation for this version cannot be generated, this is
+ * not a version to publish.
+ *
+ * Built, never deployed. Deploying is 🚀 DevOps's and happens once a human says
+ * so — step 12 hands it over rather than performing it.
+ */
+try {
+  run('npm run docs:build');
+} catch {
+  stop('the reference site does not build for this version.',
+    'A version whose documentation cannot be generated is not ready to publish.\n'
+    + '  Nothing has been published; fix what the build named above and re-run.');
+}
+ok('built — the site will describe this version, once somebody deploys it');
+
 /* ── Every gate, again ───────────────────────────────────────────────────── */
-step('5 · The nine release gates');
+step('6 · The nine release gates');
 try {
   run(`node scripts/release.mjs --version ${pkg.version}`);
 } catch {
@@ -167,7 +189,7 @@ try {
 }
 
 /* ── Publish ─────────────────────────────────────────────────────────────── */
-step(`6 · ${dryRun ? 'Dry run — nothing leaves this machine' : 'Publish'}`);
+step(`7 · ${dryRun ? 'Dry run — nothing leaves this machine' : 'Publish'}`);
 
 /*
  * `private: true` lives in package.json so an absent-minded `npm publish` is
@@ -251,7 +273,7 @@ if (dryRun) {
 }
 
 /* ── Tag, after the publish and never before ─────────────────────────────── */
-step('7 · Tag');
+step('8 · Tag');
 try {
   run(`git tag -a v${pkg.version} -m "Release ${pkg.version}"`);
   run(`git push origin v${pkg.version}`);
@@ -262,7 +284,7 @@ try {
 }
 
 /* ── What the registry actually serves ───────────────────────────────────── */
-step('8 · Install what was published, and render it');
+step('9 · Install what was published, and render it');
 console.log('  waiting for the registry to serve it…');
 const smoke = `/tmp/sunim-verify-${pkg.version}`;
 try {
@@ -313,7 +335,26 @@ console.log('  the published version installs and renders');
  * Written into the release report rather than only printed. A number that
  * scrolls past in a terminal is not a record.
  */
-step('9 · Record what was published');
+step('10 · The reference site, built and not deployed');
+/*
+ * The hand-over, which is deliberately not a deploy.
+ *
+ * The site was built at step 5, before the irreversible step, so what exists now
+ * describes exactly the version that just went out. Performing the deploy is
+ * 🚀 DevOps's job, done when a human says so — the same boundary that keeps
+ * 📦 Release from publishing.
+ *
+ * What this step owes the person reading it is that the boundary costs them one
+ * command and not an investigation. Until it is run, the live site announces the
+ * previous release, and that is the failure this whole arrangement exists to
+ * stop being silent about.
+ */
+console.log(`  \x1b[32m✓\x1b[0m docs/dist is built for ${pkg.version}`);
+console.log('  \x1b[33m!\x1b[0m NOT deployed. The live site still shows the previous release until:');
+console.log('\n      npm run docs:deploy -- --prod\n');
+
+/* ── Record ──────────────────────────────────────────────────────────────── */
+step('11 · Record what was published');
 
 const readOrNull = (cmd) => {
   try {
@@ -341,6 +382,7 @@ const record = [
   `- Tag · \`v${pkg.version}\``,
   `- Registry shasum · \`${shasum ?? 'not readable at publish time'}\``,
   `- Registry integrity · \`${integrity ?? 'not readable at publish time'}\``,
+  `- Reference site · built for \`${pkg.version}\`, **not deployed at publish time**`,
   '',
   'Published by hand, without `--provenance`. The header of `scripts/publish.mjs`',
   'says why that is unavailable rather than skipped. These numbers are a recorded',
@@ -372,7 +414,10 @@ console.log(`
 \x1b[1m📦 Published\x1b[0m  ${pkg.name}@${pkg.version}
 
   Still to do, by hand:
-    · Deploy the reference site, then write Astro Link on each component's row.
+    · \x1b[1mDeploy the reference site\x1b[0m:  npm run docs:deploy -- --prod
+      It is built for this version and nothing else will deploy it. Until
+      then the live site announces the previous release.
+    · Then write Astro Link on each component's row.
       That is the last cell Development needs to read Released.
     · Check the numbers above against the registry before telling anyone to
       install it. They are the whole of what ties this tarball to this commit.
