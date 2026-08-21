@@ -1,0 +1,155 @@
+/*
+ * Nav
+ *
+ * Built from Figma node 49:31 — the Nav component set, State (Default |
+ * Condensed) = 2 variants. That is the only variant axis in the set, so it is
+ * the only one here.
+ *
+ * ---------------------------------------------------------------------------
+ * UNBOUND IN FIGMA — design gaps, raised rather than guessed.
+ *
+ * The values below carry no variable binding on the node. They are transcribed
+ * exactly as the node states them and quarantined in this one block,
+ * deliberately NOT mapped onto a semantic token that happens to share the same
+ * number — doing that would disguise a design gap as a binding and hide it from
+ * the next person. Each becomes a var(--token) the moment design binds it.
+ *
+ * Everything else on the node is bound: the fill is `surface-card`, the stroke
+ * is `line-quiet`, the radius is `radius-pill`, the drop shadow is the
+ * `shadow/card` effect style, the bar padding is the Spacing collection's
+ * `22px` and `11px` variables (built here as --spacing-step-22 and
+ * --spacing-step-11), the gaps are `space-6` and `space-4`, the wordmark is the
+ * `Heading/Subtitle` text style in `text-heading`, and the links are the
+ * `UI/Label Strong` text style in `accent-ink` when current and `text-muted`
+ * otherwise.
+ * ---------------------------------------------------------------------------
+ */
+.sunim-Nav {
+  /* stroke weight on the pill, both states */
+  --sunim-Nav-unbound-border-width: 1px;
+
+  /*
+   * Auto-layout: horizontal, centre-aligned, gap `space-6`, with the Links
+   * frame set to fill.
+   *
+   * The node's own frames are a fixed 760 (Default) and 620 (Condensed) wide,
+   * which is what the designer drew them at rather than a rule the component
+   * can carry — the node's description calls this "a floating pill, not a
+   * full-width bar", and how wide that pill floats is the page's decision, not
+   * the bar's. So it fills its container here and the stories pin that
+   * container to 760 and 620 so each one matches the node it is tested
+   * against. Raised in the report.
+   */
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-space-6);
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: var(--spacing-step-11) var(--spacing-step-11)
+    var(--spacing-step-11) var(--spacing-step-22);
+  border-radius: var(--radius-radius-pill);
+  background-color: var(--color-surface-card);
+
+  /*
+   * Figma draws an inside stroke, which adds nothing to the frame size — both
+   * states of the node are 59 tall, which is 11 + 37 + 11 with the stroke
+   * sitting inside it and the 37 being the CTA. An inset box-shadow reproduces
+   * that exactly; a real `border` would push the pill 2px taller than the node
+   * and 2px wider than whatever the page sizes it to. The same stack carries
+   * the `shadow/card` effect, which has to stay outside the inset ring.
+   */
+  box-shadow:
+    inset 0 0 0 var(--sunim-Nav-unbound-border-width) var(--color-line-quiet),
+    var(--effect-shadow-card);
+
+  /*
+   * The node clips its content, and this deliberately does not.
+   *
+   * `overflow: hidden` on the pill is Figma's default "clip content" rather
+   * than a drawn decision — nothing on the node overflows, so it changes no
+   * pixel of either state. What it would change is focus: every focus ring in
+   * this system is a spread box-shadow, and a clipping ancestor cuts the ring
+   * off the links and off the CTA, so a keyboard user tabbing through the bar
+   * would see nothing. Reproducing an inert clip in exchange for invisible
+   * focus is not a trade worth making. Raised in the report.
+   */
+}
+
+/* Wordmark ---------------------------------------------------------------- */
+
+.sunim-Nav__wordmark {
+  flex-shrink: 0;
+  font: var(--font-heading-subtitle);
+  color: var(--color-text-heading);
+  white-space: nowrap;
+}
+
+/* Links ------------------------------------------------------------------- */
+
+/*
+ * The Links frame is set to fill, which is what puts the whole gap between the
+ * last link and the CTA rather than spreading it between the links. `min-width`
+ * is the flex-item reset that lets it actually shrink below its content — it is
+ * the browser's `auto` minimum being neutralised, not a value from the design.
+ */
+.sunim-Nav__links {
+  display: flex;
+  align-items: center;
+  flex: 1 0 0;
+  min-width: 0;
+
+  /* list reset — not design values */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  gap: var(--spacing-space-6);
+  font: var(--font-ui-label-strong);
+}
+
+.sunim-Nav--Condensed .sunim-Nav__links {
+  gap: var(--spacing-space-4);
+}
+
+.sunim-Nav__link {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  /* the anchor does not inherit the list's type on every browser */
+  font: inherit;
+}
+
+/*
+ * "The current section is the only link in accent ink" — the node's own
+ * description. `aria-current` is what carries that to a screen reader, so the
+ * colour hangs off the same attribute rather than a second class that could
+ * drift away from it.
+ */
+.sunim-Nav__link[aria-current] {
+  color: var(--color-accent-ink);
+}
+
+/*
+ * The set draws no focus appearance for a link — it has two variants, both
+ * resting — so this is the system's own `focus/ring` effect style rather than
+ * anything invented for this component. Without it the links are keyboard
+ * traps in the visual sense: reachable, and impossible to see.
+ *
+ * There is no hover rule here on purpose. The node defines no hover appearance
+ * for a link, and picking one — accent ink, say, because that is what current
+ * looks like — would be a design decision made in a stylesheet. Raised in the
+ * report.
+ */
+.sunim-Nav__link:focus-visible {
+  outline: none;
+  box-shadow: var(--effect-focus-ring);
+  border-radius: var(--radius-radius-sm);
+}
+
+/* CTA --------------------------------------------------------------------- */
+
+.sunim-Nav__cta {
+  flex-shrink: 0;
+}
