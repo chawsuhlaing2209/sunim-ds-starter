@@ -77,82 +77,20 @@ An agent that finds one of them wrong reports it and stops.
 | `Synchronization %` | **nobody** | Formula. Passed staging tests ÷ total staging tests |
 | `Last Modified` | **nobody** | Automatic |
 
-## Composition — what depends on what
+## The rest, by who needs it
 
-`Composes` records that one component imports another. The engineer writes it in the
-same pass that writes the import, and `Composed Into` is its automatic reverse.
+Four parts of this contract are read by some agents and not others. They are
+separate files so that an agent loads the ones it works against and no more.
 
-Read it in reverse and it answers the one question no other column can: **if this
-component changes, who has to be re-tested.** Without it, a repair to a low-level
-component leaves every consumer reading `Completed` at 100%, tested against a
-version that no longer exists underneath them, with nothing anywhere to say so.
-
-Two things it is not. It is **not a category** — the design file's taxonomy is
-positional, and an atom may compose a lower atom and remain an atom. And it is not
-yet wired into `Development`: nothing derives from it, so a stale consumer is
-something the sweep must notice, not something a formula will catch.
-
-## The release columns
-
-Three columns carry a component from shipped to published, and they are the last
-three cells in its life.
-
-| Column | Owner | What it says |
+| File | Read it if you | Agents |
 |---|---|---|
-| `Release Review` | 📦 Release | The report, at the commit it reviewed |
-| `Release Verdict` | 📦 Release | `Cleared` or `Blocked`, from the seven gates |
-| `Astro Link` | 🚀 DevOps | The page on the deployed reference site |
+| `composition.md` | write `Composes`, or need to know who must be re-tested when a component changes | 🔨 Engineer · 📋 PM · 📦 Release |
+| `staging-testing.md` | create test rows, or write `Testing Results` | 🔍 QA · 🔨 Engineer · 📋 PM |
+| `release-columns.md` | write `Release Review` or `Release Verdict` | 📦 Release |
+| `outside-airtable.md` | write `docs/registry-status.json` | 📝 Doc Generator |
 
-They answer a question no other column asks: **can this component's name go into a
-public version.** Everything upstream checks it against its design; this checks it
-against the next two years — the names, the exported surface, the promises.
-
-They sit **after** `Completed`, because only a component that has shipped has
-something to review. The seven gates are in
-`.claude/skills/release-review/SKILL.md`.
-
-Four things worth knowing:
-
-- **Together, all three produce `Released`.** Separately, none of them changes
-  anything. A `Cleared` verdict with no site link still reads `Completed`, which
-  is the truth: reviewed, not published.
-- **The verdict and its report are written together or not at all.** A verdict
-  with no report behind it is an opinion in a cell.
-- **The report link is pinned to a commit**, never a branch. A branch URL points
-  at whatever the file says today, which is exactly what a review must not do.
-- **📦 Release never writes `Astro Link`.** It prepares releases and never
-  performs them, so a link written by the agent that proposed the release would be
-  a claim rather than a record. 🚀 DevOps writes it, after opening the page.
-
-A review goes stale on its own. `Last Modified` later than the commit the report
-links to means the review is describing a component that has since changed, and no
-formula catches it — that one is the sweep's to notice.
-
-## The registry outside Airtable
-
-One thing reads the registry and cannot reach it: the reference-site generator.
-It is a build script, and giving a build a token so it could ask Airtable
-directly would put a credential in every CI run to answer a question that changes
-twice a week.
-
-So 📝 Doc Generator reads the registry and writes what it saw into
-`docs/registry-status.json`, and the generator refuses to publish a page for any
-component that is not `Completed` there. Three rules make that safe:
-
-- **Names and statuses only.** No base, table, or record IDs — that file is
-  tracked, and this repository is public.
-- **It is evidence, so it carries when it was read.** The generator compares
-  `readAt` against the last commit to each component's own directory: a component
-  that changed after the reading is blocked until somebody reads again, because
-  the recorded status predates the change.
-- **Nobody edits it by hand.** It is a record of what the registry said. Editing
-  it is writing down something that did not happen, which is the one thing this
-  whole contract exists to prevent.
-
-Note that the registry row for Icon Slot is named `Icon Slot` while the folder
-and the export are `IconSlot`. The generator matches on the name with spacing
-ignored and says so when it has to — two systems disagreeing about a name is a
-finding for 📦 Release's gate 4, not a detail to absorb quietly.
+They are paths under `.claude/skills/registry/`. Read the one you need in full;
+do not work from the summary in this table.
 
 ## Development — the derived status
 
@@ -188,29 +126,6 @@ Three consequences worth knowing before you are surprised by them:
   `Done`. A node link with the design still in progress leaves the row blank, and the
   engineer has nothing to pick up.
 
-## Staging Testing — one row per case
-
-QA creates these rows. One row per variant × size × state, never one row per component.
-
-| Column | Owner | Notes |
-|---|---|---|
-| `Component/Sub Component` | 🔍 QA | The case name, e.g. `Button · secondary · hover` |
-| `Composed In` | 🔍 QA | Link to the Components row. Without it the rollups stay empty |
-| `Variants` | 🔍 QA | The variant under test |
-| `Size` | 🔍 QA | `xs` `sm` `md` `lg` `xl` `comfort` `compact` `null` |
-| `State` | 🔍 QA | `idle` `hovered` `focus` `selected` `disabled` `loading` `error` `draft` `pending` `upcoming` `completed` `rejected` `cancelled` `isCurrent` |
-| `Expected Results` | 🔍 QA | What the Figma node says should happen. Name the token or the prop |
-| `Attachment` | 🔍 QA | The screenshot of the case |
-| `Suggestion for Improvement` | 🔍 QA | Optional, and never a repair |
-| `Testing Results` | 🔍 QA, then 🔨 Engineer | See below |
-
-`Testing Results` is the one column two agents touch, and the handoff is strict:
-
-- 🔍 QA writes `Passed` or `Failed`. Only QA writes those two.
-- 🔨 Engineer writes `Fixed (To re-test)`, and only on a row it actually fixed.
-  That is a claim for a re-test, not a pass. An engineer never writes `Passed`.
-- QA then re-tests those rows and moves them to `Passed` or back to `Failed`.
-
 ## Writing
 
 - Look the record up before you write it. Never create a second row for a component
@@ -232,7 +147,8 @@ QA creates these rows. One row per variant × size × state, never one row per c
 - Never write into a formula, rollup, count, or lookup column.
 - Never write into a column another agent owns.
 - Never invent a record ID, a base ID, or a field name. The IDs are in
-  `.claude/registry.local.json`; the field names are in this file.
+  `.claude/registry.local.json`; the field names are in this file and in the
+  four files it points at.
 - Never write a base, table, or record ID into a tracked file, a report, or a commit
   message. Name the component, not the row.
 - Never mark a row `Passed` unless you are QA and you watched it pass.
