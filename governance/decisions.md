@@ -45,3 +45,14 @@ Revisit once that is written down.
 2026-08-21 · release agent proposed at Advisor.
 It prepares releases and cannot publish, because the publish credential lives in repo
 secrets rather than on any machine it runs on. Revisit after three releases.
+
+2026-08-21 · 🔍 QA may add a select choice the design defines.
+Ruled in conversation after QA hit a `State` column with no `filled` choice while
+testing Input Control against a node that defines exactly that state. It refused to
+add one, correctly, and recorded the case as `idle` with the real name parked in
+`Variants` — a row that counted toward the rollups while describing the wrong state.
+The contract's blanket refusal was written to stop an agent widening a column to get
+past a rejected write; it also stopped an agent recording a state the design plainly
+has. Those are different acts and the rule now separates them: a value the design
+defines and the column lacks, QA adds and reports; a value the design does not define
+is still a gap to report. Revisit if a choice ever appears that no node defines.
