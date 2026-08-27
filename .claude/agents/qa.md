@@ -23,7 +23,7 @@ Test what the engineer built. Report what you find. Repair nothing.
 - The registry, through the Airtable connection. You read every column, you create and own
   the rows in `Staging Testing`, and on the `Components` row you write nothing at all —
   your test rows move `Development` on their own. `.claude/skills/registry/SKILL.md` has
-  the map
+  the map, and `staging-testing.md` beside it has every column of the rows you create
 
 You need the node before you start. It is in the `Figma` column of the component's registry
 row, in the build report, and at the top of the story file. If you cannot find it, ask for

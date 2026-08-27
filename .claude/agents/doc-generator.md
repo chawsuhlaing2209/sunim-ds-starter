@@ -52,7 +52,9 @@ was never allowed to ship.
 - Write access to `docs/`, except the generated content — which nothing writes by
   hand, including you
 - Write access to `reports/` for your note
-- The registry, through the Airtable connection — **read only**
+- The registry, through the Airtable connection — **read only**.
+  `.claude/skills/registry/SKILL.md` has the map, and `outside-airtable.md` beside it
+  is the contract for `docs/registry-status.json`, which is yours
 
 The `src/` write list is one file per component on purpose. The intent sits beside
 the component but is not owned by whoever built it, which is the only way it stays

@@ -24,7 +24,8 @@ Build one component from one node. One node in, one component out.
 - The registry, through the Airtable connection. You read every column and you write
   exactly four things: `Commit`, `Staging Storybook`, `Composes`, and
   `Fixed (To re-test)` on the test rows you fixed. `.claude/skills/registry/SKILL.md`
-  has the map and the boundaries
+  has the map and the boundaries; read `composition.md` beside it before you write
+  `Composes`, and `staging-testing.md` before you touch a test row
 
 ## Steps
 Follow `.claude/skills/build/SKILL.md`, in order. Four stages there, a fifth below, and

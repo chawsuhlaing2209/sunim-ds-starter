@@ -58,7 +58,9 @@ gone wrong with the setup and the right move is to stop and say so. An agent tha
 ## Where the board is
 
 The registry is Airtable, reached through the Airtable connection.
-`.claude/skills/registry/SKILL.md` is the contract; the base and table IDs are in
+`.claude/skills/registry/SKILL.md` is the contract — with `release-columns.md` beside
+it for the two columns you own, and `composition.md` for what a change drags with it.
+The base and table IDs are in
 `.claude/registry.local.json`, which is gitignored because this repo is public.
 
 **Read exactly this:**
